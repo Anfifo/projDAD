@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CommonTypes
 {
-    interface ITSpaceServer
+    public interface ITSpaceServer
     {
         int GetPort();
         void Start();

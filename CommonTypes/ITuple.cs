@@ -6,9 +6,14 @@ using System.Threading.Tasks;
 
 namespace CommonTypes
 {
-    interface ITuple
+    public interface ITuple
     {
-        
+        ITuple Add(IField field);
 
+        List<IField> GetFields();
+
+        int getLength();
+
+        bool Matches(ITuple tuple);
     }
 }

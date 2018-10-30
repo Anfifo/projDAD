@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CommonTypes
 {
-    interface IField
+    public interface IField
     {
         //  TODO: Find correct type for getType
         object GetType();
@@ -16,6 +16,6 @@ namespace CommonTypes
 
         void SetValue(object value);
 
-        bool Matches(IField field1, IField field2);
+        bool Matches(IField field);
     }
 }

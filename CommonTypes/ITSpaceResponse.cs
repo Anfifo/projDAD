@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CommonTypes
 {
-    interface ITSpaceResponse
+    public interface ITSpaceResponse
     {
         //  TODO: Find correct type for getType
         string GetType();
