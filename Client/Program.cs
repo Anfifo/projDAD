@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -12,19 +11,43 @@ namespace Client
 
         static void Main(string[] args)
         {
+            //StreamReader reader = File.OpenText(args[0]);
+
             StreamReader reader = File.OpenText("script.txt");
 
             string line;
 
             while ((line = reader.ReadLine()) != null)
             {
-                string[] items = line.Split('\t');
+                string[] splitLine = line.Split('\t');
                 string[] fields = null;
-                foreach (string item in items)
-                {
-                    fields = item.Split('<','>');
+
+                fields = splitLine[0].Split('<', '>');
+
+                // if doesnt have field then its not a tuple operation
+                if (fields.Length == 1) {
+
+                    fields = fields[0].Split(' ');
+
                 }
+                if (fields.Length == 1 & fields[0] == "end-repeat")
+                    {
+                    // end-repeat
+                        Operations.Add(new Operation(fields[0],"0"));
+                    }
+
+                    switch (fields[0])
+                        {
+                        case "wait":
+                            Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                            break;
+                        case "begin-repeat":
+                            Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                            break;
+
+                        }
                     fields[0] = fields[0].Replace(" ", string.Empty);
+
                     switch (fields[0])
                     {
                         case "add":
@@ -36,15 +59,6 @@ namespace Client
                         case "take":
                             Operations.Add(new Operation(fields[0],fields[1].Replace(" ", string.Empty)));
                             break;
-                        case "wait":
-                            Operations.Add(new Operation(fields[0],fields[1].Replace(" ", string.Empty)));
-                            break;
-                        case "begin-repeat":
-                            Operations.Add(new Operation(fields[0],fields[1].Replace(" ", string.Empty)));
-                            break;
-                        case "end-repeat":
-                            Operations.Add(new Operation(fields[0],fields[1].Replace(" ", string.Empty)));
-                            break;
 
                     }
 
@@ -54,19 +68,88 @@ namespace Client
             {
                 Operation op = (Operation)Operations[i];
 
-                Console.WriteLine(op.getType());
+                op.buildFields();
 
-                op.getArgs();
+            }
 
-                foreach (Object o in op.getArguments())
-                {
-                   Console.WriteLine(o.GetType() + "   " + o.ToString());
-                }
-
-                Console.WriteLine();
-            } 
+            ExecuteOperations(Operations);
 
             Console.ReadLine();
+        }
+
+        static void ExecuteOperations(ArrayList Operations)
+        {
+            for (int i = 0 ; i < Operations.Count;i++)
+            {
+                Operation Op = (Operation)Operations[i];
+                switch (Op.getType())
+                {
+                    case "add":
+
+                        Console.WriteLine("WE ADDING");
+
+                        CommonTypes.Tuple tuple = new CommonTypes.Tuple(Op.getFields());
+
+                        break;
+
+                    case "take":
+
+                        Console.WriteLine("WE TAKING");
+
+                        CommonTypes.Tuple Tuple = new CommonTypes.Tuple(Op.getFields());
+
+                        break;
+
+                    case "read":
+
+                        Console.WriteLine("WE READING");
+
+                        CommonTypes.Tuple Tupl3 = new CommonTypes.Tuple(Op.getFields());
+
+                        break;
+
+                    case "wait":
+
+
+                        Console.WriteLine("WE WAITING");
+
+                        System.Threading.Thread.Sleep((int)Op.getFields()[0]);
+
+                        Console.WriteLine("WE STOPPED WAITING");
+
+                        break;
+
+                    case "begin-repeat":
+
+                        int TimesToRepeat = (int)Op.getFields()[0];
+
+                        Console.WriteLine("WE REPEATING" + " " + TimesToRepeat);
+
+                        ArrayList OperationsToBeRepeated = new ArrayList();
+
+                        for (int j = i+1; i < Operations.Count; j++)
+                        {
+                            Operation O = (Operation)Operations[j];
+
+                            if (O.getType() == "end-repeat")
+                            {
+                                break;
+                            }
+
+
+                            OperationsToBeRepeated.Add(Operations[j]);
+
+                        }
+
+                        for(int t = 0; t < TimesToRepeat;t++)
+                            ExecuteOperations(OperationsToBeRepeated);
+
+                        break;
+                    case "end-repeat":
+                        Console.WriteLine("WE STOPPED REPEATING");
+                        break;
+                }
+            }
         }
 
     }
@@ -75,7 +158,7 @@ namespace Client
     {
         string fields;
         string type;
-        ArrayList arguments = new ArrayList();
+        ArrayList Fields = new ArrayList();
 
         public Operation(string _type, string _fields)
         {
@@ -83,76 +166,184 @@ namespace Client
             fields = _fields;
         }
 
-        public string getFields()
-        {
-            return fields;
-        }
 
         public string getType()
         {
             return type;
         }
 
-        public ArrayList getArguments()
+        public ArrayList getFields()
         {
-            return arguments;
+            return Fields;
         }
 
-        public void getArgs()
+        public void buildFields()
         {
-            string[] splitarguments = fields.Split(',');
+            fields = replace(fields);
+            string[] splitfields = fields.Split(',');
 
-            for(int i = 0;i < splitarguments.Length; i++)
+            // get tuple field objects
+            for(int i = 0;i < splitfields.Length; i++)
             {
-                if (splitarguments[i].Contains('(')) /* bad condition */
+            
+                if(splitfields[i] == "null") // if null
                 {
-                    string ObjType = splitarguments[i].Split('(')[0];
-                    
-                    string ClassArgs = splitarguments[i].Split('(')[1];
+                    Fields.Add(null);
 
+                    continue;
+                }
+                if (splitfields[i].Contains('(')) // if a class constructor
+                {
+                    string ObjType = splitfields[i].Split('(')[0];
 
-                    //Object[] ConArgs = new Object[9999]; /* i am sick please understand dont want to think */
-
-                    //ConArgs = GetConArgs(fields);
+                    Object[] ConstructorArgs = getConstructorArgs(splitfields[i]);
 
                     Type t = Type.GetType("Client" + '.' + ObjType);
-                    Object o = Activator.CreateInstance(t);
-                    arguments.Add(o);
-                    continue;
-                }
-                if (splitarguments[i].Contains("\"")) /* bad condition */
-                {
-                    string arg = splitarguments[i].Replace("\"", string.Empty);
 
-                    arguments.Add(arg);
+                    Object Field = Activator.CreateInstance(t, ConstructorArgs);
+
+                    Fields.Add(Field);
 
                     continue;
                 }
-                else /* bad condition */
+                if (splitfields[i].Contains("\"")) // if string
                 {
-                    int Arg = Int32.Parse(splitarguments[i]);
+                    string field = splitfields[i].Replace("\"", string.Empty);
 
-                    arguments.Add(Arg);
+                    if(field == "*")
+                    {
+                        StringField Field = new StringField(false, false, true, null);
+                        Fields.Add(Field);
+                        continue;
+                    }
+
+                    if (field[0] == '*')
+                    {
+                        StringField Field = new StringField(false, true, false, field);
+                        Fields.Add(Field);
+                        continue;
+                    }
+
+
+                    if (field[field.Length-1] == '*')
+                    {
+                        StringField Field = new StringField(false, true, false, field);
+                        Fields.Add(Field);
+                        continue;
+                    }
+
+                    Fields.Add(field);
+
+                }
+
+                else // if int
+                {
+
+                    int Field = Int32.Parse(splitfields[i]);
+
+                    Fields.Add(Field);
 
                     continue;
                 }
             }
+
         }
 
-        public Object[] GetConArgs(string Args)
+        // replace commas between ( ) with " | "
+        public string replace(string S)
         {
+            string[] splitS = S.Split('(', ')');
 
+            if(splitS.Length == 1)
+            {
+                return S;
+            }
+            string newS = "";
 
-            return new Object[1];
+            for(int i = 0; i < splitS.Length; i++)
+            {
+                if (i % 2 != 0)
+                {
+                    splitS[i] = splitS[i].Replace(",","|");
+
+                    newS = newS + splitS[i-1] + '(' + splitS[i] + ')';
+                }
+                if(i == splitS.Length - 1)
+                {
+                    newS = newS + splitS[i];
+                }
+            }
+            return newS;
+        }
+
+        // get arguments for constructor 
+        public Object[] getConstructorArgs(string Args)
+        {
+            ArrayList ArgList = new ArrayList();
+
+            string[] split = Args.Split('(', ')');
+
+            string[] splitArgs = split[1].Split('|');
+            
+
+            for (int i = 0;i < splitArgs.Length; i++)
+            {
+                if (splitArgs[i].Contains("\"")) // string
+                {
+                    string Arg = splitArgs[i].Replace("\"", string.Empty);
+
+                    ArgList.Add(Arg);
+
+                    continue;
+                }
+                else // int
+                {
+
+                    int Arg = Int32.Parse(splitArgs[i]);
+
+                    ArgList.Add(Arg);
+
+                    continue;
+                }
+            }
+
+            Object[] ConstructorArgs = new Object[ArgList.Count];
+
+            for (int j = 0; j < ConstructorArgs.Length; j++)
+            {
+                ConstructorArgs[j] = ArgList[j];
+            }
+
+            return ConstructorArgs;
            
+        }
+    }
+
+    public class StringField
+    {
+        Boolean InitialSubString;
+        Boolean FinalSubString;
+        Boolean AnyString;
+        String  field;
+
+        public StringField(Boolean IS,Boolean FS, Boolean AS, String f)
+        {
+            InitialSubString = IS;
+            FinalSubString = FS;
+            AnyString = AS;
+            field = f;
         }
     }
 
     public class ClassTest
     {
 
-        public ClassTest()
+        public ClassTest(int i,string l,int j,string O)
         {
+            Console.WriteLine("I:" + i);
+            Console.WriteLine("l:" + l);
+            Console.WriteLine("J:" + j);
+            Console.WriteLine("O:" + O);
         }
     }
 }
