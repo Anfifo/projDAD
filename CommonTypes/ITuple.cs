@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,9 +8,9 @@ namespace CommonTypes
 {
     public interface ITuple
     {
-        ITuple Add(IField field);
+        ITuple Add(Object field);
 
-        List<IField> GetFields();
+        ArrayList GetFields();
 
         int getLength();
 
