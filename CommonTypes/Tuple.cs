@@ -7,7 +7,17 @@ namespace CommonTypes
 {
     class Tuple : ITuple
     {
-        private ArrayList tuple = new ArrayList();
+        private ArrayList tuple;
+
+        public Tuple()
+        {
+            tuple = new ArrayList();
+        }
+
+        public Tuple(ArrayList fields)
+        {
+            tuple = new ArrayList(fields);
+        }
 
         public ITuple Add(Object field)
         {
