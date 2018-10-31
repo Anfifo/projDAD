@@ -5,7 +5,7 @@ using System.Collections;
 
 namespace CommonTypes
 {
-    class Tuple : ITuple
+    public class Tuple : ITuple
     {
         private ArrayList tuple;
 
