@@ -3,7 +3,7 @@ using CommonTypes;
 using System.Collections;
 
 
-namespace Server
+namespace CommonTypes
 {
     class Tuple : ITuple
     {
@@ -11,8 +11,8 @@ namespace Server
 
         public ITuple Add(Object field)
         {
-           tuple.Add(field);
-           return this;
+            tuple.Add(field);
+            return this;
         }
 
         public ArrayList GetFields()
@@ -30,7 +30,7 @@ namespace Server
             if (this.getLength() != tuple.getLength())
                 return false;
 
-            for(int i = 0; i < this.getLength(); i++)
+            for (int i = 0; i < this.getLength(); i++)
             {
                 Object f1 = tuple.GetFields()[i];
                 Object f2 = this.tuple[i];
