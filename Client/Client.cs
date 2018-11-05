@@ -2,10 +2,11 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
+using Tuple = CommonTypes.Tuple;
 
 namespace Client
 {
-    class Program
+    class Client
     {
         public static ArrayList Operations = new ArrayList();
 
@@ -89,7 +90,7 @@ namespace Client
 
                         Console.WriteLine("WE ADDING");
 
-                        CommonTypes.Tuple tuple = new CommonTypes.Tuple(Op.getFields());
+                        Tuple tuple = new Tuple(Op.getFields());
 
                         break;
 
@@ -97,7 +98,7 @@ namespace Client
 
                         Console.WriteLine("WE TAKING");
 
-                        CommonTypes.Tuple Tuple = new CommonTypes.Tuple(Op.getFields());
+                        Tuple Tuple = new Tuple(Op.getFields());
 
                         break;
 
@@ -105,7 +106,7 @@ namespace Client
 
                         Console.WriteLine("WE READING");
 
-                        CommonTypes.Tuple Tupl3 = new CommonTypes.Tuple(Op.getFields());
+                        Tuple Tupl3 = new Tuple(Op.getFields());
 
                         break;
 
@@ -127,10 +128,11 @@ namespace Client
                         Console.WriteLine("WE REPEATING" + " " + TimesToRepeat);
 
                         ArrayList OperationsToBeRepeated = new ArrayList();
-
-                        for (int j = i + 1; i < Operations.Count; j++)
+                        for (int j = i+1; j < Operations.Count; j++)
                         {
+
                             Operation O = (Operation)Operations[j];
+
 
                             if (O.getType() == "end-repeat")
                             {
@@ -139,11 +141,17 @@ namespace Client
 
 
                             OperationsToBeRepeated.Add(Operations[j]);
+                            i++;
 
                         }
 
+
                         for (int t = 0; t < TimesToRepeat; t++)
+                        {
                             ExecuteOperations(OperationsToBeRepeated);
+                        }
+
+
 
                         break;
                     case "end-repeat":
@@ -182,7 +190,6 @@ namespace Client
         {
             fields = replace(fields);
             string[] splitfields = fields.Split(',');
-            Console.WriteLine(fields);
             // get tuple field objects
             for (int i = 0; i < splitfields.Length; i++)
             {
@@ -239,14 +246,12 @@ namespace Client
                 }
                 if (char.IsUpper(splitfields[i][0]))
                 {
-                    Console.WriteLine("Here:" + splitfields[i][0]);
                     Type field = Type.GetType("Client" + '.' + splitfields[i]);
                     Fields.Add(fields);
                     continue; 
                 } 
                 else // if int
                 {
-                    Console.WriteLine(splitfields[i]);
                     int Field = Int32.Parse(splitfields[i]);
 
                     Fields.Add(Field);
@@ -367,6 +372,8 @@ namespace Client
         {
             i1 = pi1;
             s1 = ps1;
+
+            Console.WriteLine(i1.ToString() +  s1.ToString() + this.GetType());
         }
         public bool Equals(DADTestA o)
         {
@@ -392,6 +399,9 @@ namespace Client
             i1 = pi1;
             s1 = ps1;
             i2 = pi2;
+
+            Console.WriteLine(i1.ToString() + s1.ToString() + i2.ToString() + this.GetType());
+
         }
 
         public bool Equals(DADTestB o)
@@ -418,6 +428,8 @@ namespace Client
             i1 = pi1;
             s1 = ps1;
             s2 = ps2;
+
+            Console.WriteLine(i1.ToString() + s1.ToString() + s2.ToString() + this.GetType());
         }
 
         public bool Equals(DADTestC o)
