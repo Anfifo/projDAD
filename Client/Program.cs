@@ -25,42 +25,43 @@ namespace Client
                 fields = splitLine[0].Split('<', '>');
 
                 // if doesnt have field then its not a tuple operation
-                if (fields.Length == 1) {
+                if (fields.Length == 1)
+                {
 
                     fields = fields[0].Split(' ');
 
                 }
                 if (fields.Length == 1 & fields[0] == "end-repeat")
-                    {
+                {
                     // end-repeat
-                        Operations.Add(new Operation(fields[0],"0"));
-                    }
+                    Operations.Add(new Operation(fields[0], "0"));
+                }
 
-                    switch (fields[0])
-                        {
-                        case "wait":
-                            Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
-                            break;
-                        case "begin-repeat":
-                            Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
-                            break;
+                switch (fields[0])
+                {
+                    case "wait":
+                        Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                        break;
+                    case "begin-repeat":
+                        Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                        break;
 
-                        }
-                    fields[0] = fields[0].Replace(" ", string.Empty);
+                }
+                fields[0] = fields[0].Replace(" ", string.Empty);
 
-                    switch (fields[0])
-                    {
-                        case "add":
-                            Operations.Add(new Operation(fields[0],fields[1].Replace(" ",string.Empty)));
-                            break;
-                        case "read":
-                            Operations.Add(new Operation(fields[0],fields[1].Replace(" ", string.Empty)));
-                            break;
-                        case "take":
-                            Operations.Add(new Operation(fields[0],fields[1].Replace(" ", string.Empty)));
-                            break;
+                switch (fields[0])
+                {
+                    case "add":
+                        Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                        break;
+                    case "read":
+                        Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                        break;
+                    case "take":
+                        Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                        break;
 
-                    }
+                }
 
             }
 
@@ -79,7 +80,7 @@ namespace Client
 
         static void ExecuteOperations(ArrayList Operations)
         {
-            for (int i = 0 ; i < Operations.Count;i++)
+            for (int i = 0; i < Operations.Count; i++)
             {
                 Operation Op = (Operation)Operations[i];
                 switch (Op.getType())
@@ -127,7 +128,7 @@ namespace Client
 
                         ArrayList OperationsToBeRepeated = new ArrayList();
 
-                        for (int j = i+1; i < Operations.Count; j++)
+                        for (int j = i + 1; i < Operations.Count; j++)
                         {
                             Operation O = (Operation)Operations[j];
 
@@ -141,7 +142,7 @@ namespace Client
 
                         }
 
-                        for(int t = 0; t < TimesToRepeat;t++)
+                        for (int t = 0; t < TimesToRepeat; t++)
                             ExecuteOperations(OperationsToBeRepeated);
 
                         break;
@@ -154,7 +155,7 @@ namespace Client
 
     }
 
-   public class Operation
+    public class Operation
     {
         string fields;
         string type;
@@ -181,12 +182,12 @@ namespace Client
         {
             fields = replace(fields);
             string[] splitfields = fields.Split(',');
-
+            Console.WriteLine(fields);
             // get tuple field objects
-            for(int i = 0;i < splitfields.Length; i++)
+            for (int i = 0; i < splitfields.Length; i++)
             {
-            
-                if(splitfields[i] == "null") // if null
+
+                if (splitfields[i] == "null") // if null
                 {
                     Fields.Add(null);
 
@@ -210,7 +211,7 @@ namespace Client
                 {
                     string field = splitfields[i].Replace("\"", string.Empty);
 
-                    if(field == "*")
+                    if (field == "*")
                     {
                         StringField Field = new StringField(false, false, true, null);
                         Fields.Add(Field);
@@ -225,7 +226,7 @@ namespace Client
                     }
 
 
-                    if (field[field.Length-1] == '*')
+                    if (field[field.Length - 1] == '*')
                     {
                         StringField Field = new StringField(false, true, false, field);
                         Fields.Add(Field);
@@ -233,12 +234,19 @@ namespace Client
                     }
 
                     Fields.Add(field);
+                    continue;
 
                 }
-
+                if (char.IsUpper(splitfields[i][0]))
+                {
+                    Console.WriteLine("Here:" + splitfields[i][0]);
+                    Type field = Type.GetType("Client" + '.' + splitfields[i]);
+                    Fields.Add(fields);
+                    continue; 
+                } 
                 else // if int
                 {
-
+                    Console.WriteLine(splitfields[i]);
                     int Field = Int32.Parse(splitfields[i]);
 
                     Fields.Add(Field);
@@ -254,24 +262,27 @@ namespace Client
         {
             string[] splitS = S.Split('(', ')');
 
-            if(splitS.Length == 1)
+            if (splitS.Length == 1)
             {
                 return S;
             }
             string newS = "";
 
-            for(int i = 0; i < splitS.Length; i++)
+            for (int i = 0; i < splitS.Length; i++)
             {
-                if (i % 2 != 0)
-                {
-                    splitS[i] = splitS[i].Replace(",","|");
-
-                    newS = newS + splitS[i-1] + '(' + splitS[i] + ')';
-                }
-                if(i == splitS.Length - 1)
+                if (i == splitS.Length - 1)
                 {
                     newS = newS + splitS[i];
+                    continue;
                 }
+
+                if (i % 2 != 0)
+                {
+                    splitS[i] = splitS[i].Replace(",", "|");
+
+                    newS = newS + splitS[i - 1] + '(' + splitS[i] + ')';
+                }
+               
             }
             return newS;
         }
@@ -284,9 +295,9 @@ namespace Client
             string[] split = Args.Split('(', ')');
 
             string[] splitArgs = split[1].Split('|');
-            
 
-            for (int i = 0;i < splitArgs.Length; i++)
+
+            for (int i = 0; i < splitArgs.Length; i++)
             {
                 if (splitArgs[i].Contains("\"")) // string
                 {
@@ -315,7 +326,7 @@ namespace Client
             }
 
             return ConstructorArgs;
-           
+
         }
     }
 
@@ -324,9 +335,9 @@ namespace Client
         Boolean InitialSubString;
         Boolean FinalSubString;
         Boolean AnyString;
-        String  field;
+        String field;
 
-        public StringField(Boolean IS,Boolean FS, Boolean AS, String f)
+        public StringField(Boolean IS, Boolean FS, Boolean AS, String f)
         {
             InitialSubString = IS;
             FinalSubString = FS;
@@ -338,12 +349,87 @@ namespace Client
     public class ClassTest
     {
 
-        public ClassTest(int i,string l,int j,string O)
+        public ClassTest(int i, string l, int j, string O)
         {
             Console.WriteLine("I:" + i);
             Console.WriteLine("l:" + l);
             Console.WriteLine("J:" + j);
             Console.WriteLine("O:" + O);
+        }
+    }
+
+    public class DADTestA
+    {
+        public int i1;
+        public string s1;
+
+        public DADTestA(int pi1, string ps1)
+        {
+            i1 = pi1;
+            s1 = ps1;
+        }
+        public bool Equals(DADTestA o)
+        {
+            if (o == null)
+            {
+                return false;
+            }
+            else
+            {
+                return ((this.i1 == o.i1) && (this.s1.Equals(o.s1)));
+            }
+        }
+    }
+
+    public class DADTestB
+    {
+        public int i1;
+        public string s1;
+        public int i2;
+
+        public DADTestB(int pi1, string ps1, int pi2)
+        {
+            i1 = pi1;
+            s1 = ps1;
+            i2 = pi2;
+        }
+
+        public bool Equals(DADTestB o)
+        {
+            if (o == null)
+            {
+                return false;
+            }
+            else
+            {
+                return ((this.i1 == o.i1) && (this.s1.Equals(o.s1)) && (this.i2 == o.i2));
+            }
+        }
+    }
+
+    public class DADTestC
+    {
+        public int i1;
+        public string s1;
+        public string s2;
+
+        public DADTestC(int pi1, string ps1, string ps2)
+        {
+            i1 = pi1;
+            s1 = ps1;
+            s2 = ps2;
+        }
+
+        public bool Equals(DADTestC o)
+        {
+            if (o == null)
+            {
+                return false;
+            }
+            else
+            {
+                return ((this.i1 == o.i1) && (this.s1.Equals(o.s1)) && (this.s2.Equals(o.s2)));
+            }
         }
     }
 }
