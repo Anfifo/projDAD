@@ -15,9 +15,8 @@ namespace Client
 
         void Put(ITuple tuple);
 
-        //TODO: figure wtf view is
-        object GetView();
+        string[] GetView();
 
-        void UpdateView(object group);
+        void UpdateView(string[] group);
     }
 }
