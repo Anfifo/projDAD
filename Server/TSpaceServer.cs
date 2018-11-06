@@ -40,7 +40,7 @@ namespace Server
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
-            string command = "ola";
+            string command = msg.Code;
 
             Console.WriteLine("Processing Request " + command + ":");
             switch (command)

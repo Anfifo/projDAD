@@ -4,6 +4,7 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Net.Sockets;
+using CommonTypes;
 
 namespace Client
 {
@@ -22,7 +23,12 @@ namespace Client
 
 	 		try
 	 		{
-	 			Console.WriteLine(obj.ProcessRequest());
+                TSpaceMsg msg = new TSpaceMsg
+                {
+                    Code = "take1"
+                };
+
+                Console.WriteLine(obj.ProcessRequest(msg));
 	 		}
 	 		catch(SocketException)
 	 		{
