@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Operation.cs" />
     <Compile Include="TO_Multicast.cs" />
     <Compile Include="DummyClient.cs" />
     <Compile Include="Client.cs" />
