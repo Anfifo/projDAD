@@ -9,14 +9,35 @@ namespace Client
 {
     class XL_Client : ITSpaceAPI
     {
-        private string[] view = { "server1", "server2", "server3" };
+        // View of the tuple spaces servers.
+        private List<ITSpaceServer> view { get; set; }
 
-        public string[] GetView()
+        // ID of the tuple spaces servers view.
+        private int viewId { get; set; }
+
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="viewUrls">Url of the tuple space servers.</param>
+        public XL_Client(List<string> viewUrls, int viewId)
         {
-            return view;
-        }
+            foreach(string serverUrl in viewUrls)
+            {
+                ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
+                view.Add(server);
+            }
+            this.viewId = viewId;
 
-        public void Put(ITuple tuple)
+        }
+       
+
+
+        /// <summary>
+        /// Adds a tuple to the distributed tuple space.
+        /// </summary>
+        /// <param name="tuple">Tuple to be added.</param>
+        public void Add(ITuple tuple)
         {
             // Send multicast message to all members of the view
 
@@ -25,6 +46,11 @@ namespace Client
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Returns a tuple from the distributed tuple space, whithout deleting it.
+        /// </summary>
+        /// <param name="template">Template of the requested tuple.</param>
+        /// <returns></returns>
         public ITuple Read(ITuple template)
         {
             // Send multicast message to all members of the view
@@ -34,6 +60,11 @@ namespace Client
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Returns a tuple from the distributed tuple space, deleting it.
+        /// </summary>
+        /// <param name="template">Template of the requested tuple.</param>
+        /// <returns></returns>
         public ITuple Take(ITuple template)
         {
             /*------------------------------------------------
@@ -62,11 +93,6 @@ namespace Client
 
 
             throw new NotImplementedException();
-        }
-
-        public void UpdateView(string[] group)
-        {
-            this.view = group;
         }
     }
 }

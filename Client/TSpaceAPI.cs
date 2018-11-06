@@ -13,10 +13,6 @@ namespace Client
 
         ITuple Take(ITuple template);
 
-        void Put(ITuple tuple);
-
-        string[] GetView();
-
-        void UpdateView(string[] group);
+        void Add(ITuple tuple);
     }
 }

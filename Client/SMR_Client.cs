@@ -9,13 +9,23 @@ namespace Client
 {
     class SMR_Client : ITSpaceAPI
     {
-        private string[] view;
-        public string[] GetView()
+        /// <summary>
+        /// Tuple spaces servers
+        /// </summary>
+        private List<ITSpaceServer> view { get; set; } 
+
+        /// <summary>
+        /// View number.
+        /// </summary>
+        private int viewID { get; set; }
+        
+
+        public SMR_Client(string[] tspacesUrl)
         {
-            return view;
+
         }
 
-        public void Put(ITuple tuple)
+        public void Add(ITuple tuple)
         {
             // Send total order multicast to all members of the view
 
@@ -42,9 +52,7 @@ namespace Client
             throw new NotImplementedException();
         }
 
-        public void UpdateView(string[] group)
-        {
-            this.view = group;
-        }
+
+
     }
 }
