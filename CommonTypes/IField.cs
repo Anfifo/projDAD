@@ -8,11 +8,9 @@ namespace CommonTypes
 {
     public interface IField
     {
-        Type GetType();
+        Type GetFieldType();
         
         object GetValue();
-
-        void SetValue(object value);
 
         bool Matches(IField field);
     }

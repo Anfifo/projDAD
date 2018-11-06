@@ -39,7 +39,7 @@ namespace ProcessCreationService
 
             //info.UseShellExecute = false;
 
-            //info.CreateNoWindow = false;
+            info.CreateNoWindow = false;
 
             info.Arguments = "script.txt";
 
