@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommonTypes;
+using System.Runtime.Remoting;
+
 
 namespace Server
 {
-    class TSpaceServer : ITSpaceServer
+    class TSpaceServer : MarshalByRefObject, ITSpaceServer
     {
         public int Port;
 

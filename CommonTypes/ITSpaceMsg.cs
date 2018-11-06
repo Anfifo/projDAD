@@ -6,34 +6,39 @@ using System.Threading.Tasks;
 
 namespace CommonTypes
 {
+    [Serializable]
     public class TSpaceMsg
     {
-        string Code
+        public string Code
         {
             get; set;
         }
 
-        string Type
+        public string Type
         {
             get; set;
         }
 
-        ITuple Tuple
+        public ITuple Tuple
         {
             get;set;
         }
 
-        int SequenceNumber
+        public int SequenceNumber
         {
             get; set;
         }
 
-        int ID
+        public int ClientID
+        {
+            get; set;
+        }
+        public int ID
         {
             get; set;
         }
 
-
+        
 
     }
 }

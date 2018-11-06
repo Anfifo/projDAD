@@ -12,12 +12,12 @@ namespace Client
         /// <summary>
         /// Tuple spaces servers
         /// </summary>
-        private List<ITSpaceServer> view { get; set; } 
+        private List<ITSpaceServer> View { get; set; } 
 
         /// <summary>
         /// View number.
         /// </summary>
-        private int viewID { get; set; }
+        private int ViewID { get; set; }
         
 
         public SMR_Client(string[] tspacesUrl)

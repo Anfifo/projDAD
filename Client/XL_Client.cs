@@ -1,19 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CommonTypes;
+using System.Runtime.Remoting;
 
 namespace Client
 {
     class XL_Client : ITSpaceAPI
     {
         // View of the tuple spaces servers.
-        private List<ITSpaceServer> view { get; set; }
+        private List<ITSpaceServer> View { get; set; }
 
         // ID of the tuple spaces servers view.
-        private int viewId { get; set; }
+        private int ViewId { get; set; }
+
+        // Sequence number of the last request
+        private int SequenceNumber;
+
+        // Client ID
+        private readonly int ClientID;
+
+        // Delegate for remote assync call to the tuple space servers
+        delegate TSpaceMsg RemoteAsyncDelegate(TSpaceMsg request);
+
+        // Counter for the number of acknowledgements received 
+        private int AckCounter;
 
 
         /// <summary>
@@ -22,12 +32,18 @@ namespace Client
         /// <param name="viewUrls">Url of the tuple space servers.</param>
         public XL_Client(List<string> viewUrls, int viewId)
         {
+            // Get the reference for the tuple space servers
             foreach(string serverUrl in viewUrls)
             {
                 ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
-                view.Add(server);
+                if(server != null)
+                    View.Add(server);
             }
-            this.viewId = viewId;
+
+            ViewId = viewId;
+
+            // Set the client unique identifier
+            ClientID = new Random().Next();
 
         }
        
@@ -39,11 +55,34 @@ namespace Client
         /// <param name="tuple">Tuple to be added.</param>
         public void Add(ITuple tuple)
         {
-            // Send multicast message to all members of the view
+            TSpaceMsg message = new TSpaceMsg();
 
+            message.Code = "add";
+            message.Tuple = tuple;
+            message.SequenceNumber = ++SequenceNumber;
+            message.ClientID = ClientID;
+
+            
+
+            RemoteAsyncDelegate remoteDel;
+
+
+            
+            // Create local callback
+            AsyncCallback remoteCallback = new AsyncCallback(XL_Client.RemoteAsyncCallback);
+
+            //Send multicast message to all members of the view
+            foreach (ITSpaceServer server in View) {
+
+                // Create delegate for remote method
+                remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
+
+                // Call remote method
+                remoteDel.BeginInvoke(message, remoteCallback, null);
+            }
             // Put request is repeated until all replicas have acknowledge receipt
 
-            throw new NotImplementedException();
+            
         }
 
         /// <summary>
@@ -93,6 +132,11 @@ namespace Client
 
 
             throw new NotImplementedException();
+        }
+
+        public static void RemoteAsyncCallback(IAsyncResult result)
+        {
+
         }
     }
 }
