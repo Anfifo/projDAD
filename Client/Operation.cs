@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CommonTypes;
@@ -41,7 +42,7 @@ namespace Client
 
                 if (splitfields[i] == "null") // if null
                 {
-                    Fields.Add(null);
+                    Fields.Add(new Field(null));
 
                     continue;
                 }
@@ -50,49 +51,49 @@ namespace Client
                     string ObjType = splitfields[i].Split('(')[0];
 
                     Object[] ConstructorArgs = getConstructorArgs(splitfields[i]);
+                
+                    Type t = Type.GetType("CommonTypes" + '.' + ObjType + "," + "CommonTypes");
 
-                    Type t = Type.GetType("Client" + '.' + ObjType);
+                    Object field = Activator.CreateInstance(t, ConstructorArgs);
 
-                    Object Field = Activator.CreateInstance(t, ConstructorArgs);
-
-                    Fields.Add(Field);
+                    Fields.Add(new Field(field));
 
                     continue;
                 }
                 if (splitfields[i].Contains("\"")) // if string
                 {
-                    string field = splitfields[i].Replace("\"", string.Empty);
+                    string Field = splitfields[i].Replace("\"", string.Empty);
 
-                    if (field == "*")
+                    if (Field == "*")
                     {
-                        StringField Field = new StringField(false, false, true, null);
-                        Fields.Add(Field);
+                        StringField field = new StringField(false, false, true, null);
+                        Fields.Add(new Field(field));
                         continue;
                     }
 
-                    if (field[0] == '*')
+                    if (Field[0] == '*')
                     {
-                        StringField Field = new StringField(false, true, false, field);
-                        Fields.Add(Field);
+                        StringField field = new StringField(false, true, false, Field);
+                        Fields.Add(new Field(field));
                         continue;
                     }
 
 
-                    if (field[field.Length - 1] == '*')
+                    if (Field[Field.Length - 1] == '*')
                     {
-                        StringField Field = new StringField(false, true, false, field);
-                        Fields.Add(Field);
+                        StringField field = new StringField(false, true, false, Field);
+                        Fields.Add(new Field(field));
                         continue;
                     }
 
-                    Fields.Add(field);
+                    Fields.Add(new Field(Field));
                     continue;
 
                 }
                 if (char.IsUpper(splitfields[i][0]))
                 {
-                    Type field = Type.GetType("Client" + '.' + splitfields[i]);
-                    Fields.Add(fields);
+                    Type field = Type.GetType("CommonTypes" + '.' + splitfields[i] + "," + "CommonTypes");
+                    Fields.Add(new Field(field));
                     continue;
                 }
                 else // if int

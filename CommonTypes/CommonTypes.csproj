@@ -41,8 +41,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Field.cs" />
     <Compile Include="ITSpaceMsg.cs" />
     <Compile Include="StringField.cs" />
+    <Compile Include="TestClasses.cs" />
     <Compile Include="Tuple.cs" />
     <Compile Include="IField.cs" />
     <Compile Include="ITuple.cs" />

@@ -8,10 +8,10 @@ namespace CommonTypes
 {
     public class StringField
     {
-        Boolean InitialSubString;
-        Boolean FinalSubString;
-        Boolean AnyString;
-        String field;
+        public Boolean InitialSubString;
+        public Boolean FinalSubString;
+        public Boolean AnyString;
+        public String field;
 
 
         public StringField(Boolean IS, Boolean FS, Boolean AS, String f)
