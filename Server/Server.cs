@@ -14,14 +14,13 @@ namespace Server
     {
         static void Main(string[] args)
         {
-         
 
             TcpChannel channel = new TcpChannel(8086);
             ChannelServices.RegisterChannel(channel, true);
 
             RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(object),
-                "MyRemoteObjectName",
+                typeof(TSpaceServer),
+                "TSpaceServer",
                 WellKnownObjectMode.Singleton);
 
             System.Console.WriteLine("<enter> para sair...");

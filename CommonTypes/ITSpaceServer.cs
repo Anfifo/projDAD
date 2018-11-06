@@ -12,7 +12,6 @@ namespace CommonTypes
         void Start();
         void Run();
         void Stop();
-
-
+        TSpaceMsg ProcessRequest(TSpaceMsg msg);
     }
 }

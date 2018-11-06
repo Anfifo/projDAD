@@ -41,10 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ITSpaceMsg.cs" />
     <Compile Include="StringField.cs" />
     <Compile Include="Tuple.cs" />
-    <Compile Include="ITSpaceResponse.cs" />
-    <Compile Include="ITSpaceRequest.cs" />
     <Compile Include="IField.cs" />
     <Compile Include="ITuple.cs" />
     <Compile Include="ITSpaceServer.cs" />
