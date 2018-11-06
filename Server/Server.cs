@@ -14,7 +14,7 @@ namespace Server
     {
         static void Main(string[] args)
         {
-            
+         
 
             TcpChannel channel = new TcpChannel(8086);
             ChannelServices.RegisterChannel(channel, true);
