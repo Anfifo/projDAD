@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace ProcessCreationService
 {
-    class Program
+    class ProcessCreationServiceMain
     {
         static void Main(string[] args)
         {
-            TcpChannel channel = new TcpChannel(8086);
+            TcpChannel channel = new TcpChannel(10000);
             ChannelServices.RegisterChannel(channel, false);
             ProcessCreationService PCS = new ProcessCreationService();
             RemotingServices.Marshal(PCS,"ProcessCreationService", typeof(ProcessCreationService));
@@ -37,13 +37,16 @@ namespace ProcessCreationService
             
             ProcessStartInfo info = new ProcessStartInfo(@"C:\\Users\\paranois3\\Dropbox\\projDAD\\Client\\bin\\Debug\\Client.exe");
 
-            info.UseShellExecute = false;
+            //info.UseShellExecute = false;
 
-            info.CreateNoWindow = false;
+            //info.CreateNoWindow = false;
 
-            Process.Start(info);
+            info.Arguments = "script.txt";
+
+            Process P = Process.Start(info);
 
 
         }
+
     }
 }

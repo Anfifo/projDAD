@@ -2,24 +2,31 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using PCS = ProcessCreationService.ProcessCreationService;
+
+using Pcs = ProcessCreationService.ProcessCreationService;
 
 namespace PuppetMaster
 {
 
-    class Program
+    class PuppetMaster
     {
 
         static void Main(string[] args)
         {
-            
+
             //StreamReader reader = File.OpenText(args[0]);
 
-            StreamReader reader = File.OpenText("script.txt");
+            StreamReader reader = null;
+
+            try
+            {
+                reader = File.OpenText("script.txt");
+
+            }catch (FileNotFoundException e){
+
+                
+            }
+
 
             PuppetMasterService MasterofPuppets = new PuppetMasterService();
 
@@ -35,15 +42,18 @@ namespace PuppetMaster
                 }
             }
 
-            //if (args[1] == "step")
-            if (true)
+            Console.WriteLine("Choose type of execution: s for step, nothing for complete");
+
+            string command = Console.ReadLine();
+
+            if (command == "s")
             {
+                Console.WriteLine("Step by Step execution");
 
                 string line;
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    Console.WriteLine("Step by Step execution");
 
                     MasterofPuppets.Execute(line);
 
@@ -71,12 +81,35 @@ namespace PuppetMaster
 
 public class PuppetMasterService
 {
-    ArrayList Clients = new ArrayList();
+    Dictionary<string, string> Clients = new Dictionary<string, string>();
 
-    ArrayList Servers = new ArrayList();
+    Dictionary<string,string> Servers = new Dictionary<string, string>();
+
+    ArrayList PCS = new ArrayList();
    
     public PuppetMasterService()
     {
+        PCS = getPCS();
+
+    }
+
+    ArrayList getPCS()
+    {
+        StreamReader reader = File.OpenText("config.txt");
+
+        string line;
+
+        ArrayList PCS = new ArrayList();
+
+        while ((line = reader.ReadLine()) != null)
+        {
+            PCS.Add(line);
+            
+        }
+
+        return PCS;
+
+
     }
 
     public void Execute(string Command)
@@ -114,7 +147,7 @@ public class PuppetMasterService
 
                 Console.WriteLine("WE CLIENT");
 
-                this.StartClient(splitfields[1], splitfields[1], splitfields[2]);
+                this.StartClient(splitfields[1], splitfields[2], splitfields[3]);
 
                 break;
 
@@ -171,8 +204,13 @@ public class PuppetMasterService
 
     void StartClient(string clientid, string URL, string script)
     {
-        PCS P = (PCS)Activator.GetObject(typeof(PCS),"tcp://localhost:8086/ProcessCreationService");
+        Clients.Add(clientid,URL);
+
+        Pcs P = (Pcs)Activator.GetObject(typeof(Pcs),(string)PCS[0]);
+
         P.StartClient(script);
+
+
     }
 
     void Status()
@@ -198,5 +236,30 @@ public class PuppetMasterService
     void Wait(int time)
     {
 
+    }
+}
+
+// This classes might be needed to save more information
+public class Client
+    {
+    string URL;
+
+    string id;
+    public Client(string _id, string _URL)
+    {
+        id = _id;
+        URL = _URL;
+    }
+}
+
+public class Server
+{
+    string URL;
+
+    string id;
+    public Server(string _id, string _URL)
+    {
+        id = _id;
+        URL = _URL;
     }
 }
