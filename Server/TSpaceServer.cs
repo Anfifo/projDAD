@@ -40,7 +40,31 @@ namespace Server
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
+            string command = "ola";
 
+            Console.WriteLine("Processing Request " + command + ":");
+            switch (command)
+            {
+                case "add":
+                    Console.WriteLine(msg);
+                    break;
+
+                case "read":
+                    Console.WriteLine(msg);
+                    break;
+
+                case "take1":
+                    Console.WriteLine(msg);
+                    break;
+
+                case "take2":
+                    Console.WriteLine(msg);
+                    break;
+
+                default:
+                    Console.WriteLine("Invalid command");
+                    break;
+            }
             return null;
         }
     }
