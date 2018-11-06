@@ -8,10 +8,8 @@ namespace CommonTypes
 {
     public interface IField
     {
-        //  TODO: Find correct type for getType
-        object GetType();
-        void SetType(object type);
-
+        Type GetType();
+        
         object GetValue();
 
         void SetValue(object value);
