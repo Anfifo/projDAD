@@ -8,7 +8,7 @@ namespace Client
     class XL_Client : ITSpaceAPI
     {
         // View of the tuple spaces servers.
-        private List<ITSpaceServer> View { get; set; }
+        private List<ITSpaceServer> View { get; set; } = new List<ITSpaceServer>();
 
         // ID of the tuple spaces servers view.
         private int ViewId { get; set; }
@@ -144,14 +144,22 @@ namespace Client
              ------------------------------------------------*/
 
             // Send multicast request with the template to all replicas
+            
+            // Create request message.
+            TSpaceMsg message = new TSpaceMsg();
+            message.Code = "take1";
+            message.Tuple = template;
+            message.SequenceNumber = ++SequenceNumber;
+            message.ProcessID = ClientID;
+
 
             // Repeat until all replicas have responded
 
             // Select one tuple from the intersection of all answers
 
             // If intersection = {}
-                // send multicast request to release all replicas
-                // repeat phase 1
+            // send multicast request to release all replicas
+            // repeat phase 1
 
 
 
@@ -167,6 +175,10 @@ namespace Client
             throw new NotImplementedException();
         }
 
+      
+        /***********************************************************
+         *                  CALLBACK FUNCTIONS
+         ***********************************************************/
         /// <summary>
         /// Callback function for the add operation.
         /// </summary>
