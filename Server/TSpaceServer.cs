@@ -9,18 +9,17 @@ using System.Runtime.Remoting;
 
 namespace Server
 {
+    [Serializable]
     class TSpaceServer : MarshalByRefObject, ITSpaceServer
     {
-        public int Port;
 
-        public TSpaceServer(int port)
+        public TSpaceServer()
         {
-            Port = port;
         }
 
         public int GetPort()
         {
-            return Port;
+            return 0;
         }
 
         public void Run()

@@ -8,7 +8,12 @@ namespace CommonTypes
 {
     [Serializable]
     public class TSpaceMsg
-    {
+    {   
+        public TSpaceMsg()
+        {
+
+        }
+
         public string Code
         {
             get; set;

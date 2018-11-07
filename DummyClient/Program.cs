@@ -19,7 +19,7 @@ namespace DummyClient
 
             ITSpaceServer obj = (ITSpaceServer)Activator.GetObject(
                 typeof(ITSpaceServer),
-                "tcp://localhost:8086/TSpaceServer");
+                "tcp://localhost:8086/S");
 
             try
             {
@@ -28,7 +28,7 @@ namespace DummyClient
                     Code = "take1"
                 };
 
-                Console.WriteLine(obj.ProcessRequest(msg));
+                obj.ProcessRequest(msg);
             }
             catch (SocketException)
             {

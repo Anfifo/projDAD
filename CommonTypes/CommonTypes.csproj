@@ -42,7 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Field.cs" />
-    <Compile Include="ITSpaceMsg.cs" />
+    <Compile Include="TSpaceMsg.cs" />
     <Compile Include="StringField.cs" />
     <Compile Include="TestClasses.cs" />
     <Compile Include="Tuple.cs" />
