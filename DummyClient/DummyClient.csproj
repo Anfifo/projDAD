@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3C1B2FC1-D209-47EE-98B1-72D08C78273A}</ProjectGuid>
+    <ProjectGuid>{85CE4E07-A294-4A44-8A77-9F1F342CD0D8}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Client</RootNamespace>
-    <AssemblyName>Client</AssemblyName>
+    <RootNamespace>DummyClient</RootNamespace>
+    <AssemblyName>DummyClient</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -44,20 +44,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Operation.cs" />
-    <Compile Include="Client.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SMR_Client.cs" />
-    <Compile Include="TSpaceAPI.cs" />
-    <Compile Include="XL_Client.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Client\Client.csproj">
+      <Project>{3c1b2fc1-d209-47ee-98b1-72d08c78273a}</Project>
+      <Name>Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CommonTypes\CommonTypes.csproj">
       <Project>{3d5a4e48-3848-4a03-9a94-3fa57c78129e}</Project>
       <Name>CommonTypes</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ProcessCreationService\ProcessCreationService.csproj">
+      <Project>{c57bfc96-47ef-4af7-805c-8137ae0d1a23}</Project>
+      <Name>ProcessCreationService</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
