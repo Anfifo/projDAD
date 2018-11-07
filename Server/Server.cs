@@ -23,10 +23,8 @@ namespace Server
             if (args.Length > 0)
             {
                 Url = args[0];
-                Console.WriteLine(Url);
 
-            }
-            Console.WriteLine(args.Length);
+            }   
 
 
             if (args.Length == 3)

@@ -197,7 +197,7 @@ public class PuppetMasterService
 
     void StartServer(string serverid, string URL, int mindelay, int maxdelay)
     {
-        Console.WriteLine(URL);
+
         Servers.Add(serverid, URL);
         Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), (string)PCS[0]);
         P.StartServer(URL,mindelay,maxdelay);

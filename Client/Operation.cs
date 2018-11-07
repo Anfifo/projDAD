@@ -86,7 +86,7 @@ namespace Client
                         continue;
                     }
 
-                    Fields.Add(new Field(Field));
+                    Fields.Add(new Field(new StringField(false,false,false,Field)));
                     continue;
 
                 }

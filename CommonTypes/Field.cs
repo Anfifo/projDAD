@@ -34,7 +34,7 @@ namespace CommonTypes
 
             if (value is StringField)
             {
-                Console.WriteLine("Is StringField");
+                
                 StringField myStringField = (StringField)this.value;
 
                 if (myStringField.AnyString)
@@ -84,10 +84,7 @@ namespace CommonTypes
 
                     if(s == S)
                     {
-                        Console.WriteLine(s);
-                        Console.WriteLine(S);
-
-                       
+                     
                         return true;
                     }
                     return false;
@@ -102,7 +99,8 @@ namespace CommonTypes
             }
             else
             {
-                 object[] o = new object[1];
+                
+                object[] o = new object[1];
 
                  Type t = Type.GetType(value.GetType().ToString());
 

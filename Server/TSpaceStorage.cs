@@ -41,14 +41,11 @@ namespace Server
 
             for (int i = 0; i < TS.Count; i++)
             {
-                Console.WriteLine(i);
                 if (TS[i].Matches(tuple))
                 {
-                    Console.WriteLine("Tuple matches");
                     list.Add(TS[i]);
                 }
             }
-            Console.WriteLine("Take 1 finished");
             return list;
         }
 

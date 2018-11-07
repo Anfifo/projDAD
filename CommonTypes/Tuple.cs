@@ -43,7 +43,6 @@ namespace CommonTypes
 
             for (int i = 0; i < this.getLength(); i++)
             {
-                Console.WriteLine("Matches: " + i);
                 Field f1 = (Field)tuple.GetFields()[i];
                 Field f2 = (Field)this.tuple[i];
 

@@ -63,7 +63,7 @@ namespace Server
             ProcessedRequests.Add(msg.SequenceNumber);
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.SequenceNumber + ")" );
+       /*     Console.WriteLine("Processing Request " + command + " (seq = " + msg.SequenceNumber + ")" );
 
             if (command.Equals("add"))
             {
@@ -92,17 +92,15 @@ namespace Server
             }
 
             Console.WriteLine("Request answered: " + response.Code + " (seq = " + response.SequenceNumber + ")");
-            return response;
+            return response; */
 
 
-            /*
+            
             switch (command)
             {
                 case "add":
                     TuppleSpace.Add(msg.Tuple);
                     response.Code = "ACK";
-                    Console.WriteLine(msg);
-                    Console.WriteLine(((TSpaceStorage)TuppleSpace).getAll()[0]);
                     break;
 
                 case "read":
@@ -110,13 +108,11 @@ namespace Server
                     response.Code = "OK";
                     if (response.Tuple == null)
                         Console.WriteLine("Not Found");
-                    Console.WriteLine(msg);
                     break;
 
                 case "take1":
                     response.Tuples = TuppleSpace.Take1(msg.Tuple);
                     response.Code = "OK";
-                    Console.WriteLine(msg);
                     break;
 
                 case "take2":
@@ -129,7 +125,7 @@ namespace Server
                     break;
             }
 
-            return response;*/
+            return response;
         }
     }
 }

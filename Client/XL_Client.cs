@@ -83,7 +83,6 @@ namespace Client
             message.SequenceNumber = ++SequenceNumber;
             message.ProcessID = ClientID;
 
-            Console.WriteLine(message.SequenceNumber);
 
 
 
@@ -133,7 +132,6 @@ namespace Client
             message.SequenceNumber = ++SequenceNumber;
             message.ProcessID = ClientID;
 
-            Console.WriteLine(message.SequenceNumber);
 
 
 
@@ -191,7 +189,6 @@ namespace Client
             AcksID.Clear();
             MatchingTuples.Clear();
 
-            Console.WriteLine(message.SequenceNumber);
             RemoteAsyncDelegate remoteDel;
 
             // Create local callback.
@@ -214,7 +211,6 @@ namespace Client
                 }
             }
 
-            Console.WriteLine(MatchingTuples.Count);
             // Select one tuple from the intersection of all matching tuples lists
             List<ITuple> intersection = MatchingTuples[0];
 
@@ -326,12 +322,9 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
-            if (response.Code.Equals("ACK"))
-                Console.WriteLine("OKOKOKOK");
             // Response corresponds to a old request
             if (response.SequenceNumber < SequenceNumber)
             {
-                Console.WriteLine("Old request");
                 return;
             }
             // Stores the list of matching tuples 
