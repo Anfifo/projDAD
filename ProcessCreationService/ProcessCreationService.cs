@@ -48,5 +48,21 @@ namespace ProcessCreationService
 
         }
 
+        public void StartServer(string url,int mindelay,int maxdelay)
+        {
+
+            ProcessStartInfo info = new ProcessStartInfo(@"C:\\Users\\paranois3\\Dropbox\\projDAD\\Server\\bin\\Debug\\Server.exe");
+
+            //info.UseShellExecute = false;
+
+            info.CreateNoWindow = false;
+
+            info.Arguments = url + " " + mindelay + " " + maxdelay;
+
+            Process P = Process.Start(info);
+
+
+        }
+
     }
 }
