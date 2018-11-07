@@ -12,16 +12,13 @@ namespace Server
     [Serializable]
     class TSpaceServer : MarshalByRefObject, ITSpaceServer
     {
+        public ITSpace TuppleSpace;
 
         public TSpaceServer()
         {
-
+            TuppleSpace = new TSpaceStorage();
         }
 
-        public int GetPort()
-        {
-            return 0;
-        }
 
         public void Run()
         {
@@ -43,30 +40,39 @@ namespace Server
 
             string command = msg.Code;
 
+            TSpaceMsg response = new TSpaceMsg();
+
             Console.WriteLine("Processing Request " + command + ":");
             switch (command)
             {
                 case "add":
+                    TuppleSpace.Add(msg.Tuple);
+                    response.Code = "OK";
                     Console.WriteLine(msg);
                     break;
 
                 case "read":
+                    response.Tuple = TuppleSpace.Read(msg.Tuple);
+                    response.Code = "OK";
                     Console.WriteLine(msg);
                     break;
 
                 case "take1":
+                    response.Tuples = TuppleSpace.Take1(msg.Tuple);
+                    response.Code = "OK";
                     Console.WriteLine(msg);
                     break;
 
                 case "take2":
-                    Console.WriteLine(msg);
+                    TuppleSpace.Take2(msg.Tuple);
+                    response.Code = "ACK";
                     break;
 
                 default:
                     Console.WriteLine("Invalid command.");
                     break;
             }
-            return null;
+            return response;
         }
     }
 }

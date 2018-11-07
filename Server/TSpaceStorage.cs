@@ -10,7 +10,7 @@ namespace Server
 {
     class TSpaceStorage : ITSpace
     {
-        public ArrayList TS = new ArrayList();
+        public List<ITuple> TS = new List<ITuple>();
 
         public void Add(ITuple tuple)
         {
@@ -30,16 +30,30 @@ namespace Server
             return null;
         }
 
-        public ITuple[] Take1(ITuple tuple)
+        public List<ITuple> Take1(ITuple tuple)
         {
+            List<ITuple> list = new List<ITuple>();
 
-            throw new NotImplementedException();
+            for (int i = 0; i < TS.Count; i++)
+            {
+                if (TS[i].Matches(tuple))
+                {
+                    list.Add(TS[i]);
+                }
+            }
+            return list;
         }
 
         public void Take2(ITuple tuple)
         {
-
-            throw new NotImplementedException();
+            for( int i = 0; i < TS.Count; i++)
+            {
+                if (TS[i].Matches(tuple))
+                {
+                    TS.RemoveAt(i);
+                    return;
+                }
+            }
         }
     }
 }

@@ -1,7 +1,8 @@
 ﻿using System;
 
 namespace CommonTypes
-{
+{   
+    [Serializable]
     public class Field : IField
     {
         object value;

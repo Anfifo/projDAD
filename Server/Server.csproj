@@ -44,6 +44,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SMR_TSpaceHandler.cs" />
+    <Compile Include="XL_TSpaceHandler.cs" />
     <Compile Include="TSpaceStorage.cs" />
     <Compile Include="TSpaceServer.cs" />
     <Compile Include="ITSpace.cs" />

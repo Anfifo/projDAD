@@ -11,7 +11,7 @@ namespace Server
     {
         ITuple Read(ITuple tuple);
 
-        ITuple[] Take1(ITuple tuple);
+        List<ITuple> Take1(ITuple tuple);
 
         void Take2(ITuple tuple);
 

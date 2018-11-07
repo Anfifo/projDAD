@@ -8,7 +8,6 @@ namespace CommonTypes
 {
     public interface ITSpaceServer
     {
-        int GetPort();
         void Start();
         void Run();
         void Stop();

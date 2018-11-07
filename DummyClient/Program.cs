@@ -7,6 +7,7 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
 using System.Threading.Tasks;
+using Tuple = CommonTypes.Tuple;
 
 namespace DummyClient
 {
@@ -23,12 +24,16 @@ namespace DummyClient
 
             try
             {
+                Tuple tuple = new Tuple();
+                tuple.Add(new Field("steve"));
                 TSpaceMsg msg = new TSpaceMsg
                 {
-                    Code = "take1"
+                    Code = "add",
+                    Tuple = tuple
                 };
 
-                obj.ProcessRequest(msg);
+
+                Console.WriteLine(obj.ProcessRequest(msg).Code);
             }
             catch (SocketException)
             {
