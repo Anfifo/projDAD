@@ -42,10 +42,10 @@ namespace CommonTypes
 
             for (int i = 0; i < this.getLength(); i++)
             {
-                Object f1 = tuple.GetFields()[i];
-                Object f2 = this.tuple[i];
+                Field f1 = (Field)tuple.GetFields()[i];
+                Field f2 = (Field)this.tuple[i];
 
-                if (!f1.GetType().Equals(f2.GetType()))
+                if (!f2.Matches(f1))
                     return false;
             }
 

@@ -14,6 +14,20 @@ namespace Client
         static void Main(string[] args)
         {
             ExecuteFile(args[0]);
+         /*   Field f = new Field(new StringField(false,true,false,"o"));
+            Field f2 = new Field(new StringField(false, false, false, "ola"));
+
+            ArrayList a = new ArrayList();
+            a.Add(f);
+
+            ArrayList a2 = new ArrayList();
+
+            a2.Add(f2);
+
+            Tuple t = new Tuple(a);
+            Tuple t2 = new Tuple(a2);
+
+            Console.WriteLine(t.Matches(t2)); */
 
             Console.ReadLine();
             //ExecuteFile("script.txt");
