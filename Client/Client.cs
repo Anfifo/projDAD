@@ -20,21 +20,31 @@ namespace Client
         {
             L.Add("tcp://localhost:50001/S");
             XL = new XL_Client(L, 2);
-            ExecuteFile(args[0]);
-         /*   Field f = new Field(new StringField(false,true,false,"o"));
-            Field f2 = new Field(new StringField(false, false, false, "ola"));
+            try
+            {
+                ExecuteFile(args[0]);
+            }catch(Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
+            /*   Field f = new Field(new StringField(false,true,false,"o"));
+               Field f2 = new Field(new StringField(false, false, false, "ola"));
+           
+               ArrayList a = new ArrayList();
+               a.Add(f);
 
-            ArrayList a = new ArrayList();
-            a.Add(f);
+               ArrayList a2 = new ArrayList();
 
-            ArrayList a2 = new ArrayList();
+               a2.Add(f2);
 
-            a2.Add(f2);
+               Tuple t = new Tuple(a);
+               Tuple t2 = new Tuple(a2);
 
-            Tuple t = new Tuple(a);
-            Tuple t2 = new Tuple(a2);
+               Console.WriteLine(t.Matches(t2)); */
 
-            Console.WriteLine(t.Matches(t2)); */
+           /* Field f = new Field(new DADTestA(1, "ola"));
+            Field f2 = new Field(new DADTestA(1, "ola"));
+            Console.WriteLine(f.Matches(f2)); */
 
             Console.ReadLine();
             //ExecuteFile("script.txt");
@@ -107,24 +117,29 @@ namespace Client
 
         static void ExecuteOperations(ArrayList Operations)
         {
+            
             for (int i = 0; i < Operations.Count; i++)
             {
+                
                 Operation Op = (Operation)Operations[i];
                 switch (Op.getType())
                 {
+
                     case "add":
 
                         Console.WriteLine("WE ADDING");
 
-                        Tuple tuple = new Tuple(Op.getFields());
-                        XL.Add(tuple);  
+                        Tuple tupleA = new Tuple(Op.getFields());
+                        XL.Add(tupleA);  
                         break;
 
                     case "take":
 
                         Console.WriteLine("WE TAKING");
 
-                        Tuple Tuple = new Tuple(Op.getFields());
+                        Tuple tupleT = new Tuple(Op.getFields());
+
+                        XL.Take(tupleT);
 
                         break;
 
@@ -132,9 +147,9 @@ namespace Client
 
                         Console.WriteLine("WE READING");
 
-                        Tuple Tupl3 = new Tuple(Op.getFields());
+                        Tuple tupleR = new Tuple(Op.getFields());
                     
-                        XL.Read(Tupl3);
+                        XL.Read(tupleR);
 
                         break;
 

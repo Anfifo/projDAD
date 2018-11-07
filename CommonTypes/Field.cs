@@ -101,18 +101,17 @@ namespace CommonTypes
             }
             else
             {
-                /* object[] o = new object[1];
+                 object[] o = new object[1];
 
                  Type t = Type.GetType(value.GetType().ToString());
 
+                 o[0] = value;
 
                  return (Boolean)field.GetValue().GetType().GetMethod("Equals").Invoke(field.GetValue(), o);
 
-               */
+               
             }
 
-
-            return false;
         }
     }
 }

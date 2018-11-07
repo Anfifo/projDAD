@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using CommonTypes;
 using System.Runtime.Remoting.Messaging;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting.Channels;
 
 namespace Client
 {
@@ -35,9 +37,13 @@ namespace Client
         /// <param name="viewUrls">Url of the tuple space servers.</param>
         public XL_Client(List<string> viewUrls, int viewId)
         {
+            TcpChannel channel = new TcpChannel();
+            ChannelServices.RegisterChannel(channel, true);
+
             // Get the reference for the tuple space servers
-            foreach(string serverUrl in viewUrls)
+            foreach (string serverUrl in viewUrls)
             {
+
                 ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
                 if(server != null)
                     View.Add(server);
@@ -58,6 +64,7 @@ namespace Client
         /// <param name="tuple">Tuple to be added.</param>
         public void Add(ITuple tuple)
         {
+            
             // Create request message
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "add";
@@ -65,6 +72,8 @@ namespace Client
             message.SequenceNumber = ++SequenceNumber;
             message.ProcessID = ClientID;
 
+
+            
             AcksID.Clear();
 
             RemoteAsyncDelegate remoteDel;
@@ -81,14 +90,15 @@ namespace Client
 
                     // Create delegate for remote method
                     remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
-
                     // Call remote method
                     remoteDel.BeginInvoke(message, remoteCallback, null);
+
+                    
                 }
             
-            } 
-            
+            }
 
+            Console.WriteLine("ADD: OK");
             
         }
 
@@ -129,6 +139,7 @@ namespace Client
             while (Tuple == null && AcksID.Count < View.Count) ;
 
             // Return first response.
+            Console.WriteLine("READ: OK");
             return Tuple;               
         }
 

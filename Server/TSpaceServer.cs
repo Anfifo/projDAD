@@ -14,9 +14,16 @@ namespace Server
     {
         public ITSpace TuppleSpace;
 
+        private readonly int ServerID;
+
+        private List<int> ProcessedRequests;
+
         public TSpaceServer()
         {
             TuppleSpace = new TSpaceStorage();
+            ServerID = new Random().Next();
+            ProcessedRequests = new List<int>();
+
         }
 
 
@@ -36,18 +43,31 @@ namespace Server
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
-        {
-
-            string command = msg.Code;
+        { 
 
             TSpaceMsg response = new TSpaceMsg();
+            response.ProcessID = ServerID;
+            response.SequenceNumber = msg.SequenceNumber;
 
+            // Check if request as already been processed
+            if (ProcessedRequests.Contains(msg.SequenceNumber))
+            {
+                response.Code = "Repeated";
+                return response;
+                
+            }
+
+            // Add sequence number of request to processed requests
+            ProcessedRequests.Add(msg.SequenceNumber);
+
+            string command = msg.Code;
             Console.WriteLine("Processing Request " + command + ":");
+
             switch (command)
             {
                 case "add":
                     TuppleSpace.Add(msg.Tuple);
-                    response.Code = "OK";
+                    response.Code = "ACK";
                     Console.WriteLine(msg);
                     Console.WriteLine(((TSpaceStorage)TuppleSpace).getAll()[0]);
                     break;
@@ -75,6 +95,7 @@ namespace Server
                     Console.WriteLine("Invalid command.");
                     break;
             }
+
             return response;
         }
     }

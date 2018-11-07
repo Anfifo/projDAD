@@ -16,9 +16,9 @@ namespace CommonTypes
             i1 = pi1;
             s1 = ps1;
 
-            Console.WriteLine(i1.ToString() + s1.ToString() + this.GetType());
+            //Console.WriteLine(i1.ToString() + s1.ToString() + this.GetType());
         }
-        public bool Equals(DADTestA o)
+        public bool equals(DADTestA o)
         {
             if (o == null)
             {
@@ -43,11 +43,11 @@ namespace CommonTypes
             s1 = ps1;
             i2 = pi2;
 
-            Console.WriteLine(i1.ToString() + s1.ToString() + i2.ToString() + this.GetType());
+            //Console.WriteLine(i1.ToString() + s1.ToString() + i2.ToString() + this.GetType());
 
         }
 
-        public bool Equals(DADTestB o)
+        public bool equals(DADTestB o)
         {
             if (o == null)
             {
@@ -72,10 +72,10 @@ namespace CommonTypes
             s1 = ps1;
             s2 = ps2;
 
-            Console.WriteLine(i1.ToString() + s1.ToString() + s2.ToString() + this.GetType());
+            //Console.WriteLine(i1.ToString() + s1.ToString() + s2.ToString() + this.GetType());
         }
 
-        public bool Equals(DADTestC o)
+        public bool equals(DADTestC o)
         {
             if (o == null)
             {
