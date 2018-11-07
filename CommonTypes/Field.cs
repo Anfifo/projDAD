@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CommonTypes
 {
@@ -37,39 +33,40 @@ namespace CommonTypes
 
             if (value is StringField)
             {
-                Console.WriteLine("here1");
-                StringField fieldString = (StringField)field.GetValue();
+                StringField myStringField = (StringField)this.value;
 
-                if (fieldString.AnyString)
+                if (myStringField.AnyString)
                 {
+
                     return true;
                 }
-                if (fieldString.InitialSubString)
+                if (myStringField.InitialSubString)
                 {
-                    StringField sf = (StringField)value;
+                    string myString = myStringField.field;
 
-                    string s = sf.field;
+                    StringField inputStringField = (StringField)field.GetValue();
 
-                    string iS = fieldString.field;
+                    string inputString = inputStringField.field;
 
-                    if(s.Substring(0,iS.Length-1) == iS)
-                    {
+                    if (inputString.Substring(0,myString.Length) == myString)
                         return true;
-                    }
                     return false;
 
                 }
 
-                if (fieldString.FinalSubString)
+                if (myStringField.FinalSubString)
                 {
-                    Console.WriteLine("here2");
-                    StringField mystringfield = (StringField)value;
 
-                    string mystring = mystringfield.field;
-                    
-                    string input = fieldString.field;
+                    string myString = myStringField.field;
 
-                    if (input.Substring(input.Length - mystring.Length - 1, input.Length - 1) == mystring);
+                    StringField inputStringField = (StringField)field.GetValue();
+
+                    string inputString = inputStringField.field;
+
+                    if (inputString.Substring(inputString.Length - myString.Length) == myString)
+                        return true;
+
+                    return false;
 
                 }
 
@@ -79,7 +76,7 @@ namespace CommonTypes
 
                     string s = sf.field;
 
-                    string S = fieldString.field;
+                    string S = myStringField.field;
 
                     if(s == S)
                     {

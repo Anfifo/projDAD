@@ -13,13 +13,7 @@ namespace Client
 
         static void Main(string[] args)
         {
-            //ExecuteFile(args[0]);
-
-
-            Field f = new Field(new StringField(false,true,false,"a"));
-            Field f2 = new Field(new StringField(false,false,false,"olaolaola"));
-
-            Console.WriteLine(f2.Matches(f));
+            ExecuteFile(args[0]);
 
             Console.ReadLine();
             //ExecuteFile("script.txt");
@@ -88,8 +82,6 @@ namespace Client
             }
 
             ExecuteOperations(Operations);
-
-            Console.ReadLine();
         }
 
         static void ExecuteOperations(ArrayList Operations)
