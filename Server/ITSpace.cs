@@ -11,11 +11,11 @@ namespace Server
     {
         ITuple Read(ITuple tuple);
 
-        ITuple Take(ITuple tuple);
+        ITuple[] Take1(ITuple tuple);
 
-        ITuple Put(ITuple tuple);
+        void Take2(ITuple tuple);
 
-        string GetName();
+        void Add(ITuple tuple);
 
     }
 }

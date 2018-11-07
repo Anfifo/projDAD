@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TSpaceStorage.cs" />
     <Compile Include="TSpaceServer.cs" />
     <Compile Include="ITSpace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

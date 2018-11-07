@@ -15,6 +15,7 @@ namespace Server
 
         public TSpaceServer()
         {
+
         }
 
         public int GetPort()
@@ -39,6 +40,7 @@ namespace Server
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
+
             string command = msg.Code;
 
             Console.WriteLine("Processing Request " + command + ":");
@@ -61,7 +63,7 @@ namespace Server
                     break;
 
                 default:
-                    Console.WriteLine("Invalid command");
+                    Console.WriteLine("Invalid command.");
                     break;
             }
             return null;

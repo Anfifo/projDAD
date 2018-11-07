@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CommonTypes;
-using System.Runtime.Remoting;
+using System.Runtime.Remoting.Messaging;
 
 namespace Client
 {
@@ -14,7 +14,7 @@ namespace Client
         private int ViewId { get; set; }
 
         // Sequence number of the last request
-        private int SequenceNumber;
+        private static int SequenceNumber;
 
         // Client ID
         private readonly int ClientID;
@@ -23,7 +23,10 @@ namespace Client
         delegate TSpaceMsg RemoteAsyncDelegate(TSpaceMsg request);
 
         // Counter for the number of acknowledgements received 
-        private int AckCounter;
+        private static HashSet<int> AcksID = new HashSet<int>();
+
+        // Stores the tuple returned by the
+        private static ITuple Tuple;
 
 
         /// <summary>
@@ -55,32 +58,36 @@ namespace Client
         /// <param name="tuple">Tuple to be added.</param>
         public void Add(ITuple tuple)
         {
+            // Create request message
             TSpaceMsg message = new TSpaceMsg();
-
             message.Code = "add";
             message.Tuple = tuple;
             message.SequenceNumber = ++SequenceNumber;
-            message.ClientID = ClientID;
+            message.ProcessID = ClientID;
 
-            
+            AcksID.Clear();
 
             RemoteAsyncDelegate remoteDel;
-
-
-            
+                                   
             // Create local callback
-            AsyncCallback remoteCallback = new AsyncCallback(XL_Client.RemoteAsyncCallback);
+            AsyncCallback remoteCallback = new AsyncCallback(XL_Client.AddCallback);
 
-            //Send multicast message to all members of the view
-            foreach (ITSpaceServer server in View) {
+            // Repeat request until all replicas have acknowledged receipt
+            while (AcksID.Count < View.Count)
+            {
+                //Send multicast message to all members of the view
+                foreach (ITSpaceServer server in View)
+                {
 
-                // Create delegate for remote method
-                remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
+                    // Create delegate for remote method
+                    remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
 
-                // Call remote method
-                remoteDel.BeginInvoke(message, remoteCallback, null);
-            }
-            // Put request is repeated until all replicas have acknowledge receipt
+                    // Call remote method
+                    remoteDel.BeginInvoke(message, remoteCallback, null);
+                }
+            
+            } 
+            
 
             
         }
@@ -92,11 +99,37 @@ namespace Client
         /// <returns></returns>
         public ITuple Read(ITuple template)
         {
-            // Send multicast message to all members of the view
 
-            // Return first response
+            // Create request message.
+            TSpaceMsg message = new TSpaceMsg();
+            message.Code = "read";
+            message.Tuple = template;
+            message.SequenceNumber = ++SequenceNumber;
+            message.ProcessID = ClientID;
 
-            throw new NotImplementedException();
+
+            RemoteAsyncDelegate remoteDel;
+            
+            // Create local callback.
+            AsyncCallback remoteCallback = new AsyncCallback(XL_Client.ReadCallback);
+
+            Tuple = null;
+
+            // Send multicast message to all members of the view.
+            foreach (ITSpaceServer server in View)
+            {
+                // Create delegate for remote method.
+                remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
+
+                remoteDel.BeginInvoke(message, remoteCallback, null);
+            }
+
+            // Waits until one replica returns a tuple or
+            // all replicas answered that they dont have a match
+            while (Tuple == null && AcksID.Count < View.Count) ;
+
+            // Return first response.
+            return Tuple;               
         }
 
         /// <summary>
@@ -134,9 +167,49 @@ namespace Client
             throw new NotImplementedException();
         }
 
-        public static void RemoteAsyncCallback(IAsyncResult result)
+        /// <summary>
+        /// Callback function for the add operation.
+        /// </summary>
+        /// <param name="result">Async callback result.</param>
+        public static void AddCallback(IAsyncResult result)
         {
+            RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
 
+            // Retrieve results.
+            TSpaceMsg response = del.EndInvoke(result);
+
+            // Response corresponds to a old request
+            if (response.SequenceNumber < SequenceNumber)
+                return;
+
+
+            if(response.Code.Equals("ACK"))
+                AcksID.Add(response.ProcessID);
         }
+
+        /// <summary>
+        /// Callback function for the read operation.
+        /// </summary>
+        /// <param name="result">Async callback result.</param>
+        public static void ReadCallback(IAsyncResult result)
+        {
+            RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
+
+            // Retrieve results.
+            TSpaceMsg response = del.EndInvoke(result);
+
+            // Response corresponds to a old request
+            if (response.SequenceNumber < SequenceNumber)
+                return;
+
+            // Stores the tuple returned 
+            // and the ID of the server that answered
+            if (response.Code.Equals("OK"))
+            {
+                Tuple = response.Tuple;
+                AcksID.Add(response.ProcessID);
+            }
+        }
+
     }
 }
