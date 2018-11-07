@@ -1,9 +1,7 @@
-﻿using CommonTypes;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Tuple = CommonTypes.Tuple;
 
 namespace Client
@@ -25,7 +23,9 @@ namespace Client
                 ExecuteFile(args[0]);
             }catch(Exception e)
             {
+                Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
+                
             }
             /*   Field f = new Field(new StringField(false,true,false,"o"));
                Field f2 = new Field(new StringField(false, false, false, "ola"));

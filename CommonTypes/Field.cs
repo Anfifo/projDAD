@@ -34,6 +34,7 @@ namespace CommonTypes
 
             if (value is StringField)
             {
+                Console.WriteLine("Is StringField");
                 StringField myStringField = (StringField)this.value;
 
                 if (myStringField.AnyString)
