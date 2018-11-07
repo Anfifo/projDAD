@@ -8,25 +8,24 @@ namespace CommonTypes
 {
     [Serializable]
     public class TSpaceMsg
-    {   
-        public TSpaceMsg()
-        {
+    {
+        public TSpaceMsg(){}
 
-        }
 
         public string Code
         {
             get; set;
         }
 
-        public string Type
+       
+        public List<ITuple> Tuples
         {
-            get; set;
+            get;set;
         }
 
         public ITuple Tuple
         {
-            get;set;
+            get; set;
         }
 
         public int SequenceNumber
@@ -34,7 +33,7 @@ namespace CommonTypes
             get; set;
         }
 
-        public int ClientID
+        public int ProcessID
         {
             get; set;
         }
@@ -42,8 +41,5 @@ namespace CommonTypes
         {
             get; set;
         }
-
-        
-
     }
 }
