@@ -49,6 +49,7 @@ namespace PuppetMaster
             if (command == "s")
             {
                 Console.WriteLine("Step by Step execution");
+                Console.ReadLine();
 
                 string line;
 
@@ -135,9 +136,6 @@ public class PuppetMasterService
                     maxdelay = Int32.Parse(splitfields[4]);
                     mindelay = Int32.Parse(splitfields[3]);
                 }
-                if (splitfields.Length == 4) {
-                    mindelay = Int32.Parse(splitfields[3]);
-                }
 
                 this.StartServer(splitfields[1],splitfields[2],mindelay,maxdelay);
 
@@ -199,7 +197,9 @@ public class PuppetMasterService
 
     void StartServer(string serverid, string URL, int mindelay, int maxdelay)
     {
-
+        Servers.Add(serverid, URL);
+        Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), (string)PCS[0]);
+        P.StartServer(URL,mindelay,maxdelay);
     }
 
     void StartClient(string clientid, string URL, string script)
