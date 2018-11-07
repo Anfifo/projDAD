@@ -8,16 +8,20 @@ namespace Client
 {
     class Client
     {
-        public static ArrayList Operations = new ArrayList();
+        //Operations to be executed by the client
+        public static ArrayList operations = new ArrayList();
 
-        public static List<string> L = new List<string>();
+        //List of active servers
+        public static List<string> Servers = new List<string>();
 
+        //XL Client 
         public static ITSpaceAPI XL;
 
         static void Main(string[] args)
         {
-            L.Add("tcp://localhost:50001/S");
-            XL = new XL_Client(L, 2);
+            
+            Servers.Add("tcp://localhost:50001/S");
+            XL = new XL_Client(Servers, 1);
             try
             {
                 ExecuteFile(args[0]);
@@ -27,29 +31,14 @@ namespace Client
                 Console.WriteLine(e.StackTrace);
                 
             }
-            /*   Field f = new Field(new StringField(false,true,false,"o"));
-               Field f2 = new Field(new StringField(false, false, false, "ola"));
-           
-               ArrayList a = new ArrayList();
-               a.Add(f);
-
-               ArrayList a2 = new ArrayList();
-
-               a2.Add(f2);
-
-               Tuple t = new Tuple(a);
-               Tuple t2 = new Tuple(a2);
-
-               Console.WriteLine(t.Matches(t2)); */
-
-           /* Field f = new Field(new DADTestA(1, "ola"));
-            Field f2 = new Field(new DADTestA(1, "ola"));
-            Console.WriteLine(f.Matches(f2)); */
 
             Console.ReadLine();
-            //ExecuteFile("script.txt");
         }
 
+        /// <summary>
+        /// Executes a script file
+        /// </summary>
+        /// <param name="filename">name of script file</param>
         static void ExecuteFile(string filename)
         {
             StreamReader reader = File.OpenText(filename);
@@ -73,16 +62,16 @@ namespace Client
                 if (fields.Length == 1 & fields[0] == "end-repeat")
                 {
                     // end-repeat
-                    Operations.Add(new Operation(fields[0], "0"));
+                    operations.Add(new Operation(fields[0], "0"));
                 }
 
                 switch (fields[0])
                 {
                     case "wait":
-                        Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                        operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
                         break;
                     case "begin-repeat":
-                        Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                        operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
                         break;
 
                 }
@@ -91,45 +80,42 @@ namespace Client
                 switch (fields[0])
                 {
                     case "add":
-                        Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                        operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
                         break;
                     case "read":
-                        Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                        operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
                         break;
                     case "take":
-                        Operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
+                        operations.Add(new Operation(fields[0], fields[1].Replace(" ", string.Empty)));
                         break;
 
                 }
 
             }
 
-            for (int i = 0; i < Operations.Count; i++)
-            {
-                Operation op = (Operation)Operations[i];
-
-                op.buildFields();
-
-            }
-
-            ExecuteOperations(Operations);
+            ExecuteOperations(operations);
         }
 
-        static void ExecuteOperations(ArrayList Operations)
+        /// <summary>
+        /// Executes operations specified in the script
+        /// </summary>
+        /// <param name="Operations">Operations to be executed</param>
+        static void ExecuteOperations(ArrayList operations)
         {
             
-            for (int i = 0; i < Operations.Count; i++)
+            for (int i = 0; i < operations.Count; i++)
             {
                 
-                Operation Op = (Operation)Operations[i];
-                switch (Op.getType())
+                Operation operation = (Operation)operations[i];
+
+                switch (operation.getType())
                 {
 
                     case "add":
 
                         Console.WriteLine("WE ADDING");
 
-                        Tuple tupleA = new Tuple(Op.getFields());
+                        Tuple tupleA = new Tuple(operation.getFields());
                         XL.Add(tupleA);  
                         break;
 
@@ -137,7 +123,7 @@ namespace Client
 
                         Console.WriteLine("WE TAKING");
 
-                        Tuple tupleT = new Tuple(Op.getFields());
+                        Tuple tupleT = new Tuple(operation.getFields());
 
                         XL.Take(tupleT);
 
@@ -147,7 +133,7 @@ namespace Client
 
                         Console.WriteLine("WE READING");
 
-                        Tuple tupleR = new Tuple(Op.getFields());
+                        Tuple tupleR = new Tuple(operation.getFields());
                     
                         XL.Read(tupleR);
 
@@ -158,7 +144,7 @@ namespace Client
 
                         Console.WriteLine("WE WAITING");
 
-                        System.Threading.Thread.Sleep((int)Op.getFields()[0]);
+                        System.Threading.Thread.Sleep((int)operation.getFields()[0]);
 
                         Console.WriteLine("WE STOPPED WAITING");
 
@@ -166,15 +152,17 @@ namespace Client
 
                     case "begin-repeat":
 
-                        int TimesToRepeat = (int)Op.getFields()[0];
+                        int timesToRepeat = (int)operation.getFields()[0];
 
-                        Console.WriteLine("WE REPEATING" + " " + TimesToRepeat);
+                        Console.WriteLine("WE REPEATING" + " " + timesToRepeat);
 
-                        ArrayList OperationsToBeRepeated = new ArrayList();
-                        for (int j = i+1; j < Operations.Count; j++)
+                        ArrayList operationsToBeRepeated = new ArrayList();
+
+                        //Collect operations to be repeated
+                        for (int j = i+1; j < operations.Count; j++)
                         {
 
-                            Operation O = (Operation)Operations[j];
+                            Operation O = (Operation)operations[j];
 
 
                             if (O.getType() == "end-repeat")
@@ -183,22 +171,25 @@ namespace Client
                             }
 
 
-                            OperationsToBeRepeated.Add(Operations[j]);
+                            operationsToBeRepeated.Add(operations[j]);
                             i++;
 
                         }
 
-
-                        for (int t = 0; t < TimesToRepeat; t++)
+                        //Repeat the operations
+                        for (int t = 0; t < timesToRepeat; t++)
                         {
-                            ExecuteOperations(OperationsToBeRepeated);
+                            ExecuteOperations(operationsToBeRepeated);
                         }
 
 
 
                         break;
+                        
                     case "end-repeat":
+
                         Console.WriteLine("WE STOPPED REPEATING");
+
                         break;
                 }
             }

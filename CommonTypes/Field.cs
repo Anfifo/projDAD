@@ -50,11 +50,6 @@ namespace CommonTypes
 
                     string inputString = inputStringField.field;
 
-                    Console.WriteLine(inputString.Substring(0, myString.Length - 1));
-                    Console.WriteLine(myString.Substring(0, myString.Length - 1));
-
-
-
                     if (inputString.Substring(0,myString.Length-1) == myString.Substring(0,myString.Length-1))
                         return true;
 
@@ -70,8 +65,6 @@ namespace CommonTypes
                     StringField inputStringField = (StringField)field.GetValue();
 
                     string inputString = inputStringField.field;
-                    Console.WriteLine(inputString.Substring(inputString.Length - myString.Length + 1));
-                    Console.WriteLine(myString.Substring(1));
 
                     if (inputString.Substring(inputString.Length - myString.Length + 1) == myString.Substring(1))
                     {
