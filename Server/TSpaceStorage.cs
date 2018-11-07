@@ -11,6 +11,11 @@ namespace Server
     class TSpaceStorage : ITSpace
     {
         public List<ITuple> TS = new List<ITuple>();
+        
+        public List<ITuple> getAll()
+        {
+            return TS;
+        }
 
         public void Add(ITuple tuple)
         {

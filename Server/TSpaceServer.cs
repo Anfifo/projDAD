@@ -49,11 +49,14 @@ namespace Server
                     TuppleSpace.Add(msg.Tuple);
                     response.Code = "OK";
                     Console.WriteLine(msg);
+                    Console.WriteLine(((TSpaceStorage)TuppleSpace).getAll()[0]);
                     break;
 
                 case "read":
                     response.Tuple = TuppleSpace.Read(msg.Tuple);
                     response.Code = "OK";
+                    if (response.Tuple == null)
+                        Console.WriteLine("Not Found");
                     Console.WriteLine(msg);
                     break;
 
