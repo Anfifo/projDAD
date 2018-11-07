@@ -38,7 +38,6 @@ namespace CommonTypes
 
                 if (myStringField.AnyString)
                 {
-
                     return true;
                 }
                 if (myStringField.InitialSubString)
@@ -57,7 +56,6 @@ namespace CommonTypes
 
                 if (myStringField.FinalSubString)
                 {
-
                     string myString = myStringField.field;
 
                     StringField inputStringField = (StringField)field.GetValue();
@@ -65,15 +63,19 @@ namespace CommonTypes
                     string inputString = inputStringField.field;
 
                     if (inputString.Substring(inputString.Length - myString.Length) == myString)
+                    {
+                        Console.WriteLine(inputString.Substring(inputString.Length - myString.Length));
+                        Console.Write(myString);
                         return true;
-
+                    }
                     return false;
 
                 }
 
                 else
                 {
-                    StringField sf = (StringField)value;
+                   
+                    StringField sf = (StringField)field.GetValue();
 
                     string s = sf.field;
 
@@ -81,6 +83,10 @@ namespace CommonTypes
 
                     if(s == S)
                     {
+                        Console.WriteLine(s);
+                        Console.WriteLine(S);
+
+                       
                         return true;
                     }
                     return false;

@@ -1,6 +1,7 @@
 ﻿using CommonTypes;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Tuple = CommonTypes.Tuple;
@@ -11,9 +12,29 @@ namespace Client
     {
         public static ArrayList Operations = new ArrayList();
 
+        public static List<string> L = new List<string>();
+
+        public static ITSpaceAPI XL;
+
         static void Main(string[] args)
         {
+            L.Add("tcp://localhost:50001/S");
+            XL = new XL_Client(L, 2);
             ExecuteFile(args[0]);
+         /*   Field f = new Field(new StringField(false,true,false,"o"));
+            Field f2 = new Field(new StringField(false, false, false, "ola"));
+
+            ArrayList a = new ArrayList();
+            a.Add(f);
+
+            ArrayList a2 = new ArrayList();
+
+            a2.Add(f2);
+
+            Tuple t = new Tuple(a);
+            Tuple t2 = new Tuple(a2);
+
+            Console.WriteLine(t.Matches(t2)); */
 
             Console.ReadLine();
             //ExecuteFile("script.txt");
@@ -96,7 +117,9 @@ namespace Client
                         Console.WriteLine("WE ADDING");
 
                         Tuple tuple = new Tuple(Op.getFields());
-
+                        Console.WriteLine(XL == null);
+                        XL.Add(tuple);
+                        
                         break;
 
                     case "take":
@@ -112,6 +135,8 @@ namespace Client
                         Console.WriteLine("WE READING");
 
                         Tuple Tupl3 = new Tuple(Op.getFields());
+                    
+                        XL.Read(Tupl3);
 
                         break;
 
