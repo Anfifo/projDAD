@@ -39,9 +39,25 @@ namespace ProcessCreationService
 
             //info.UseShellExecute = false;
 
-            //info.CreateNoWindow = false;
+            info.CreateNoWindow = false;
 
             info.Arguments = "script.txt";
+
+            Process P = Process.Start(info);
+
+
+        }
+
+        public void StartServer(string url,int mindelay,int maxdelay)
+        {
+
+            ProcessStartInfo info = new ProcessStartInfo(@"C:\\Users\\paranois3\\Dropbox\\projDAD\\Server\\bin\\Debug\\Server.exe");
+
+            //info.UseShellExecute = false;
+
+            info.CreateNoWindow = false;
+
+            info.Arguments = url + " " + mindelay + " " + maxdelay;
 
             Process P = Process.Start(info);
 

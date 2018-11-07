@@ -9,7 +9,9 @@ namespace CommonTypes
     [Serializable]
     public class TSpaceMsg
     {
-        
+        public TSpaceMsg(){}
+
+
         public string Code
         {
             get; set;
@@ -39,8 +41,5 @@ namespace CommonTypes
         {
             get; set;
         }
-
-        
-
     }
 }

@@ -9,18 +9,17 @@ using System.Runtime.Remoting;
 
 namespace Server
 {
+    [Serializable]
     class TSpaceServer : MarshalByRefObject, ITSpaceServer
     {
-        public int Port;
 
-        public TSpaceServer(int port)
+        public TSpaceServer()
         {
-            Port = port;
         }
 
         public int GetPort()
         {
-            return Port;
+            return 0;
         }
 
         public void Run()
@@ -40,7 +39,31 @@ namespace Server
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
+            string command = msg.Code;
 
+            Console.WriteLine("Processing Request " + command + ":");
+            switch (command)
+            {
+                case "add":
+                    Console.WriteLine(msg);
+                    break;
+
+                case "read":
+                    Console.WriteLine(msg);
+                    break;
+
+                case "take1":
+                    Console.WriteLine(msg);
+                    break;
+
+                case "take2":
+                    Console.WriteLine(msg);
+                    break;
+
+                default:
+                    Console.WriteLine("Invalid command");
+                    break;
+            }
             return null;
         }
     }

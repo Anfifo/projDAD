@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuppetMaster", "PuppetMaste
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreationService", "ProcessCreationService\ProcessCreationService.csproj", "{C57BFC96-47EF-4AF7-805C-8137AE0D1A23}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DummyClient", "DummyClient\DummyClient.csproj", "{85CE4E07-A294-4A44-8A77-9F1F342CD0D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{C57BFC96-47EF-4AF7-805C-8137AE0D1A23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C57BFC96-47EF-4AF7-805C-8137AE0D1A23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C57BFC96-47EF-4AF7-805C-8137AE0D1A23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85CE4E07-A294-4A44-8A77-9F1F342CD0D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85CE4E07-A294-4A44-8A77-9F1F342CD0D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85CE4E07-A294-4A44-8A77-9F1F342CD0D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85CE4E07-A294-4A44-8A77-9F1F342CD0D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
