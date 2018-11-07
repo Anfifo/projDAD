@@ -35,8 +35,8 @@ namespace ProcessCreationService
         public void StartClient(string script)
         {
             
-            //ProcessStartInfo info = new ProcessStartInfo(@"C:\\Users\\paranois3\\Dropbox\\projDAD\\Client\\bin\\Debug\\Client.exe");
-            ProcessStartInfo info = new ProcessStartInfo(@"C:\\Leonor_Loureiro\\Tecnico\\4Ano\\1Semestre\\DAD\\projDAD\\Client\\bin\\Debug\Client.exe");
+            ProcessStartInfo info = new ProcessStartInfo(@"C:\\Users\\paranois3\\Dropbox\\projDAD\\Client\\bin\\Debug\\Client.exe");
+            //ProcessStartInfo info = new ProcessStartInfo(@"C:\\Leonor_Loureiro\\Tecnico\\4Ano\\1Semestre\\DAD\\projDAD\\Client\\bin\\Debug\Client.exe");
             
 
             //info.UseShellExecute = false;
@@ -52,8 +52,8 @@ namespace ProcessCreationService
         public void StartServer(string url,int mindelay,int maxdelay)
         {
 
-            //ProcessStartInfo info = new ProcessStartInfo(@"C:\\Users\\paranois3\\Dropbox\\projDAD\\Server\\bin\\Debug\\Server.exe");
-            ProcessStartInfo info = new ProcessStartInfo(@"C:\\Leonor_Loureiro\\Tecnico\\4Ano\\1Semestre\\DAD\\projDAD\\Server\\bin\\Debug\\Server.exe");
+            ProcessStartInfo info = new ProcessStartInfo(@"C:\\Users\\paranois3\\Dropbox\\projDAD\\Server\\bin\\Debug\\Server.exe");
+            //ProcessStartInfo info = new ProcessStartInfo(@"C:\\Leonor_Loureiro\\Tecnico\\4Ano\\1Semestre\\DAD\\projDAD\\Server\\bin\\Debug\\Server.exe");
             //info.UseShellExecute = false;
 
             info.CreateNoWindow = false;

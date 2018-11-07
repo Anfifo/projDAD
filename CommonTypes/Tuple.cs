@@ -46,6 +46,7 @@ namespace CommonTypes
                 Field f1 = (Field)tuple.GetFields()[i];
                 Field f2 = (Field)this.tuple[i];
 
+
                 if (!f2.Matches(f1))
                     return false;
             }

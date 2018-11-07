@@ -81,7 +81,7 @@ namespace Client
 
                     if (Field[Field.Length - 1] == '*')
                     {
-                        StringField field = new StringField(false, true, false, Field);
+                        StringField field = new StringField(true, false, false, Field);
                         Fields.Add(new Field(field));
                         continue;
                     }

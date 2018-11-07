@@ -26,7 +26,7 @@ namespace Server
         {
             foreach(ITuple tup in TS)
             {
-                if (tup.Matches(tuple))
+                if (tuple.Matches(tup))
                 {
                     return tup;
                 }
@@ -41,7 +41,7 @@ namespace Server
 
             for (int i = 0; i < TS.Count; i++)
             {
-                if (TS[i].Matches(tuple))
+                if (tuple.Matches(TS[i]))
                 {
                     list.Add(TS[i]);
                 }
@@ -53,7 +53,7 @@ namespace Server
         {
             for( int i = 0; i < TS.Count; i++)
             {
-                if (TS[i].Matches(tuple))
+                if (tuple.Matches(TS[i]))
                 {
                     TS.RemoveAt(i);
                     return;
