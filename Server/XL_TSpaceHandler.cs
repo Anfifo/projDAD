@@ -28,5 +28,10 @@ namespace Server
         {
             throw new NotImplementedException();
         }
+
+        public void ReleaseLocks(int id)
+        {
+
+        }
     }
 }

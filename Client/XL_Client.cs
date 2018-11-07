@@ -61,7 +61,6 @@ namespace Client
         }
 
 
-
         /// <summary>
         /// Adds a tuple to the distributed tuple space.
         /// </summary>
@@ -74,8 +73,6 @@ namespace Client
                 return;
             }
 
-
-
             // Create request message
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "add";
@@ -83,13 +80,7 @@ namespace Client
             message.SequenceNumber = ++SequenceNumber;
             message.ProcessID = ClientID;
 
-
-
-
-
             AcksID.Clear();
-
-            RemoteAsyncDelegate remoteDel;
 
             // Create local callback
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.AddCallback);
@@ -98,13 +89,7 @@ namespace Client
             while (AcksID.Count < View.Count)
             {
                 //Send multicast message to all members of the view
-                foreach (ITSpaceServer server in View)
-                {
-                    // Create delegate for remote method
-                    remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
-                    // Call remote method
-                    remoteDel.BeginInvoke(message, remoteCallback, null);
-                }
+                this.Multicast(message, remoteCallback);
 
             }
 
@@ -132,24 +117,13 @@ namespace Client
             message.SequenceNumber = ++SequenceNumber;
             message.ProcessID = ClientID;
 
-
-
-
-            RemoteAsyncDelegate remoteDel;
-
             // Create local callback.
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.ReadCallback);
 
             Tuple = null;
 
             // Send multicast message to all members of the view.
-            foreach (ITSpaceServer server in View)
-            {
-                // Create delegate for remote method.
-                remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
-
-                remoteDel.BeginInvoke(message, remoteCallback, null);
-            }
+            this.Multicast(message, remoteCallback);
 
             // Waits until one replica returns a tuple or
             // all replicas answered that they dont have a match
@@ -178,6 +152,48 @@ namespace Client
                 Phase 1: Selecting the tuple to be removed 
              ------------------------------------------------*/
 
+            ITuple selectedTuple = null;
+
+            // Repeat phase 1 until all replicas return at least 
+            // one common matching tuple
+            while (selectedTuple == null)
+                selectedTuple = this.Take1(template);
+            
+            Console.WriteLine("Take: Phase 1 completed");
+
+
+            /*------------------------------------------------
+                Phase 2: Removing the selected tuple
+             ------------------------------------------------*/
+            TSpaceMsg message = new TSpaceMsg();
+            message.Code = "take2";
+            message.SequenceNumber = ++SequenceNumber;
+            message.Tuple = selectedTuple;
+            message.ProcessID = ClientID;
+
+            // Create local callback.
+            AsyncCallback remoteCallback = new AsyncCallback(XL_Client.AddCallback);
+
+            //Repeat until all replicas have acknowledged deletion
+            while (AcksID.Count < View.Count)
+            {
+                // Send multicast request to remove tuples to all members of the view
+                this.Multicast(message, remoteCallback);
+            }
+            Console.WriteLine("Take: Phase 2 completed");
+
+            Console.WriteLine("Take: OK");
+            return message.Tuple;
+            
+        }
+
+        /// <summary>
+        /// Executes the phase 1 of the take operation.
+        /// </summary>
+        /// <param name="template">Template of the requested tuple.</param>
+        /// <returns></returns>
+        private ITuple Take1(ITuple template)
+        {
             // Create request message.
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "take1";
@@ -189,85 +205,61 @@ namespace Client
             AcksID.Clear();
             MatchingTuples.Clear();
 
-            RemoteAsyncDelegate remoteDel;
-
             // Create local callback.
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.Take1Callback);
 
-            
 
             // Repeat until all replicas have responded
             while (AcksID.Count < View.Count)
             {
-                //Console.WriteLine("#Acks = " + AcksID.Count);
                 //Send multicast take request to all members of the view
-                foreach (ITSpaceServer server in View)
-                {
-                    // Create delegate for remote method
-                    remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
-
-                    // Call remote method
-                    remoteDel.BeginInvoke(message, remoteCallback, null);
-                }
+                this.Multicast(message, remoteCallback);
             }
+
 
             // Select one tuple from the intersection of all matching tuples lists
             List<ITuple> intersection = MatchingTuples[0];
 
-            foreach(List<ITuple> tupleList in MatchingTuples)
+            foreach (List<ITuple> tupleList in MatchingTuples)
             {
                 intersection.Intersect(tupleList, new TupleComparator());
             }
 
             // If intersection = {}
-            // send multicast request to release all replicas
+            // Send release locks to all replicas
             if (intersection.Count == 0)
             {
-                //TODO Release locks
-                Console.WriteLine("Take: Release locks.");
+                //Create message
+                message.Code = "releaseLocks";
+                message.SequenceNumber = ++SequenceNumber;
 
-                // repeat phase 1
-              
-            }
+                // Clear acks
+                AcksID.Clear();
 
-            Console.WriteLine("Take: Phase 1 completed.");
-            
+                // Create remote callback
+                remoteCallback = new AsyncCallback(XL_Client.AddCallback);
 
-            /*------------------------------------------------
-                Phase 2: Removing the selected tuple
-             ------------------------------------------------*/
-            message.Code = "take2";
-            message.SequenceNumber = ++SequenceNumber;
-            message.Tuple = intersection[0];
-
-            remoteCallback = new AsyncCallback(XL_Client.AddCallback);
-
-            //Repeat until all replicas have acknowledged deletion
-            while (AcksID.Count < View.Count)
-            {
-                // Send multicast request to remove tuples to all members of the view
-                foreach (ITSpaceServer server in View)
+                // Repeat until all replicas have acknowledged release
+                while (AcksID.Count < View.Count)
                 {
-                    // Create delegate for remote method
-                    remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
-
-                    // Call remote method
-                    remoteDel.BeginInvoke(message, remoteCallback, null);
+                    //Send multicast take request to all members of the view
+                    this.Multicast(message, remoteCallback);
                 }
-            }
-            Console.WriteLine("Take: Phase 2 completed");
 
-            Console.WriteLine("Take: OK");
-            return message.Tuple;
-            
+                Console.WriteLine("Take 1: intersection = {} \nRelease locks acknowleged\nRepeat phase 1");
+                return null;
+            }
+
+            return intersection[0];
         }
 
 
         /***********************************************************
          *                  CALLBACK FUNCTIONS
          ***********************************************************/
+
         /// <summary>
-        /// Callback function for the add operation.
+        /// Callback function for the acknowledgements.
         /// </summary>
         /// <param name="result">Async callback result.</param>
         public static void AddCallback(IAsyncResult result)
@@ -281,9 +273,10 @@ namespace Client
             if (response.SequenceNumber < SequenceNumber)
                 return;
 
-
             if (response.Code.Equals("ACK"))
+            {
                 AcksID.Add(response.ProcessID);
+            }
         }
 
         /// <summary>
@@ -331,8 +324,35 @@ namespace Client
             // and the ID of the server that answered
             if (response.Code.Equals("OK"))
             {
-                AcksID.Add(response.ProcessID);
+                // Tuples have to be added before the acks are incremented
                 MatchingTuples.Add(response.Tuples);
+                AcksID.Add(response.ProcessID);
+
+            }
+        }
+
+
+        /****************************************************************
+         *                     AUX FUNCTIONS / CLASSES
+         ****************************************************************/
+
+
+        /// <summary>
+        /// Makes an async remote invocation of TSpaceServer.ProcessRequest
+        /// </summary>
+        /// <param name="message">Argument of the ProcessRequest method.</param>
+        /// <param name="asyncCallback">Callback function of the remote call.</param>
+        private void Multicast(TSpaceMsg message, AsyncCallback asyncCallback)
+        {
+            RemoteAsyncDelegate remoteDel;
+
+            foreach (ITSpaceServer server in View)
+            {
+                // Create delegate for remote method
+                remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
+
+                // Call remote method
+                remoteDel.BeginInvoke(message, asyncCallback, null);
             }
         }
 
@@ -352,6 +372,8 @@ namespace Client
             }
         }
     }
+
+
 
 }
 

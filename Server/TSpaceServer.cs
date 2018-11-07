@@ -63,38 +63,7 @@ namespace Server
             ProcessedRequests.Add(msg.SequenceNumber);
 
             string command = msg.Code;
-       /*     Console.WriteLine("Processing Request " + command + " (seq = " + msg.SequenceNumber + ")" );
-
-            if (command.Equals("add"))
-            {
-                TuppleSpace.Add(msg.Tuple);
-                response.Code = "ACK";
-
-            } else if (command.Equals("read"))
-            {
-                response.Tuple = TuppleSpace.Read(msg.Tuple);
-                response.Code = "OK";
-
-            } else if (command.Equals("take1")){
-                Console.WriteLine("Take 1 begin");
-                response.Tuples = TuppleSpace.Take1(msg.Tuple);
-                Console.WriteLine("Take 1 end: " +response.Tuples.Count);
-                response.Code = "OK";
-            } else if (command.Equals("take2"))
-            {
-                TuppleSpace.Take2(msg.Tuple);
-                response.Code = "ACK";
-
-            }else
-            {
-                Console.WriteLine("Invalid command.");
-                response.Code = "Invalid";
-            }
-
-            Console.WriteLine("Request answered: " + response.Code + " (seq = " + response.SequenceNumber + ")");
-            return response; */
-
-
+            Console.WriteLine("Processing Request " + command + " (seq = " + msg.SequenceNumber + ")" );
             
             switch (command)
             {
@@ -120,6 +89,12 @@ namespace Server
                     response.Code = "ACK";
                     break;
 
+                // Operation exclusive of the XL Tuple Space
+                case "releaseLocks":
+                    //((XL_TSpaceHandler)TuppleSpace).ReleaseLocks(msg.ProcessID);
+                    response.Code = "ACK";
+
+                    break;
                 default:
                     Console.WriteLine("Invalid command.");
                     break;
