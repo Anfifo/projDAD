@@ -117,9 +117,7 @@ namespace Client
                         Console.WriteLine("WE ADDING");
 
                         Tuple tuple = new Tuple(Op.getFields());
-                        Console.WriteLine(XL == null);
-                        XL.Add(tuple);
-                        
+                        XL.Add(tuple);  
                         break;
 
                     case "take":
