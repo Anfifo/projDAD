@@ -48,7 +48,9 @@ namespace CommonTypes
 
 
                 if (!field2.Matches(field1))
+                { 
                     return false;
+                }
             }
 
             return true;

@@ -26,12 +26,6 @@ namespace CommonTypes
         public bool Matches(IField field)
         {
 
-            if (field.GetFieldType().ToString() != this.GetFieldType().ToString())
-            {
-                return false;
-
-            }
-
             if (value is StringField)
             {
 
@@ -50,9 +44,12 @@ namespace CommonTypes
 
                     string inputString = inputStringField.field;
 
-                    if (inputString.Substring(0,myString.Length-1) == myString.Substring(0,myString.Length-1))
+                    if (inputString.Substring(0, myString.Length - 1) == myString.Substring(0, myString.Length - 1))
+                    {
+                        Console.WriteLine("they MATCH");
                         return true;
-
+                    }
+                    Console.WriteLine("they dont MATCH");
                     return false;
 
                 }
@@ -76,7 +73,7 @@ namespace CommonTypes
 
                 else
                 {
-                   
+
                     StringField sf = (StringField)field.GetValue();
 
                     string s = sf.field;
@@ -91,16 +88,18 @@ namespace CommonTypes
                     return false;
                 }
             }
-
-            if (value is Type)
+            
+            if (value.GetType().ToString() == "System.RuntimeType" )
             {
+
                 Type valueType = (Type)value;
 
-                return field.GetType().ToString() == valueType.ToString();
+                return (valueType.ToString() == field.GetValue().ToString());
+
             }
             else
             {
-                
+
                 object[] o = new object[1];
 
                  Type t = Type.GetType(value.GetType().ToString());
