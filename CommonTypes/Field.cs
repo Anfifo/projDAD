@@ -25,9 +25,7 @@ namespace CommonTypes
 
         public bool Matches(IField field)
         {
-            Console.WriteLine("Template type: " + GetFieldType().ToString());
-            Console.WriteLine("Tuple type: " + field.GetFieldType().ToString());
-
+  
             if (value is StringValue)
             {
                 if(!(field.GetValue() is StringValue))
@@ -39,13 +37,11 @@ namespace CommonTypes
 
                 if (myStringField.AnyString)
                 {
-                    Console.WriteLine("Anystring");
-
                     return true;
                 }
+
                 if (myStringField.InitialSubString)
                 {
-                    Console.WriteLine("InitialSubstring");
                     string myString = myStringField.field;
 
                     StringValue inputStringField = (StringValue)field.GetValue();
@@ -54,17 +50,14 @@ namespace CommonTypes
 
                     if (inputString.Substring(0, myString.Length - 1) == myString.Substring(0, myString.Length - 1))
                     {
-                        Console.WriteLine("they MATCH");
                         return true;
                     }
-                    Console.WriteLine("they dont MATCH");
                     return false;
 
                 }
 
                 if (myStringField.FinalSubString)
                 {
-                    Console.WriteLine("FinalSubstring");
                     string myString = myStringField.field;
 
                     StringValue inputStringField = (StringValue)field.GetValue();
@@ -111,7 +104,6 @@ namespace CommonTypes
             {
                 if(value is NullValue)
                 {
-                    Console.WriteLine("Value == null");
                     Type StringField = Type.GetType("CommonTypes" + "." + "StringValue,CommonTypes");
 
                     return !field.GetFieldType().ToString().Equals(StringField.ToString());

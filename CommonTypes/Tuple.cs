@@ -43,20 +43,13 @@ namespace CommonTypes
 
             for (int i = 0; i < this.getLength(); i++)
             {
-                Console.WriteLine("Field index = " + i);
-                Console.WriteLine(this.tuple[i].GetType().ToString());
                 Field field1 = (Field)tuple.GetFields()[i];
                 Field field2 = (Field)this.tuple[i];
 
-                Console.WriteLine("Field 1 type: " + field1.GetFieldType().ToString());
-                Console.WriteLine("Field 2 type: " + field2.GetFieldType().ToString());
-
                 if (!field2.Matches(field1))
                 {
-                    Console.WriteLine("Field index = " + i + "FAIL");
                     return false;
                 }
-                Console.WriteLine("Field index = " + i + "OK");
 
             }
 
