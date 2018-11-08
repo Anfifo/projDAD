@@ -33,7 +33,7 @@ namespace CommonTypes
         {
             get; set;
         }
-        public int ID
+        public string ID
         {
             get; set;
         }
