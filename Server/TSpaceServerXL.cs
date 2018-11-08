@@ -12,6 +12,8 @@ namespace Server
 
         private readonly int ServerID;
 
+        private Boolean Frozen = false;
+
         // Stores the id of the requests already processed
         private static List<string> ProcessedRequests;
 
@@ -24,19 +26,19 @@ namespace Server
         }
 
 
-        public void Run()
+        public string Status()
         {
-            throw new NotImplementedException();
+            return "I live";
         }
 
-        public void Start()
+        public void Freeze()
         {
-            throw new NotImplementedException();
+            Frozen = true;
         }
 
-        public void Stop()
+        public void Unfreeze()
         {
-            throw new NotImplementedException();
+            Frozen = false;
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)

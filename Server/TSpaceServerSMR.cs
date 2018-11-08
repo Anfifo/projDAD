@@ -18,6 +18,7 @@ namespace Server
 
         private List<int> ProcessedRequests;
 
+        private Boolean Frozen = false;
         public TSpaceServerSMR()
         {
             TuppleSpace = new TSpaceStorage();
@@ -27,19 +28,19 @@ namespace Server
         }
 
 
-        public void Run()
+        public string Status()
         {
-            throw new NotImplementedException();
+            return "I live";
         }
 
-        public void Start()
+        public void Freeze()
         {
-            throw new NotImplementedException();
+            Frozen = true;
         }
 
-        public void Stop()
+        public void Unfreeze()
         {
-            throw new NotImplementedException();
+            Frozen = false;
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
