@@ -23,6 +23,7 @@ namespace Server
                     if (!LockedTuplesList.Contains(matches[i]))
                     {
                         UserLockedTuples.Add(matches[i]);
+                        LockedTuplesList.Add(matches[i]);
                     }
                 }
                 if (UserLockedTuples.Count > 0)

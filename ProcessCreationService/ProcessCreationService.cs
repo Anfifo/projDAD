@@ -41,7 +41,7 @@ namespace ProcessCreationService
 
             info.CreateNoWindow = false;
 
-            info.Arguments = "script.txt";
+            info.Arguments = script;
 
             Process P = Process.Start(info);
 

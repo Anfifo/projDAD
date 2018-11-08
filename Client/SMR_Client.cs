@@ -5,6 +5,7 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Messaging;
 using System.Linq;
+using System.Threading;
 
 
 
@@ -114,8 +115,11 @@ namespace Client
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.ReadCallback);
 
             // Clear responses to previous request
-            AcksCounter = 0;
-            Tuple = null;
+            lock (Tuple)
+            {
+                AcksCounter = 0;
+                Tuple = null;
+            }
 
             // Send multicast request to all members of the view
             this.Multicast(request, remoteCallback);
@@ -149,7 +153,10 @@ namespace Client
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.ReadCallback);
 
             // Clear response from last request
-            Tuple = null;
+            lock (Tuple)
+            {
+                Tuple = null;
+            }
 
             // Repeat until one matching tuple is found
             while(Tuple == null)
@@ -203,7 +210,7 @@ namespace Client
 
             if (response.Code.Equals("ACK"))
             {
-                AcksCounter++;
+                Interlocked.Increment(ref AcksCounter);
             }
         }
 
@@ -216,8 +223,11 @@ namespace Client
 
             if (response.Code.Equals("OK"))
             {
-                AcksCounter++;
-                Tuple = response.Tuple;  
+                lock (Tuple)
+                {
+                    Tuple = response.Tuple;
+                    Interlocked.Increment(ref AcksCounter);
+                }
             }
 
         }

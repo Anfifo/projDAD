@@ -13,7 +13,7 @@ namespace Server
         private readonly int ServerID;
 
         // Stores the id of the requests already processed
-        private List<string> ProcessedRequests;
+        private static List<string> ProcessedRequests;
 
         public TSpaceServerXL()
         {
@@ -45,16 +45,19 @@ namespace Server
             TSpaceMsg response = new TSpaceMsg();
             response.ProcessID = ServerID;
 
-            // Check if request as already been processed
-            if (ProcessedRequests.Contains(msg.ID))
+            lock (ProcessedRequests)
             {
-                response.Code = "Repeated";
-                return response;
-                
-            }
+                // Check if request as already been processed
+                if (ProcessedRequests.Contains(msg.ID))
+                {
+                    response.Code = "Repeated";
+                    return response;
 
-            // Add request ID to processed requests
-            ProcessedRequests.Add(msg.ID);
+                }
+
+                // Add request ID to processed requests
+                ProcessedRequests.Add(msg.ID);
+            }
 
             string command = msg.Code;
             Console.WriteLine("Processing Request " + command + " (seq = " + msg.ID + ")" );
@@ -67,12 +70,11 @@ namespace Server
                     break;
 
                 case "read":
-                    Console.WriteLine("Search match");
                     response.Tuple = TuppleSpace.Read(msg.Tuple);
                     
                     response.Code = "OK";
                     if (response.Tuple == null)
-                        Console.WriteLine("Not Found");
+                        Console.WriteLine("Match not Found");
                     else
                         Console.WriteLine("Match found");
                     break;
@@ -81,7 +83,7 @@ namespace Server
                     // find suitable matches for tuple
                     List<ITuple> matches = TuppleSpace.Take1(msg.Tuple);
                     // Locks all unlocked and matchable tuples for UserID
-                    response.Tuples = TSLockHandler.LockTuples(msg.ProcessID, matches); 
+                    response.Tuples = TSLockHandler.LockTuples(msg.ProcessID, matches);
                     response.Code = "OK";
                     break;
 

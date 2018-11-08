@@ -25,10 +25,6 @@ namespace CommonTypes
 
         public bool Matches(IField field)
         {
-          /*  Console.WriteLine("Template type: " + GetFieldType().ToString());
-            Console.WriteLine("Tuple type: " + field.GetFieldType().ToString()); */
-
-            //If we have a string
             if (value is StringValue)
             {
                 //If the value we want to compare ourselfs with is not a string
@@ -42,15 +38,11 @@ namespace CommonTypes
                 //if its a anystring wildcard
                 if (myStringField.AnyString)
                 {
-                    Console.WriteLine("Anystring");
-
                     return true;
                 }
 
-                //if its a initialstring wildcard
                 if (myStringField.InitialSubString)
                 {
-                    Console.WriteLine("InitialSubstring");
                     string myString = myStringField.field;
 
                     StringValue inputStringField = (StringValue)field.GetValue();
@@ -68,7 +60,6 @@ namespace CommonTypes
                 //if its a finalstring wildcard
                 if (myStringField.FinalSubString)
                 {
-                    Console.WriteLine("FinalSubstring");
                     string myString = myStringField.field;
 
                     StringValue inputStringField = (StringValue)field.GetValue();
@@ -117,7 +108,6 @@ namespace CommonTypes
                 // if we are comparing with a null value unless the other is a string, we return true
                 if(value is NullValue)
                 {
-                    Console.WriteLine("Value == null");
                     Type StringField = Type.GetType("CommonTypes" + "." + "StringValue,CommonTypes");
 
                     return !field.GetFieldType().ToString().Equals(StringField.ToString());

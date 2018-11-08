@@ -5,6 +5,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Linq;
+using System.Threading;
 
 namespace Client
 {
@@ -57,6 +58,8 @@ namespace Client
 
             // Set the client unique identifier
             ClientID = new Random().Next();
+
+            Console.WriteLine("Client id = " + ClientID);
 
         }
 
@@ -169,6 +172,7 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "take2";
             message.Tuple = selectedTuple;
+            message.ProcessID = ClientID;
             message.ID = ClientID + "_" + (++SequenceNumber);
 
 
@@ -202,12 +206,16 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "take1";
             message.Tuple = template;
+            message.ProcessID = ClientID;
             message.ID = ClientID + "_" + (++SequenceNumber);
 
 
             // Clear responses from previour requests
-            AcksCounter = 0;
-            MatchingTuples.Clear();
+            lock (MatchingTuples)
+            {
+                AcksCounter = 0;
+                MatchingTuples.Clear();
+            }
 
             // Create local callback.
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.Take1Callback);
@@ -220,13 +228,17 @@ namespace Client
                 this.Multicast(message, remoteCallback);
             }
 
+            List<ITuple> intersection;
 
-            // Select one tuple from the intersection of all matching tuples lists
-            List<ITuple> intersection = MatchingTuples[0];
-
-            foreach (List<ITuple> tupleList in MatchingTuples)
+            lock (MatchingTuples)
             {
-                intersection.Intersect(tupleList, new TupleComparator());
+                // Select one tuple from the intersection of all matching tuples lists
+                intersection = MatchingTuples[0];
+
+                foreach (List<ITuple> tupleList in MatchingTuples)
+                {
+                    intersection.Intersect(tupleList, new TupleComparator());
+                }
             }
 
             // If intersection = {}
@@ -251,7 +263,7 @@ namespace Client
                     this.Multicast(message, remoteCallback);
                 }
 
-                Console.WriteLine("Take 1: intersection = {} \nRelease locks acknowleged\nRepeat phase 1");
+                //Console.WriteLine("Take 1: intersection = {} \nRelease locks acknowleged\nRepeat phase 1");
                 return null;
             }
 
@@ -276,7 +288,7 @@ namespace Client
           
             if (response.Code.Equals("ACK"))
             {
-                AcksCounter++;
+                Interlocked.Increment(ref AcksCounter);
             }
         }
 
@@ -295,8 +307,12 @@ namespace Client
             // and the ID of the server that answered
             if (response.Code.Equals("OK"))
             {
-                Tuple = response.Tuple;
-                AcksCounter++;
+
+                lock (Tuple)
+                {
+                    Tuple = response.Tuple;
+                    Interlocked.Increment(ref AcksCounter);
+                }
             }
         }
 
@@ -316,9 +332,12 @@ namespace Client
             // and the ID of the server that answered
             if (response.Code.Equals("OK"))
             {
+                
                 // Tuples have to be added before the acks are incremented
-                MatchingTuples.Add(response.Tuples);
-                AcksCounter++;
+                lock (MatchingTuples) { 
+                    MatchingTuples.Add(response.Tuples);
+                    Interlocked.Increment(ref AcksCounter);
+                }
             }
         }
 
