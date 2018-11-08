@@ -15,12 +15,12 @@ namespace Server
         static public List<ITuple> LockTuples(int userID, List<ITuple> matches)
         {
             List<ITuple> UserLockedTuples = new List<ITuple>();
-
+            
             lock (LockedTuples)
             {
                 for (int i = 0; i < matches.Count; i++)
                 {
-                    if (LockedTuplesList.Contains(matches[i]))
+                    if (!LockedTuplesList.Contains(matches[i]))
                     {
                         UserLockedTuples.Add(matches[i]);
                     }
