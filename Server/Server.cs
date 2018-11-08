@@ -42,7 +42,7 @@ namespace Server
             ChannelServices.RegisterChannel(channel, true);
 
             RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(ITSpace),
+                typeof(TSpaceServerXL),
                 Name,
                 WellKnownObjectMode.Singleton);
 

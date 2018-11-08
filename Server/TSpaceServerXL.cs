@@ -71,10 +71,14 @@ namespace Server
                     break;
 
                 case "read":
+                    Console.WriteLine("Search match");
                     response.Tuple = TuppleSpace.Read(msg.Tuple);
+                    
                     response.Code = "OK";
                     if (response.Tuple == null)
                         Console.WriteLine("Not Found");
+                    else
+                        Console.WriteLine("Match found");
                     break;
 
                 case "take1":
