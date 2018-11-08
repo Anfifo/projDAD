@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace CommonTypes
 {
+    using System;
+
+    [Serializable]
     public class DADTestA
     {
         public int i1;
@@ -15,22 +18,22 @@ namespace CommonTypes
         {
             i1 = pi1;
             s1 = ps1;
-
-            //Console.WriteLine(i1.ToString() + s1.ToString() + this.GetType());
         }
-        public bool equals(DADTestA o)
+        public override bool Equals(object o)
         {
-            if (o == null)
+            DADTestA a = o as DADTestA;
+            if (a == null)
             {
                 return false;
             }
             else
             {
-                return ((this.i1 == o.i1) && (this.s1.Equals(o.s1)));
+                return ((this.i1 == a.i1) && (this.s1.Equals(a.s1)));
             }
         }
     }
 
+    [Serializable]
     public class DADTestB
     {
         public int i1;
@@ -42,24 +45,23 @@ namespace CommonTypes
             i1 = pi1;
             s1 = ps1;
             i2 = pi2;
-
-            //Console.WriteLine(i1.ToString() + s1.ToString() + i2.ToString() + this.GetType());
-
         }
 
-        public bool equals(DADTestB o)
+        public override bool Equals(object o)
         {
-            if (o == null)
+            DADTestB b = o as DADTestB;
+            if (b == null)
             {
                 return false;
             }
             else
             {
-                return ((this.i1 == o.i1) && (this.s1.Equals(o.s1)) && (this.i2 == o.i2));
+                return ((this.i1 == b.i1) && (this.s1.Equals(b.s1)) && (this.i2 == b.i2));
             }
         }
     }
 
+    [Serializable]
     public class DADTestC
     {
         public int i1;
@@ -71,19 +73,18 @@ namespace CommonTypes
             i1 = pi1;
             s1 = ps1;
             s2 = ps2;
-
-            //Console.WriteLine(i1.ToString() + s1.ToString() + s2.ToString() + this.GetType());
         }
 
-        public bool equals(DADTestC o)
+        public override bool Equals(object o)
         {
-            if (o == null)
+            DADTestC c = o as DADTestC;
+            if (c == null)
             {
                 return false;
             }
             else
             {
-                return ((this.i1 == o.i1) && (this.s1.Equals(o.s1)) && (this.s2.Equals(o.s2)));
+                return ((this.i1 == c.i1) && (this.s1.Equals(c.s1)) && (this.s2.Equals(c.s2)));
             }
         }
     }

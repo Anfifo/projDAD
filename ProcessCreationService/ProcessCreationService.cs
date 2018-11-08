@@ -33,11 +33,9 @@ namespace ProcessCreationService
         }
 
         public void StartClient(string script)
-        {
-            
-            ProcessStartInfo info = new ProcessStartInfo(@"C:\\Users\\paranois3\\Dropbox\\projDAD\\Client\\bin\\Debug\\Client.exe");
-            //ProcessStartInfo info = new ProcessStartInfo(@"C:\\Leonor_Loureiro\\Tecnico\\4Ano\\1Semestre\\DAD\\projDAD\\Client\\bin\\Debug\Client.exe");
-            
+        { 
+
+            ProcessStartInfo info = new ProcessStartInfo(GetProjPath() + "\\Client\\bin\\Debug\\Client.exe");
 
             //info.UseShellExecute = false;
 
@@ -52,8 +50,8 @@ namespace ProcessCreationService
         public void StartServer(string url,int mindelay,int maxdelay)
         {
 
-            ProcessStartInfo info = new ProcessStartInfo(@"C:\\Users\\paranois3\\Dropbox\\projDAD\\Server\\bin\\Debug\\Server.exe");
-            //ProcessStartInfo info = new ProcessStartInfo(@"C:\\Leonor_Loureiro\\Tecnico\\4Ano\\1Semestre\\DAD\\projDAD\\Server\\bin\\Debug\\Server.exe");
+            ProcessStartInfo info = new ProcessStartInfo(GetProjPath() + "\\Server\\bin\\Debug\\Server.exe" );
+
             //info.UseShellExecute = false;
 
             info.CreateNoWindow = false;
@@ -61,6 +59,25 @@ namespace ProcessCreationService
             info.Arguments = url + " " + mindelay + " " + maxdelay;
 
             Process P = Process.Start(info);
+
+
+        }
+
+        public string GetProjPath()
+        {
+            string current = Directory.GetCurrentDirectory();
+
+            DirectoryInfo binPath = Directory.GetParent(current);
+
+            string binStringPath = binPath.ToString();
+
+            DirectoryInfo classPath = Directory.GetParent(binStringPath);
+
+            string classStringPath = classPath.ToString();
+
+            DirectoryInfo projPath = Directory.GetParent(classStringPath);
+
+            return projPath.ToString();
 
 
         }
