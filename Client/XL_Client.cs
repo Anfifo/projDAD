@@ -35,6 +35,9 @@ namespace Client
         // Stores the matching tuples returned by all tuple space servers
         private static List<List<ITuple>> MatchingTuples = new List<List<ITuple>>();
 
+        // Object to use as reference for the lock to the Tuple 
+        private static Object LockRef = new Object();
+
 
         /// <summary>
         /// Constructor.
@@ -123,15 +126,27 @@ namespace Client
             // Create local callback.
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.ReadCallback);
 
-            Tuple = null;
+            // Clear previous answers
+            lock (LockRef)
+            {
+                Tuple = null;
+            }
             AcksCounter = 0;
+            
 
             // Send multicast message to all members of the view.
             this.Multicast(message, remoteCallback);
 
             // Waits until one replica returns a tuple or
             // all replicas answered that they dont have a match
-            while (Tuple == null && AcksCounter < View.Count) ;
+            while (AcksCounter < View.Count)
+            {
+                lock (LockRef)
+                {
+                    if (Tuple != null)
+                        break;
+                }
+            }
 
             // Return first response.
             Console.WriteLine("READ: OK");
@@ -307,12 +322,15 @@ namespace Client
             // and the ID of the server that answered
             if (response.Code.Equals("OK"))
             {
-
-                lock (Tuple)
+                if(response.Tuple != null)
                 {
-                    Tuple = response.Tuple;
-                    Interlocked.Increment(ref AcksCounter);
+                    lock (LockRef)
+                    {
+                        Tuple = response.Tuple;
+                    }
                 }
+
+                Interlocked.Increment(ref AcksCounter);
             }
         }
 
@@ -332,7 +350,7 @@ namespace Client
             // and the ID of the server that answered
             if (response.Code.Equals("OK"))
             {
-                
+                new CommonTypes.Tuple(response.Tuple.GetFields());
                 // Tuples have to be added before the acks are incremented
                 lock (MatchingTuples) { 
                     MatchingTuples.Add(response.Tuples);
