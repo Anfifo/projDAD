@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommonTypes;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -217,7 +218,12 @@ public class PuppetMasterService
 
     void Status()
     {
-
+        foreach(KeyValuePair<string,string> ServerProcess in Servers)
+        {
+            ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), ServerProcess.Value);
+            string s = server.Status();
+            Console.WriteLine(ServerProcess.Key + "is alive");
+        }
     }
 
     void Crash(string processname)
@@ -225,14 +231,16 @@ public class PuppetMasterService
 
     }
 
-    void Freeze(string processname)
+    void Freeze(string processid)
     {
-
+        ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), Servers[processid]);
+        server.Freeze();
     }
 
-    void Unfreeze(string processname)
+    void Unfreeze(string processid)
     {
-
+        ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), Servers[processid]);
+        server.Unfreeze();
     }
 
     void Wait(int time)

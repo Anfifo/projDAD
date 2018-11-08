@@ -25,11 +25,13 @@ namespace CommonTypes
 
         public bool Matches(IField field)
         {
-            Console.WriteLine("Template type: " + GetFieldType().ToString());
-            Console.WriteLine("Tuple type: " + field.GetFieldType().ToString());
+          /*  Console.WriteLine("Template type: " + GetFieldType().ToString());
+            Console.WriteLine("Tuple type: " + field.GetFieldType().ToString()); */
 
+            //If we have a string
             if (value is StringValue)
             {
+                //If the value we want to compare ourselfs with is not a string
                 if(!(field.GetValue() is StringValue))
                 {
                     return false;
@@ -37,12 +39,15 @@ namespace CommonTypes
 
                 StringValue myStringField = (StringValue)this.value;
 
+                //if its a anystring wildcard
                 if (myStringField.AnyString)
                 {
                     Console.WriteLine("Anystring");
 
                     return true;
                 }
+
+                //if its a initialstring wildcard
                 if (myStringField.InitialSubString)
                 {
                     Console.WriteLine("InitialSubstring");
@@ -54,14 +59,13 @@ namespace CommonTypes
 
                     if (inputString.Substring(0, myString.Length - 1) == myString.Substring(0, myString.Length - 1))
                     {
-                        Console.WriteLine("they MATCH");
                         return true;
                     }
-                    Console.WriteLine("they dont MATCH");
                     return false;
 
                 }
 
+                //if its a finalstring wildcard
                 if (myStringField.FinalSubString)
                 {
                     Console.WriteLine("FinalSubstring");
@@ -79,6 +83,7 @@ namespace CommonTypes
 
                 }
 
+                // if we want to compare 2 strings
                 else
                 {
 
@@ -109,6 +114,7 @@ namespace CommonTypes
             // Object
             else
             {
+                // if we are comparing with a null value unless the other is a string, we return true
                 if(value is NullValue)
                 {
                     Console.WriteLine("Value == null");
