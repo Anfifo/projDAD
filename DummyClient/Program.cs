@@ -26,7 +26,7 @@ namespace DummyClient
             try
             {
                 Tuple tuple = new Tuple();
-                tuple.Add(new Field(new StringField(false, false, false, "steve")));
+                tuple.Add(new Field(new StringValue(false, false, false, "steve")));
                 TSpaceMsg msg = new TSpaceMsg
                 {
                     Code = "add",
@@ -37,7 +37,7 @@ namespace DummyClient
 
 
                 tuple = new Tuple();
-                tuple.Add(new Field(new StringField(false, false, false, "steve")));
+                tuple.Add(new Field(new StringValue(false, false, false, "steve")));
                 msg = new TSpaceMsg
                 {
                     Code = "read",

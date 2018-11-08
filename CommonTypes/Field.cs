@@ -25,14 +25,22 @@ namespace CommonTypes
 
         public bool Matches(IField field)
         {
+            Console.WriteLine("Template type: " + GetFieldType().ToString());
+            Console.WriteLine("Tuple type: " + field.GetFieldType().ToString());
 
-            if (value is StringField)
+            if (value is StringValue)
             {
+                if(!(field.GetValue() is StringValue))
+                {
+                    return false;
+                }
 
-                StringField myStringField = (StringField)this.value;
+                StringValue myStringField = (StringValue)this.value;
 
                 if (myStringField.AnyString)
                 {
+                    Console.WriteLine("Anystring");
+
                     return true;
                 }
                 if (myStringField.InitialSubString)
@@ -40,7 +48,7 @@ namespace CommonTypes
                     Console.WriteLine("InitialSubstring");
                     string myString = myStringField.field;
 
-                    StringField inputStringField = (StringField)field.GetValue();
+                    StringValue inputStringField = (StringValue)field.GetValue();
 
                     string inputString = inputStringField.field;
 
@@ -59,7 +67,7 @@ namespace CommonTypes
                     Console.WriteLine("FinalSubstring");
                     string myString = myStringField.field;
 
-                    StringField inputStringField = (StringField)field.GetValue();
+                    StringValue inputStringField = (StringValue)field.GetValue();
 
                     string inputString = inputStringField.field;
 
@@ -74,7 +82,7 @@ namespace CommonTypes
                 else
                 {
 
-                    StringField sf = (StringField)field.GetValue();
+                    StringValue sf = (StringValue)field.GetValue();
 
                     string s = sf.field;
 
@@ -89,6 +97,7 @@ namespace CommonTypes
                 }
             }
             
+            // Class type
             if (value.GetType().ToString() == "System.RuntimeType" )
             {
 
@@ -97,8 +106,20 @@ namespace CommonTypes
                 return (valueType.ToString() == field.GetValue().ToString());
 
             }
+            // Object
             else
             {
+                if(value is NullValue)
+                {
+                    Console.WriteLine("Value == null");
+                    Type StringField = Type.GetType("CommonTypes" + "." + "StringField,CommonTypes");
+
+                    return !field.GetFieldType().ToString().Equals(StringField.ToString());
+                    
+                }
+
+                if (field is StringValue)
+                    return false;
 
                 object[] o = new object[1];
 

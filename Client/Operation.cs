@@ -46,7 +46,7 @@ namespace Client
                 // if its a null
                 if (splitfields[i] == "null") 
                 {
-                    Fields.Add(new Field(null));
+                    Fields.Add(new Field(new NullValue()));
 
                     continue;
                 }
@@ -73,7 +73,7 @@ namespace Client
                     //if its general wildcard
                     if (Field == "*")
                     {
-                        StringField field = new StringField(false, false, true, null);
+                        StringValue field = new StringValue(false, false, true, null);
                         Fields.Add(new Field(field));
                         continue;
                     }
@@ -81,7 +81,7 @@ namespace Client
                     //if its finalsubstring wildcard
                     if (Field[0] == '*')
                     {
-                        StringField field = new StringField(false, true, false, Field);
+                        StringValue field = new StringValue(false, true, false, Field);
                         Fields.Add(new Field(field));
                         continue;
                     }
@@ -89,12 +89,12 @@ namespace Client
                     //if initialsubtring wildcard
                     if (Field[Field.Length - 1] == '*')
                     {
-                        StringField field = new StringField(true, false, false, Field);
+                        StringValue field = new StringValue(true, false, false, Field);
                         Fields.Add(new Field(field));
                         continue;
                     }
 
-                    Fields.Add(new Field(new StringField(false,false,false,Field)));
+                    Fields.Add(new Field(new StringValue(false,false,false,Field)));
                     continue;
 
                 }

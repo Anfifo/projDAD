@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CommonTypes
 {
     [Serializable]
-    public class StringField
+    public class StringValue
     {
         public Boolean InitialSubString;
         public Boolean FinalSubString;
@@ -15,7 +15,7 @@ namespace CommonTypes
         public String field;
 
 
-        public StringField(Boolean IS, Boolean FS, Boolean AS, String f)
+        public StringValue(Boolean IS, Boolean FS, Boolean AS, String f)
         {
             InitialSubString = IS;
             FinalSubString = FS;
