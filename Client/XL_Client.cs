@@ -5,6 +5,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Linq;
+using System.Threading;
 
 namespace Client
 {
@@ -287,7 +288,7 @@ namespace Client
           
             if (response.Code.Equals("ACK"))
             {
-                AcksCounter++;
+                Interlocked.Increment(ref AcksCounter);
             }
         }
 
@@ -310,7 +311,7 @@ namespace Client
                 lock (Tuple)
                 {
                     Tuple = response.Tuple;
-                    AcksCounter++;
+                    Interlocked.Increment(ref AcksCounter);
                 }
             }
         }
@@ -335,7 +336,7 @@ namespace Client
                 // Tuples have to be added before the acks are incremented
                 lock (MatchingTuples) { 
                     MatchingTuples.Add(response.Tuples);
-                    AcksCounter++;
+                    Interlocked.Increment(ref AcksCounter);
                 }
             }
         }
