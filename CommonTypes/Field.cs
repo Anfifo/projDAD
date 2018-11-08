@@ -25,9 +25,9 @@ namespace CommonTypes
 
         public bool Matches(IField field)
         {
-  
             if (value is StringValue)
             {
+                //If the value we want to compare ourselfs with is not a string
                 if(!(field.GetValue() is StringValue))
                 {
                     return false;
@@ -35,6 +35,7 @@ namespace CommonTypes
 
                 StringValue myStringField = (StringValue)this.value;
 
+                //if its a anystring wildcard
                 if (myStringField.AnyString)
                 {
                     return true;
@@ -56,6 +57,7 @@ namespace CommonTypes
 
                 }
 
+                //if its a finalstring wildcard
                 if (myStringField.FinalSubString)
                 {
                     string myString = myStringField.field;
@@ -72,6 +74,7 @@ namespace CommonTypes
 
                 }
 
+                // if we want to compare 2 strings
                 else
                 {
 
@@ -102,6 +105,7 @@ namespace CommonTypes
             // Object
             else
             {
+                // if we are comparing with a null value unless the other is a string, we return true
                 if(value is NullValue)
                 {
                     Type StringField = Type.GetType("CommonTypes" + "." + "StringValue,CommonTypes");

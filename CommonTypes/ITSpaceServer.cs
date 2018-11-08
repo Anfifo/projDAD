@@ -8,9 +8,9 @@ namespace CommonTypes
 {
     public interface ITSpaceServer
     {
-        void Start();
-        void Run();
-        void Stop();
+        string Status();
+        void Freeze();
+        void Unfreeze();
         TSpaceMsg ProcessRequest(TSpaceMsg msg);
     }
 }
