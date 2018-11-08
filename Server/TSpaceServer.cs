@@ -12,7 +12,7 @@ namespace Server
     [Serializable]
     class TSpaceServer : MarshalByRefObject, ITSpaceServer
     {
-        public ITSpace TuppleSpace;
+        public TSpaceStorage TuppleSpace;
 
         private readonly int ServerID;
 
@@ -57,8 +57,6 @@ namespace Server
                 
             }
 
-            
-
             // Add sequence number of request to processed requests
             ProcessedRequests.Add(msg.SequenceNumber);
 
@@ -80,19 +78,32 @@ namespace Server
                     break;
 
                 case "take1":
-                    response.Tuples = TuppleSpace.Take1(msg.Tuple);
+                    // find suitable matches for tuple
+                    List<ITuple> matches = TuppleSpace.Take1(msg.Tuple);
+                    // Locks all unlocked and matchable tuples for UserID
+                    response.Tuples = TSLockHandler.LockTuples(msg.ProcessID, matches); 
                     response.Code = "OK";
                     break;
 
                 case "take2":
+                    // Deletes tuple
                     TuppleSpace.Take2(msg.Tuple);
+                    // Unlocks all tuples previously locked under UserID
+                    TSLockHandler.UnlockTuples(msg.ProcessID);
                     response.Code = "ACK";
                     break;
 
                 // Operation exclusive of the XL Tuple Space
                 case "releaseLocks":
-                    //((XL_TSpaceHandler)TuppleSpace).ReleaseLocks(msg.ProcessID);
-                    response.Code = "ACK";
+                    try
+                    {
+                        response.Code = "ACK";
+                    }
+                    catch (InvalidCastException)
+                    {
+                        Console.WriteLine("Current Tuple Space not in XL mode");
+                        response.Code = "ERR";
+                    }
 
                     break;
                 default:
