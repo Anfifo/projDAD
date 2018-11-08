@@ -82,18 +82,25 @@ namespace Server
                     break;
 
                 case "take1":
-                    // find suitable matches for tuple
-                    List<ITuple> matches = TuppleSpace.Take1(msg.Tuple);
-                    // Locks all unlocked and matchable tuples for UserID
-                    response.Tuples = TSLockHandler.LockTuples(msg.ProcessID, matches);
+                    lock (TSLockHandler.Lock)
+                    {
+                        // find suitable matches for tuple
+                        List<ITuple> matches = TuppleSpace.Take1(msg.Tuple);
+                        // Locks all unlocked and matchable tuples for UserID
+                        response.Tuples = TSLockHandler.LockTuples(msg.ProcessID, matches);
+                    }
+
                     response.Code = "OK";
                     break;
 
                 case "take2":
-                    // Deletes tuple
-                    TuppleSpace.Take2(msg.Tuple);
-                    // Unlocks all tuples previously locked under UserID
-                    TSLockHandler.UnlockTuples(msg.ProcessID);
+                    lock (TSLockHandler.Lock)
+                    {
+                        // Deletes tuple
+                        TuppleSpace.Take2(msg.Tuple);
+                        // Unlocks all tuples previously locked under UserID
+                        TSLockHandler.UnlockTuples(msg.ProcessID);
+                    }
                     response.Code = "ACK";
                     break;
 
