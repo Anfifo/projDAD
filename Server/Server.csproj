@@ -45,8 +45,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TSLockHandler.cs" />
+    <Compile Include="TSpaceServerSMR.cs" />
     <Compile Include="TSpaceStorage.cs" />
-    <Compile Include="TSpaceServer.cs" />
+    <Compile Include="TSpaceServerXL.cs" />
     <Compile Include="ITSpace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />

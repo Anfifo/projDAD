@@ -10,7 +10,7 @@ using System.Runtime.Remoting;
 namespace Server
 {
     [Serializable]
-    class TSpaceServer : MarshalByRefObject, ITSpaceServer
+    class TSpaceServerXL : MarshalByRefObject, ITSpaceServer
     {
         public TSpaceStorage TuppleSpace;
 
@@ -18,7 +18,7 @@ namespace Server
 
         private List<int> ProcessedRequests;
 
-        public TSpaceServer()
+        public TSpaceServerXL()
         {
             TuppleSpace = new TSpaceStorage();
             ServerID = new Random().Next();
