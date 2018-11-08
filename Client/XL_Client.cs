@@ -16,7 +16,7 @@ namespace Client
         // ID of the tuple spaces servers view.
         private int ViewId { get; set; }
 
-        // Sequence number of the last request
+        // Sequence number of the last request sent
         private static int SequenceNumber;
 
         // Client ID
@@ -26,7 +26,7 @@ namespace Client
         delegate TSpaceMsg RemoteAsyncDelegate(TSpaceMsg request);
 
         // Counter for the number of acknowledgements received 
-        private static HashSet<int> AcksID = new HashSet<int>();
+        private static int AcksCounter;
 
         // Stores the tuple returned by the
         private static ITuple Tuple;
@@ -77,17 +77,16 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "add";
             message.Tuple = tuple;
-            message.SequenceNumber = ++SequenceNumber;
-            message.ProcessID = ClientID;
+            message.ID = ClientID + "_" + (++SequenceNumber);
 
             //Clear acks
-            AcksID.Clear();
+            AcksCounter = 0;
 
             // Create local callback
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.AddCallback);
 
             // Repeat request until all replicas have acknowledged receipt
-            while (AcksID.Count < View.Count)
+            while (AcksCounter < View.Count)
             {
                 //Send multicast message to all members of the view
                 this.Multicast(message, remoteCallback);
@@ -115,21 +114,21 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "read";
             message.Tuple = template;
-            message.SequenceNumber = ++SequenceNumber;
-            message.ProcessID = ClientID;
+            message.ID = ClientID + "_" + (++SequenceNumber);
+
 
             // Create local callback.
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.ReadCallback);
 
             Tuple = null;
-            AcksID.Clear();
+            AcksCounter = 0;
 
             // Send multicast message to all members of the view.
             this.Multicast(message, remoteCallback);
 
             // Waits until one replica returns a tuple or
             // all replicas answered that they dont have a match
-            while (Tuple == null && AcksID.Count < View.Count) ;
+            while (Tuple == null && AcksCounter < View.Count) ;
 
             // Return first response.
             Console.WriteLine("READ: OK");
@@ -169,18 +168,18 @@ namespace Client
              ------------------------------------------------*/
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "take2";
-            message.SequenceNumber = ++SequenceNumber;
             message.Tuple = selectedTuple;
-            message.ProcessID = ClientID;
+            message.ID = ClientID + "_" + (++SequenceNumber);
+
 
             // Create local callback.
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.AddCallback);
 
             //Clear acks
-            AcksID.Clear();
+            AcksCounter = 0;
 
             //Repeat until all replicas have acknowledged deletion
-            while (AcksID.Count < View.Count)
+            while (AcksCounter < View.Count)
             {
                 // Send multicast request to remove tuples to all members of the view
                 this.Multicast(message, remoteCallback);
@@ -203,11 +202,11 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "take1";
             message.Tuple = template;
-            message.SequenceNumber = ++SequenceNumber;
-            message.ProcessID = ClientID;
+            message.ID = ClientID + "_" + (++SequenceNumber);
+
 
             // Clear responses from previour requests
-            AcksID.Clear();
+            AcksCounter = 0;
             MatchingTuples.Clear();
 
             // Create local callback.
@@ -215,7 +214,7 @@ namespace Client
 
 
             // Repeat until all replicas have responded
-            while (AcksID.Count < View.Count)
+            while (AcksCounter < View.Count)
             {
                 //Send multicast take request to all members of the view
                 this.Multicast(message, remoteCallback);
@@ -236,16 +235,17 @@ namespace Client
             {
                 //Create message
                 message.Code = "releaseLocks";
-                message.SequenceNumber = ++SequenceNumber;
+                message.ID = ClientID + "_" + (++SequenceNumber);
+
 
                 // Clear acks
-                AcksID.Clear();
+                AcksCounter = 0;
 
                 // Create remote callback
                 remoteCallback = new AsyncCallback(XL_Client.AddCallback);
 
                 // Repeat until all replicas have acknowledged release
-                while (AcksID.Count < View.Count)
+                while (AcksCounter < View.Count)
                 {
                     //Send multicast take request to all members of the view
                     this.Multicast(message, remoteCallback);
@@ -273,14 +273,10 @@ namespace Client
 
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
-
-            // Response corresponds to a old request
-            if (response.SequenceNumber < SequenceNumber)
-                return;
-
+          
             if (response.Code.Equals("ACK"))
             {
-                AcksID.Add(response.ProcessID);
+                AcksCounter++;
             }
         }
 
@@ -294,17 +290,13 @@ namespace Client
 
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
-
-            // Response corresponds to a old request
-            if (response.SequenceNumber < SequenceNumber)
-                return;
-
+         
             // Stores the tuple returned 
             // and the ID of the server that answered
             if (response.Code.Equals("OK"))
             {
                 Tuple = response.Tuple;
-                AcksID.Add(response.ProcessID);
+                AcksCounter++;
             }
         }
 
@@ -320,19 +312,13 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
-            // Response corresponds to a old request
-            if (response.SequenceNumber < SequenceNumber)
-            {
-                return;
-            }
             // Stores the list of matching tuples 
             // and the ID of the server that answered
             if (response.Code.Equals("OK"))
             {
                 // Tuples have to be added before the acks are incremented
                 MatchingTuples.Add(response.Tuples);
-                AcksID.Add(response.ProcessID);
-
+                AcksCounter++;
             }
         }
 

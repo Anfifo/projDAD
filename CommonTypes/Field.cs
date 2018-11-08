@@ -112,7 +112,7 @@ namespace CommonTypes
                 if(value is NullValue)
                 {
                     Console.WriteLine("Value == null");
-                    Type StringField = Type.GetType("CommonTypes" + "." + "StringField,CommonTypes");
+                    Type StringField = Type.GetType("CommonTypes" + "." + "StringValue,CommonTypes");
 
                     return !field.GetFieldType().ToString().Equals(StringField.ToString());
                     

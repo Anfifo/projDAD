@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CommonTypes;
-using System.Runtime.Remoting;
 
 
 namespace Server
@@ -16,13 +12,14 @@ namespace Server
 
         private readonly int ServerID;
 
-        private List<int> ProcessedRequests;
+        // Stores the id of the requests already processed
+        private List<string> ProcessedRequests;
 
         public TSpaceServerXL()
         {
             TuppleSpace = new TSpaceStorage();
             ServerID = new Random().Next();
-            ProcessedRequests = new List<int>();
+            ProcessedRequests = new List<string>();
 
         }
 
@@ -47,21 +44,20 @@ namespace Server
 
             TSpaceMsg response = new TSpaceMsg();
             response.ProcessID = ServerID;
-            response.SequenceNumber = msg.SequenceNumber;
 
             // Check if request as already been processed
-            if (ProcessedRequests.Contains(msg.SequenceNumber))
+            if (ProcessedRequests.Contains(msg.ID))
             {
                 response.Code = "Repeated";
                 return response;
                 
             }
 
-            // Add sequence number of request to processed requests
-            ProcessedRequests.Add(msg.SequenceNumber);
+            // Add request ID to processed requests
+            ProcessedRequests.Add(msg.ID);
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.SequenceNumber + ")" );
+            Console.WriteLine("Processing Request " + command + " (seq = " + msg.ID + ")" );
             
             switch (command)
             {
