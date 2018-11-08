@@ -19,6 +19,8 @@ namespace Client
         {
             type = _type;
             fields = _fields;
+
+            this.buildFields();
         }
 
 
@@ -35,18 +37,21 @@ namespace Client
         public void buildFields()
         {
             fields = replace(fields);
+
             string[] splitfields = fields.Split(',');
+
             // get tuple field objects
             for (int i = 0; i < splitfields.Length; i++)
             {
-
-                if (splitfields[i] == "null") // if null
+                // if its a null
+                if (splitfields[i] == "null") 
                 {
                     Fields.Add(new Field(null));
 
                     continue;
                 }
-                if (splitfields[i].Contains('(')) // if a class constructor
+                // if it is a  class constructor
+                if (splitfields[i].Contains('('))
                 {
                     string ObjType = splitfields[i].Split('(')[0];
 
@@ -60,10 +65,12 @@ namespace Client
 
                     continue;
                 }
-                if (splitfields[i].Contains("\"")) // if string
+                // if its a string
+                if (splitfields[i].Contains("\"")) 
                 {
                     string Field = splitfields[i].Replace("\"", string.Empty);
 
+                    //if its general wildcard
                     if (Field == "*")
                     {
                         StringField field = new StringField(false, false, true, null);
@@ -71,6 +78,7 @@ namespace Client
                         continue;
                     }
 
+                    //if its finalsubstring wildcard
                     if (Field[0] == '*')
                     {
                         StringField field = new StringField(false, true, false, Field);
@@ -78,10 +86,10 @@ namespace Client
                         continue;
                     }
 
-
+                    //if initialsubtring wildcard
                     if (Field[Field.Length - 1] == '*')
                     {
-                        StringField field = new StringField(false, true, false, Field);
+                        StringField field = new StringField(true, false, false, Field);
                         Fields.Add(new Field(field));
                         continue;
                     }
@@ -90,17 +98,19 @@ namespace Client
                     continue;
 
                 }
+                //if its a class type
                 if (char.IsUpper(splitfields[i][0]))
                 {
                     Type field = Type.GetType("CommonTypes" + '.' + splitfields[i] + "," + "CommonTypes");
                     Fields.Add(new Field(field));
                     continue;
                 }
-                else // if int
+                // if int field
+                else
                 {
-                    int Field = Int32.Parse(splitfields[i]);
+                    int field = Int32.Parse(splitfields[i]);
 
-                    Fields.Add(Field);
+                    Fields.Add(field);
 
                     continue;
                 }
@@ -139,11 +149,11 @@ namespace Client
         }
 
         // get arguments for constructor 
-        public Object[] getConstructorArgs(string Args)
+        public Object[] getConstructorArgs(string args)
         {
-            ArrayList ArgList = new ArrayList();
+            ArrayList argList = new ArrayList();
 
-            string[] split = Args.Split('(', ')');
+            string[] split = args.Split('(', ')');
 
             string[] splitArgs = split[1].Split('|');
 
@@ -154,7 +164,7 @@ namespace Client
                 {
                     string Arg = splitArgs[i].Replace("\"", string.Empty);
 
-                    ArgList.Add(Arg);
+                    argList.Add(Arg);
 
                     continue;
                 }
@@ -163,17 +173,17 @@ namespace Client
 
                     int Arg = Int32.Parse(splitArgs[i]);
 
-                    ArgList.Add(Arg);
+                    argList.Add(Arg);
 
                     continue;
                 }
             }
 
-            Object[] ConstructorArgs = new Object[ArgList.Count];
+            Object[] ConstructorArgs = new Object[argList.Count];
 
             for (int j = 0; j < ConstructorArgs.Length; j++)
             {
-                ConstructorArgs[j] = ArgList[j];
+                ConstructorArgs[j] = argList[j];
             }
 
             return ConstructorArgs;

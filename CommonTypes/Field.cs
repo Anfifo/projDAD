@@ -26,15 +26,9 @@ namespace CommonTypes
         public bool Matches(IField field)
         {
 
-            if (field.GetFieldType().ToString() != this.GetFieldType().ToString())
-            {
-                return false;
-
-            }
-
             if (value is StringField)
             {
-                
+
                 StringField myStringField = (StringField)this.value;
 
                 if (myStringField.AnyString)
@@ -43,30 +37,34 @@ namespace CommonTypes
                 }
                 if (myStringField.InitialSubString)
                 {
+                    Console.WriteLine("InitialSubstring");
                     string myString = myStringField.field;
 
                     StringField inputStringField = (StringField)field.GetValue();
 
                     string inputString = inputStringField.field;
 
-                    if (inputString.Substring(0,myString.Length) == myString)
+                    if (inputString.Substring(0, myString.Length - 1) == myString.Substring(0, myString.Length - 1))
+                    {
+                        Console.WriteLine("they MATCH");
                         return true;
+                    }
+                    Console.WriteLine("they dont MATCH");
                     return false;
 
                 }
 
                 if (myStringField.FinalSubString)
                 {
+                    Console.WriteLine("FinalSubstring");
                     string myString = myStringField.field;
 
                     StringField inputStringField = (StringField)field.GetValue();
 
                     string inputString = inputStringField.field;
 
-                    if (inputString.Substring(inputString.Length - myString.Length) == myString)
+                    if (inputString.Substring(inputString.Length - myString.Length + 1) == myString.Substring(1))
                     {
-                        Console.WriteLine(inputString.Substring(inputString.Length - myString.Length));
-                        Console.Write(myString);
                         return true;
                     }
                     return false;
@@ -75,7 +73,7 @@ namespace CommonTypes
 
                 else
                 {
-                   
+
                     StringField sf = (StringField)field.GetValue();
 
                     string s = sf.field;
@@ -90,16 +88,18 @@ namespace CommonTypes
                     return false;
                 }
             }
-
-            if (value is Type)
+            
+            if (value.GetType().ToString() == "System.RuntimeType" )
             {
+
                 Type valueType = (Type)value;
 
-                return field.GetType().ToString() == valueType.ToString();
+                return (valueType.ToString() == field.GetValue().ToString());
+
             }
             else
             {
-                
+
                 object[] o = new object[1];
 
                  Type t = Type.GetType(value.GetType().ToString());

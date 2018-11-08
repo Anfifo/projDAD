@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CommonTypes;
 
@@ -19,14 +20,15 @@ namespace Server
 
         public void Add(ITuple tuple)
         {
-            TS.Add(tuple);
+            lock (TS)
+                TS.Add(tuple);
         }
 
         public ITuple Read(ITuple tuple)
         {
             foreach(ITuple tup in TS)
             {
-                if (tup.Matches(tuple))
+                if (tuple.Matches(tup))
                 {
                     return tup;
                 }
@@ -41,7 +43,7 @@ namespace Server
 
             for (int i = 0; i < TS.Count; i++)
             {
-                if (TS[i].Matches(tuple))
+                if (tuple.Matches(TS[i]))
                 {
                     list.Add(TS[i]);
                 }
@@ -53,12 +55,15 @@ namespace Server
         {
             for( int i = 0; i < TS.Count; i++)
             {
-                if (TS[i].Matches(tuple))
+                if (tuple.Matches(TS[i]))
                 {
-                    TS.RemoveAt(i);
+                    lock(TS)
+                        TS.RemoveAt(i);
+
                     return;
                 }
             }
         }
     }
+
 }

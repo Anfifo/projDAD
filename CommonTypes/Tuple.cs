@@ -43,11 +43,14 @@ namespace CommonTypes
 
             for (int i = 0; i < this.getLength(); i++)
             {
-                Field f1 = (Field)tuple.GetFields()[i];
-                Field f2 = (Field)this.tuple[i];
+                Field field1 = (Field)tuple.GetFields()[i];
+                Field field2 = (Field)this.tuple[i];
 
-                if (!f2.Matches(f1))
+
+                if (!field2.Matches(field1))
+                { 
                     return false;
+                }
             }
 
             return true;
