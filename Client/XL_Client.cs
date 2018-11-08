@@ -80,6 +80,7 @@ namespace Client
             message.SequenceNumber = ++SequenceNumber;
             message.ProcessID = ClientID;
 
+            //Clear acks
             AcksID.Clear();
 
             // Create local callback
@@ -121,6 +122,7 @@ namespace Client
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.ReadCallback);
 
             Tuple = null;
+            AcksID.Clear();
 
             // Send multicast message to all members of the view.
             this.Multicast(message, remoteCallback);
@@ -173,6 +175,9 @@ namespace Client
 
             // Create local callback.
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.AddCallback);
+
+            //Clear acks
+            AcksID.Clear();
 
             //Repeat until all replicas have acknowledged deletion
             while (AcksID.Count < View.Count)
