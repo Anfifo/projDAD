@@ -47,7 +47,6 @@ namespace Server
             channel = new TcpChannel(Port);
             ChannelServices.RegisterChannel(channel, true);
 
-            Console.WriteLine(algorithm);
             if (algorithm == "x") {
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);
                 TSpaceServerXL TS = new TSpaceServerXL(MinDelay,MaxDelay);
