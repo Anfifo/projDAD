@@ -98,6 +98,8 @@ namespace Client
             
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.AcksCallback);
 
+            Console.WriteLine("Request:");
+            Console.WriteLine(request);
 
             // Clear acks count 
             AcksCounter = 0;
@@ -174,6 +176,8 @@ namespace Client
             request.Code = "take1";
             request.Tuple = template;
 
+            Console.WriteLine("Request:");
+            Console.WriteLine(request);
 
             // Create remote callback
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.ReadCallback);
@@ -256,9 +260,6 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
-            Console.WriteLine("Response:");
-            Console.WriteLine(response);
-
             if (response.Code.Equals("ACK"))
             {
                 Interlocked.Increment(ref AcksCounter);
@@ -271,9 +272,7 @@ namespace Client
 
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
-
-            Console.WriteLine("Response:");
-            Console.WriteLine(response);
+            
             // Stores the tuple returned 
             // and the OperationID of the server that answered
             if (response.Code.Equals("OK"))
@@ -284,6 +283,8 @@ namespace Client
                     {
                         Tuple = response.Tuple;
                     }
+                    Console.WriteLine("Response:");
+                    Console.WriteLine(response);
                 }
 
                 Interlocked.Increment(ref AcksCounter);
@@ -360,8 +361,7 @@ namespace Client
         /// <param name="asyncCallback">Callback function of the remote call.</param>
         private void Multicast(TSpaceMsg message, AsyncCallback asyncCallback)
         {
-            Console.WriteLine("Request:");
-            Console.WriteLine(message);
+
             RemoteAsyncDelegate remoteDel;
             foreach (ITSpaceServer server in View)
             {
