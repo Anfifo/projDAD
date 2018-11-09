@@ -8,6 +8,7 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
 using System.Threading.Tasks;
+using CommonTypes;
 
 namespace ProcessCreationService
 {
@@ -34,53 +35,36 @@ namespace ProcessCreationService
 
         }
 
-        public void StartClient(string script,string id)
+        public void StartServer(string url, int mindelay, int maxdelay, string algorithm)
+        {
+
+            ProcessStartInfo info = new ProcessStartInfo(AuxFunctions.GetProjPath() + "\\Server\\bin\\Debug\\Server.exe");
+
+            //info.UseShellExecute = false;
+
+            info.CreateNoWindow = false;
+
+            info.Arguments = url + " " + mindelay + " " + maxdelay + " " + algorithm;
+
+            Process P = Process.Start(info);
+
+        }
+
+        public void StartClient(string script,string id, string algorithm)
         { 
 
-            ProcessStartInfo info = new ProcessStartInfo(GetProjPath() + "\\Client\\bin\\Debug\\Client.exe");
+            ProcessStartInfo info = new ProcessStartInfo(AuxFunctions.GetProjPath() + "\\Client\\bin\\Debug\\Client.exe");
 
             //info.UseShellExecute = false;
 
             info.CreateNoWindow = false;
-            info.Arguments = script + " " + id;
+            info.Arguments = script + " " + id + " " + algorithm;
 
             Process P = Process.Start(info);
 
 
         }
-        public void StartServer(string url,int mindelay,int maxdelay)
-        {
-            
-            ProcessStartInfo info = new ProcessStartInfo(GetProjPath() + "\\Server\\bin\\Debug\\Server.exe" );
 
-            //info.UseShellExecute = false;
-
-            info.CreateNoWindow = false;
-
-            info.Arguments = url + " " + mindelay + " " + maxdelay;
-
-            Process P = Process.Start(info);
-
-        }
-
-        public string GetProjPath()
-        {
-            string current = Directory.GetCurrentDirectory();
-
-            DirectoryInfo binPath = Directory.GetParent(current);
-
-            string binStringPath = binPath.ToString();
-
-            DirectoryInfo classPath = Directory.GetParent(binStringPath);
-
-            string classStringPath = classPath.ToString();
-
-            DirectoryInfo projPath = Directory.GetParent(classStringPath);
-
-            return projPath.ToString();
-
-
-        }
 
     }
 }

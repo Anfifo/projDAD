@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Tuple = CommonTypes.Tuple;
+using CommonTypes;
 
 namespace Client
 {
@@ -14,19 +15,59 @@ namespace Client
         //List of active servers
         public static List<string> Servers = new List<string>();
 
-        //SMR Client 
-        public static ITSpaceAPI SMR;
+        //SMR Client or XL Clie
+        public static ITSpaceAPI ClientType;
 
         static void Main(string[] args)
         {
+            //filename of script
+            string filename = " ";
+            string clientid;
+            //ClientID random or user introduced
+            int clientID = 0;
+            //Type of algorithm
+            string algorithm = " "; // pre definido ou escolher no inicio?
             
             Servers.Add("tcp://localhost:50001/S");
-            int clientID;
-            Int32.TryParse(args[1], out clientID);
-            SMR = new XL_Client(Servers, 1, clientID);
+            //PuppetMaster initialization
+            if(args.Length == 3)
+            {
+                filename = args[0];
+                clientid = args[1];
+                algorithm = args[2];
+                Int32.TryParse(clientid, out clientID);
+                Console.WriteLine(clientID);
+            }
+            //Command Line initialization with script
+            if(args.Length == 1)
+            {
+                filename = args[0];
+                Console.WriteLine("Introduza o numero unico do cliente");
+                clientid = Console.ReadLine();
+
+                Int32.TryParse(clientid, out clientID);
+            }
+            //Command Line initialization without a script
+            if (args.Length == 0 )
+            {
+                Console.WriteLine("Introduza o nome do script que pretende executar");
+                filename = Console.ReadLine();
+                Console.WriteLine("Introduza o numero unico do cliente");
+                clientid = Console.ReadLine();
+
+                Int32.TryParse(clientid, out clientID);
+            }
+            if (algorithm == "x")
+                ClientType = new XL_Client(Servers, 1, clientID);
+            else
+                ClientType = new SMR_Client(Servers, 1, clientID);
+
             try
             {
-                ExecuteFile(args[0]);
+                //Get the script from the script folder
+                string filePath =  AuxFunctions.GetProjPath() + "\\scripts\\Client\\" + filename;
+                ExecuteFile(filePath);
+
             }catch(Exception e)
             {
                 Console.WriteLine(e.Message);
@@ -118,7 +159,7 @@ namespace Client
                         Console.WriteLine("WE ADDING");
 
                         Tuple tupleA = new Tuple(operation.getFields());
-                        SMR.Add(tupleA);  
+                        ClientType.Add(tupleA);  
                         break;
 
                     case "take":
@@ -127,7 +168,7 @@ namespace Client
 
                         Tuple tupleT = new Tuple(operation.getFields());
 
-                        SMR.Take(tupleT);
+                        ClientType.Take(tupleT);
 
                         break;
 
@@ -136,8 +177,8 @@ namespace Client
                         Console.WriteLine("WE READING");
 
                         Tuple tupleR = new Tuple(operation.getFields());
-                    
-                        SMR.Read(tupleR);
+
+                        ClientType.Read(tupleR);
 
                         break;
 

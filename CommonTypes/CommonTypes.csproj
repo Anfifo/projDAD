@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuxFunctions.cs" />
     <Compile Include="Field.cs" />
     <Compile Include="NullValue.cs" />
     <Compile Include="TSpaceMsg.cs" />

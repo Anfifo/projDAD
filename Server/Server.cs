@@ -12,25 +12,30 @@ namespace Server
 {
     class Server
     {
+        public static TcpChannel channel;
         static void Main(string[] args)
         {
-            string Url = "tcp://localhost:8086/S";
+            string Url = "tcp://localhost:50001/S";
             int MinDelay = 0;
             int MaxDelay = 0;
             int Port;
             string Name;
+            //Type of algorithm for server
+            string algorithm = " ";
 
             if (args.Length > 0)
             {
                 Url = args[0];
+                algorithm = args[1];
 
-            }   
-
-
-            if (args.Length == 3)
+            }  
+            
+            if (args.Length == 4)
             {
+
                 MinDelay = Int32.Parse(args[1]);
                 MaxDelay = Int32.Parse(args[2]);
+                algorithm = args[3];
             }
 
             Port = getPortFromURL(Url);
@@ -38,13 +43,13 @@ namespace Server
 
 
 
-            TcpChannel channel = new TcpChannel(Port);
+            channel = new TcpChannel(Port);
             ChannelServices.RegisterChannel(channel, true);
-
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(TSpaceServerXL),
-                Name,
-                WellKnownObjectMode.Singleton);
+            Console.WriteLine(algorithm);
+            if(algorithm == "x")
+                RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);
+            if(algorithm == "s")
+                RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
 
             System.Console.WriteLine("<enter> para sair...");
             System.Console.ReadLine();
