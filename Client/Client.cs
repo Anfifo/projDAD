@@ -21,7 +21,7 @@ namespace Client
         {
             
             Servers.Add("tcp://localhost:50001/S");
-            SMR = new SMR_Client(Servers, 1);
+            SMR = new XL_Client(Servers, 1);
             try
             {
                 ExecuteFile(args[0]);

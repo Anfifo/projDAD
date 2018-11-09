@@ -50,7 +50,7 @@ namespace Server
             lock (ProcessedRequests)
             {
                 // Check if request as already been processed
-                if (ProcessedRequests.Contains(msg.ID))
+                if (ProcessedRequests.Contains(msg.OperationID))
                 {
                     response.Code = "Repeated";
                     return response;
@@ -58,11 +58,11 @@ namespace Server
                 }
 
                 // Add request ID to processed requests
-                ProcessedRequests.Add(msg.ID);
+                ProcessedRequests.Add(msg.OperationID);
             }
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.ID + ")" );
+            Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
             
             switch (command)
             {
@@ -108,6 +108,7 @@ namespace Server
                 case "releaseLocks":
                     try
                     {
+                        TSLockHandler.UnlockTuples(msg.ProcessID);
                         response.Code = "ACK";
                     }
                     catch (InvalidCastException)
