@@ -3,7 +3,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting.Messaging;
 using Pcs = ProcessCreationService.ProcessCreationService;
 
 namespace PuppetMaster
@@ -17,6 +19,7 @@ namespace PuppetMaster
 
             //StreamReader reader = File.OpenText(args[0]);
 
+
             StreamReader reader = null;
 
             try
@@ -24,9 +27,10 @@ namespace PuppetMaster
                 reader = File.OpenText("script.txt");
 
             }catch (FileNotFoundException e){
-                
-                
+
+                Console.WriteLine("rename the script file");
             }
+
 
 
             PuppetMasterService MasterofPuppets = new PuppetMasterService();
@@ -82,16 +86,28 @@ namespace PuppetMaster
 }
 
 public class PuppetMasterService
+
 {
+    delegate void startServerDel(string URL,int mindelay,int maxdelay);
+
+    delegate void startClientDel(string URL);
+
+    delegate string serverStatus();
+
+    delegate void serverOperations(string id);
+
     Dictionary<string, string> Clients = new Dictionary<string, string>();
 
     Dictionary<string,string> Servers = new Dictionary<string, string>();
 
     ArrayList PCS = new ArrayList();
-   
+
+
     public PuppetMasterService()
     {
+
         PCS = getPCS();
+
 
     }
 
@@ -200,9 +216,14 @@ public class PuppetMasterService
     {
 
         Servers.Add(serverid, URL);
-        Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), (string)PCS[0]);
-        P.StartServer(URL,mindelay,maxdelay);
-        
+
+        Pcs P = (Pcs)Activator.GetObject(typeof(Pcs),(string)PCS[0]);
+
+        startServerDel RemoteDel = new startServerDel(P.StartServer);
+
+        IAsyncResult RemAr = RemoteDel.BeginInvoke(URL,mindelay,maxdelay, null ,null);
+
+
     }
 
     void StartClient(string clientid, string URL, string script)
@@ -211,8 +232,9 @@ public class PuppetMasterService
 
         Pcs P = (Pcs)Activator.GetObject(typeof(Pcs),(string)PCS[0]);
 
-        P.StartClient(script);
+        startClientDel RemoteDel = new startClientDel(P.StartClient);
 
+        IAsyncResult RemAr = RemoteDel.BeginInvoke(script,null, null);
 
     }
 
@@ -221,8 +243,12 @@ public class PuppetMasterService
         foreach(KeyValuePair<string,string> ServerProcess in Servers)
         {
             ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), ServerProcess.Value);
-            string s = server.Status();
-            Console.WriteLine(ServerProcess.Key + "is alive");
+            serverStatus RemoteDel = new serverStatus(server.Status);
+
+            AsyncCallback callback = new AsyncCallback(PuppetMasterService.statusCallback);
+            
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(callback, null);
+
         }
     }
 
@@ -246,6 +272,16 @@ public class PuppetMasterService
     void Wait(int time)
     {
 
+    }
+
+    static void statusCallback(IAsyncResult result)
+    {
+        Console.WriteLine("Callback start");
+        serverStatus del = (serverStatus)((AsyncResult)result).AsyncDelegate;
+
+        string state = del.EndInvoke(result);
+
+        Console.WriteLine(state);
     }
 }
 
