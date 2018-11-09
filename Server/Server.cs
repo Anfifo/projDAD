@@ -13,6 +13,7 @@ namespace Server
     class Server
     {
         public static TcpChannel channel;
+        
         static void Main(string[] args)
         {
             string Url = "tcp://localhost:50001/S";

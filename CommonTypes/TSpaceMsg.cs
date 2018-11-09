@@ -42,5 +42,13 @@ namespace CommonTypes
         {
             get; set;
         }
+
+        public override string ToString()
+        {
+            return "\t Message - Code: " + Code + " -- SequenceNumber: "+ SequenceNumber + " -- ProcessID:" + ProcessID +
+                " \n\r \t -- OperationID: " + OperationID + " -- RequestID: " + RequestID + " \n\r \t -- Tuple: " + (Tuple != null) + 
+                "-- TupleList: " + (Tuples != null) ;
+        }
+
     }
 }
