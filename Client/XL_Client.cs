@@ -38,6 +38,9 @@ namespace Client
         // Object to use as reference for the lock to the Tuple 
         private static Object LockRef = new Object();
 
+        private static int takeCount = 0;
+        private static int addCount = 0;
+
 
         /// <summary>
         /// Constructor.
@@ -100,6 +103,9 @@ namespace Client
             }
 
             Console.WriteLine("ADD: OK");
+            addCount++;
+            Console.WriteLine(addCount);
+
 
         }
 
@@ -176,7 +182,10 @@ namespace Client
             // Repeat phase 1 until all replicas return at least 
             // one common matching tuple
             while (selectedTuple == null)
+            {
+                Console.WriteLine("Take 1: " + SequenceNumber);
                 selectedTuple = this.Take1(template);
+            }
             
             Console.WriteLine("Take: Phase 1 completed");
 
@@ -206,6 +215,8 @@ namespace Client
             Console.WriteLine("Take: Phase 2 completed");
 
             Console.WriteLine("Take: OK");
+            takeCount++;
+            Console.WriteLine(takeCount);
             return message.Tuple;
             
         }
@@ -235,7 +246,6 @@ namespace Client
             // Create local callback.
             AsyncCallback remoteCallback = new AsyncCallback(XL_Client.Take1Callback);
 
-
             // Repeat until all replicas have responded
             while (AcksCounter < View.Count)
             {
@@ -255,6 +265,7 @@ namespace Client
                     intersection.Intersect(tupleList, new TupleComparator());
                 }
             }
+
 
             // If intersection = {}
             // Send release locks to all replicas
@@ -297,10 +308,9 @@ namespace Client
         public static void AddCallback(IAsyncResult result)
         {
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
-
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
-          
+
             if (response.Code.Equals("ACK"))
             {
                 Interlocked.Increment(ref AcksCounter);
@@ -345,6 +355,7 @@ namespace Client
             
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
+            
 
             // Stores the list of matching tuples 
             // and the OperationID of the server that answered

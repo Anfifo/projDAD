@@ -42,9 +42,13 @@ namespace Server
         {
             lock (LockedTuples)
             {
-                Console.WriteLine("Unlocking tuples for user: " + userID);
-                LockedTuplesList = LockedTuplesList.Except(LockedTuples[userID]).ToList();
-                LockedTuples.Remove(userID);
+                if (LockedTuples.ContainsKey(userID))
+                {
+
+                    Console.WriteLine("Unlocking tuples for user: " + userID);
+                    LockedTuplesList = LockedTuplesList.Except(LockedTuples[userID]).ToList();
+                    LockedTuples.Remove(userID);
+                }
             }
         }
 

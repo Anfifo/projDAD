@@ -82,6 +82,9 @@ namespace Server
                     break;
 
                 case "take1":
+
+                    Console.WriteLine("TSLockHandler");
+
                     lock (TSLockHandler.Lock)
                     {
                         // find suitable matches for tuple
@@ -89,6 +92,7 @@ namespace Server
                         // Locks all unlocked and matchable tuples for UserID
                         response.Tuples = TSLockHandler.LockTuples(msg.ProcessID, matches);
                     }
+                    Console.WriteLine("TSLockHandler release");
 
                     response.Code = "OK";
                     break;
@@ -123,6 +127,7 @@ namespace Server
                     break;
             }
 
+            Console.WriteLine("Return answer");
             return response;
         }
     }
