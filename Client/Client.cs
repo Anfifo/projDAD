@@ -21,7 +21,9 @@ namespace Client
         {
             
             Servers.Add("tcp://localhost:50001/S");
-            SMR = new XL_Client(Servers, 1);
+            int clientID;
+            Int32.TryParse(args[1], out clientID);
+            SMR = new XL_Client(Servers, 1, clientID);
             try
             {
                 ExecuteFile(args[0]);

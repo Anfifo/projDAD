@@ -90,7 +90,7 @@ public class PuppetMasterService
 {
     delegate void startServerDel(string URL,int mindelay,int maxdelay);
 
-    delegate void startClientDel(string URL);
+    delegate void startClientDel(string URL,string random);
 
     delegate string serverStatus();
 
@@ -103,6 +103,8 @@ public class PuppetMasterService
     ArrayList PCS = new ArrayList();
 
     static TcpChannel channel;
+
+    static Random random = new Random();
 
     public PuppetMasterService()
     {
@@ -229,13 +231,14 @@ public class PuppetMasterService
 
     void StartClient(string clientid, string URL, string script)
     {
+
         Clients.Add(clientid,URL);
 
         Pcs P = (Pcs)Activator.GetObject(typeof(Pcs),(string)PCS[0]);
 
         startClientDel RemoteDel = new startClientDel(P.StartClient);
 
-        IAsyncResult RemAr = RemoteDel.BeginInvoke(script,null, null);
+        IAsyncResult RemAr = RemoteDel.BeginInvoke(script,random.Next().ToString(),null, null);
 
     }
 

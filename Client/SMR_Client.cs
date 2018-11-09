@@ -43,13 +43,18 @@ namespace Client
         // Object to use as reference for the lock to the Tuple 
         private static Object LockRef = new Object();
 
+        // Log variables
+        private static int TakeCounter = 0;
+        private static int AddCounter = 0;
+        private static int ReadCounter = 0;
+
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="viewUrls">Urls of the tuple space servers</param>
         /// <param name="viewId">OperationID of the current view</param>
-        public SMR_Client(List<string> viewUrls, int viewId)
+        public SMR_Client(List<string> viewUrls, int viewId, int clientID)
         {
             TcpChannel channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, true);
@@ -66,7 +71,9 @@ namespace Client
             ViewId = viewId;
 
             // Set the client unique identifier
-            ClientID = new Random().Next();
+            ClientID = clientID;
+            Console.WriteLine("SMR Client id = " + ClientID);
+
 
         }
 
@@ -101,7 +108,7 @@ namespace Client
                 this.Multicast(request, remoteCallback);
             }
 
-            Console.WriteLine("Add: OK");   
+            Console.WriteLine("Add " + (++AddCounter) + ": OK");
         }
 
         /// <summary>
@@ -148,8 +155,7 @@ namespace Client
                 }
             }
 
-            Console.WriteLine("Read: OK");
-
+            Console.WriteLine("Read " + (++ReadCounter) + ": OK");
 
             // Return after the first replica answers
             return Tuple;
@@ -190,8 +196,6 @@ namespace Client
                 request.RequestID = ClientID + "_" + (RequestCounter++);
 
 
-                Console.WriteLine("Operation counter " + RequestCounter);
-
                 //Clear acks from last request
                 AcksCounter = 0;
 
@@ -213,8 +217,7 @@ namespace Client
                 Monitor.Exit(LockRef);
             }
 
-            Console.WriteLine("Take: OK");
-
+            Console.WriteLine("Take "+ (++TakeCounter) + ": OK");
             return Tuple;
         }
 

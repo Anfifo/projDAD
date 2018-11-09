@@ -13,6 +13,7 @@ namespace ProcessCreationService
 {
     class ProcessCreationServiceMain
     {
+        
         static void Main(string[] args)
         {
             TcpChannel channel = new TcpChannel(10000);
@@ -27,12 +28,13 @@ namespace ProcessCreationService
 
     public class ProcessCreationService : MarshalByRefObject
     {
+        
         public ProcessCreationService()
         {
 
         }
 
-        public void StartClient(string script)
+        public void StartClient(string script,string id)
         { 
 
             ProcessStartInfo info = new ProcessStartInfo(GetProjPath() + "\\Client\\bin\\Debug\\Client.exe");
@@ -40,8 +42,7 @@ namespace ProcessCreationService
             //info.UseShellExecute = false;
 
             info.CreateNoWindow = false;
-
-            info.Arguments = script;
+            info.Arguments = script + " " + id;
 
             Process P = Process.Start(info);
 

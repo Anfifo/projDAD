@@ -38,15 +38,17 @@ namespace Client
         // Object to use as reference for the lock to the Tuple 
         private static Object LockRef = new Object();
 
-        private static int takeCount = 0;
-        private static int addCount = 0;
+        //Log variables
+        private static int TakeCounter = 0;
+        private static int AddCounter = 0;
+        private static int ReadCounter = 0;
 
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="viewUrls">Url of the tuple space servers.</param>
-        public XL_Client(List<string> viewUrls, int viewId)
+        public XL_Client(List<string> viewUrls, int viewId, int clientID)
         {
             TcpChannel channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, true);
@@ -63,9 +65,8 @@ namespace Client
             ViewId = viewId;
 
             // Set the client unique identifier
-            ClientID = new Random().Next();
-
-            Console.WriteLine("Client id = " + ClientID);
+            ClientID = clientID;
+            Console.WriteLine("XL Client id = " + ClientID);
 
         }
 
@@ -102,11 +103,7 @@ namespace Client
 
             }
 
-            Console.WriteLine("ADD: OK");
-            addCount++;
-            Console.WriteLine(addCount);
-
-
+            Console.WriteLine("Add " + (++AddCounter) + ": OK");
         }
 
         /// <summary>
@@ -155,7 +152,8 @@ namespace Client
             }
 
             // Return first response.
-            Console.WriteLine("READ: OK");
+            Console.WriteLine("Add " + (++AddCounter) + ": OK");
+
             return Tuple;
         }
 
@@ -214,9 +212,7 @@ namespace Client
             }
             Console.WriteLine("Take: Phase 2 completed");
 
-            Console.WriteLine("Take: OK");
-            takeCount++;
-            Console.WriteLine(takeCount);
+            Console.WriteLine("Add " + (++AddCounter) + ": OK");
             return message.Tuple;
             
         }
@@ -289,7 +285,7 @@ namespace Client
                     this.Multicast(message, remoteCallback);
                 }
 
-                //Console.WriteLine("Take 1: intersection = {} \nRelease locks acknowleged\nRepeat phase 1");
+                Console.WriteLine("Take 1: intersection = {}");
                 return null;
             }
 

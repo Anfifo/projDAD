@@ -64,7 +64,6 @@ namespace Server
                 // Check if request as already been processed
                 if (ProcessedRequests.Contains(msg.RequestID))
                 {
-                    Console.WriteLine("Repeated " + msg.Code);
                     response.Code = "Repeated";
                     return response;
                 }
@@ -148,14 +147,11 @@ namespace Server
                 case "take1":
                     lock (TakeLock)
                     {
-                        Console.WriteLine("Start read");
                         // Get matching tuple
                         response.Tuple = TuppleSpace.Read(msg.Tuple);
                         response.Code = "OK";
-                        Console.WriteLine("End read");
                         if (response.Tuple != null)
                         {
-                            Console.WriteLine("Start delete");
                             // Delete it
                             TuppleSpace.Take2(response.Tuple);
                         }
