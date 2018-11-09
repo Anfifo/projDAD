@@ -50,19 +50,19 @@ namespace Server
             lock (ProcessedRequests)
             {
                 // Check if request as already been processed
-                if (ProcessedRequests.Contains(msg.OperationID))
+                if (ProcessedRequests.Contains(msg.ID))
                 {
                     response.Code = "Repeated";
                     return response;
 
                 }
 
-                // Add request OperationID to processed requests
-                ProcessedRequests.Add(msg.OperationID);
+                // Add request ID to processed requests
+                ProcessedRequests.Add(msg.ID);
             }
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
+            Console.WriteLine("Processing Request " + command + " (seq = " + msg.ID + ")" );
             
             switch (command)
             {
@@ -82,20 +82,25 @@ namespace Server
                     break;
 
                 case "take1":
-                    // find suitable matches for tuple
-                    List<ITuple> matches = TuppleSpace.Take1(msg.Tuple);
-
-                    // Locks all unlocked and matchable tuples for UserID
-                    response.Tuples = TSLockHandler.LockTuples(msg.ProcessID, matches);
+                    lock (TSLockHandler.Lock)
+                    {
+                        // find suitable matches for tuple
+                        List<ITuple> matches = TuppleSpace.Take1(msg.Tuple);
+                        // Locks all unlocked and matchable tuples for UserID
+                        response.Tuples = TSLockHandler.LockTuples(msg.ProcessID, matches);
+                    }
 
                     response.Code = "OK";
                     break;
 
                 case "take2":
-                    // Deletes tuple
-                    TuppleSpace.Take2(msg.Tuple);
-                    // Unlocks all tuples previously locked under UserID
-                    TSLockHandler.UnlockTuples(msg.ProcessID);
+                    lock (TSLockHandler.Lock)
+                    {
+                        // Deletes tuple
+                        TuppleSpace.Take2(msg.Tuple);
+                        // Unlocks all tuples previously locked under UserID
+                        TSLockHandler.UnlockTuples(msg.ProcessID);
+                    }
                     response.Code = "ACK";
                     break;
 

@@ -350,7 +350,6 @@ namespace Client
             // and the OperationID of the server that answered
             if (response.Code.Equals("OK"))
             {
-                new CommonTypes.Tuple(response.Tuple.GetFields());
                 // Tuples have to be added before the acks are incremented
                 lock (MatchingTuples) { 
                     MatchingTuples.Add(response.Tuples);

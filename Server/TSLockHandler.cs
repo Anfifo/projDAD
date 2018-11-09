@@ -11,6 +11,8 @@ namespace Server
     {
         static IDictionary<int, List<ITuple>> LockedTuples = new Dictionary<int, List<ITuple>>();
         static List<ITuple> LockedTuplesList = new List<ITuple>();
+        
+        public static object Lock = new object();
 
         static public List<ITuple> LockTuples(int userID, List<ITuple> matches)
         {
