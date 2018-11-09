@@ -1,7 +1,5 @@
 # projDAD
 
-#With visual studio
-
 * To run this project you have to open the solution via visual studio.
 * Go to project->set startup projects-> select multiple projects-> make PCS and PuppetMaster start(in this order).
 * The puppetmaster script is available at scripts/PuppetMaster.(We assume we only have 1 server located at tcp://localhost:50001/S)
