@@ -14,15 +14,23 @@ namespace PuppetMaster
             //StreamReader reader = File.OpenText(args[0]);
 
             StreamReader reader = null;
-            
 
-            try
+
+            Console.WriteLine("Choose type of command introduction: s for script w for writing commands");
+            string inputtype = Console.ReadLine();
+
+            if (inputtype == "s")
             {
-                reader = File.OpenText(AuxFunctions.GetProjPath() + "\\scripts\\PuppetMaster\\" +  "script.txt");
+                try
+                {
+                    reader = File.OpenText(AuxFunctions.GetProjPath() + "\\scripts\\PuppetMaster\\" + "script.txt");
 
-            }catch (FileNotFoundException e){
+                }
+                catch (FileNotFoundException e)
+                {
 
-                Console.WriteLine("Introduce a correct script file");
+                    Console.WriteLine("Introduce a correct script file");
+                }
             }
 
 
