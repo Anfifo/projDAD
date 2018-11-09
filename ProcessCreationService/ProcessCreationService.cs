@@ -16,7 +16,7 @@ namespace ProcessCreationService
         static void Main(string[] args)
         {
             TcpChannel channel = new TcpChannel(10000);
-            ChannelServices.RegisterChannel(channel, false);
+            ChannelServices.RegisterChannel(channel, true);
             ProcessCreationService PCS = new ProcessCreationService();
             RemotingServices.Marshal(PCS,"ProcessCreationService", typeof(ProcessCreationService));
             System.Console.WriteLine("<enter> para sair...");
@@ -49,7 +49,7 @@ namespace ProcessCreationService
         }
         public void StartServer(string url,int mindelay,int maxdelay)
         {
-
+            
             ProcessStartInfo info = new ProcessStartInfo(GetProjPath() + "\\Server\\bin\\Debug\\Server.exe" );
 
             //info.UseShellExecute = false;
@@ -59,7 +59,6 @@ namespace ProcessCreationService
             info.Arguments = url + " " + mindelay + " " + maxdelay;
 
             Process P = Process.Start(info);
-
 
         }
 

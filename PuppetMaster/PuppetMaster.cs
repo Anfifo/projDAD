@@ -13,14 +13,14 @@ namespace PuppetMaster
 
     class PuppetMaster
     {
-
+        
         static void Main(string[] args)
         {
 
             //StreamReader reader = File.OpenText(args[0]);
 
-
             StreamReader reader = null;
+            
 
             try
             {
@@ -102,13 +102,14 @@ public class PuppetMasterService
 
     ArrayList PCS = new ArrayList();
 
+    static TcpChannel channel;
 
     public PuppetMasterService()
     {
 
         PCS = getPCS();
-
-
+        channel = new TcpChannel();
+        ChannelServices.RegisterChannel(channel, true); 
     }
 
     ArrayList getPCS()
@@ -214,15 +215,15 @@ public class PuppetMasterService
 
     void StartServer(string serverid, string URL, int mindelay, int maxdelay)
     {
-
+        
         Servers.Add(serverid, URL);
 
-        Pcs P = (Pcs)Activator.GetObject(typeof(Pcs),(string)PCS[0]);
+       Pcs P = (Pcs)Activator.GetObject(typeof(Pcs),(string)PCS[0]);
+
 
         startServerDel RemoteDel = new startServerDel(P.StartServer);
-
         IAsyncResult RemAr = RemoteDel.BeginInvoke(URL,mindelay,maxdelay, null ,null);
-
+        
 
     }
 
@@ -242,12 +243,15 @@ public class PuppetMasterService
     {
         foreach(KeyValuePair<string,string> ServerProcess in Servers)
         {
+            Console.WriteLine(ServerProcess.Value);
             ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), ServerProcess.Value);
+            
             serverStatus RemoteDel = new serverStatus(server.Status);
 
             AsyncCallback callback = new AsyncCallback(PuppetMasterService.statusCallback);
-            
+
             IAsyncResult RemAr = RemoteDel.BeginInvoke(callback, null);
+           
 
         }
     }
@@ -276,7 +280,6 @@ public class PuppetMasterService
 
     static void statusCallback(IAsyncResult result)
     {
-        Console.WriteLine("Callback start");
         serverStatus del = (serverStatus)((AsyncResult)result).AsyncDelegate;
 
         string state = del.EndInvoke(result);
