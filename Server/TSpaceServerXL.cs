@@ -35,8 +35,9 @@ namespace Server
 
 
         public string Status()
-        {
-            Thread.Sleep(random.Next(mindelay, maxdelay));
+        {   
+            if(mindelay+maxdelay != 0)
+                Thread.Sleep(random.Next(mindelay, maxdelay));
             return "I live" + this.ServerID;
         }
 
@@ -52,7 +53,8 @@ namespace Server
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
-            Thread.Sleep(random.Next(mindelay, maxdelay));
+            if (mindelay + maxdelay != 0)
+                Thread.Sleep(random.Next(mindelay, maxdelay));
             TSpaceMsg response = new TSpaceMsg();
             response.ProcessID = ServerID;
 

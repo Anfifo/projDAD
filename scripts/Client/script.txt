@@ -1,3 +1,12 @@
-begin-repeat 10
-take <"a",DADTestA(1,"b")>
+add <"a",DADTestA(1,"b")>
+begin-repeat 3
+read <"*",null>
+wait 500
+read <"a*",DADTestA>
+read <"*a",DADTestA(1,"b")>
 end-repeat
+
+add <"xx",DADTestB(1,"c",2)>
+take <"x*",DADTestB>
+add <"xx",DADTestC(1,"b","d")>
+read <"*a",DADTestA(1,"b")>
