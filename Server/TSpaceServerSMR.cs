@@ -26,6 +26,12 @@ namespace Server
         // Lock reference for take operation
         private static Object TakeLock = new Object();
 
+        public override object InitializeLifetimeService()
+        {
+
+            return null;
+
+        }
         public TSpaceServerSMR()
         {
             TuppleSpace = new TSpaceStorage();
@@ -71,6 +77,7 @@ namespace Server
 
                 // Add sequence number of request to processed requests
                 ProcessedRequests.Add(msg.RequestID);
+
             }
 
 
@@ -125,18 +132,34 @@ namespace Server
             Monitor.Exit(MessageQueue);
 
             Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
-
+            Console.WriteLine("request:");
+            Console.WriteLine(msg);
             // Execute the operation
+
+            
             switch (command)
             {
                 case "add":
-                    TuppleSpace.Add(msg.Tuple);
-                    response.Code = "ACK";
+                    lock (TakeLock)
+                    {
+                        if (msg.Tuple == null)
+                        {
+                            response.Code = "ERR";
+                            break;
+                        }
+
+                        TuppleSpace.Add(msg.Tuple);
+                        response.Code = "ACK";
                     break;
+                    }
 
                 case "read":
+                    if (msg.Tuple == null)
+                    {
+                        response.Code = "ERR";
+                        break;
+                    }
                     response.Tuple = TuppleSpace.Read(msg.Tuple);
-
                     response.Code = "OK";
                     if (response.Tuple == null)
                         Console.WriteLine("Match not Found");
@@ -147,6 +170,12 @@ namespace Server
                 case "take1":
                     lock (TakeLock)
                     {
+                        if (msg.Tuple == null)
+                        {
+                            response.Code = "ERR";
+                            break;
+                        }
+
                         // Get matching tuple
                         response.Tuple = TuppleSpace.Read(msg.Tuple);
                         response.Code = "OK";
@@ -156,36 +185,23 @@ namespace Server
                             TuppleSpace.Take2(response.Tuple);
                         }
                     }
-
                     response.Code = "OK";
 
                     break;
 
-                case "take2":
-                    try
-                    {
-                        response.Code = "ACK";
-                    }
-                    catch (InvalidCastException)
-                    {
+                case "take2":        
                         Console.WriteLine("Current Tuple Space not in XL mode");
                         response.Code = "ERR";
-                    }
-
+            
                     break;
 
 
                 // Operation exclusive of the XL Tuple Space
                 case "releaseLocks":
-                    try
-                    {
-                        response.Code = "ACK";
-                    }
-                    catch (InvalidCastException)
-                    {
-                        Console.WriteLine("Current Tuple Space not in XL mode");
-                        response.Code = "ERR";
-                    }
+                    
+                    Console.WriteLine("Current Tuple Space not in XL mode");
+                    response.Code = "ERR";
+                   
 
                     break;
                 default:
@@ -201,6 +217,9 @@ namespace Server
                     MessageQueue.Remove(update);
                 }
             }
+
+            Console.WriteLine("Response:");
+            Console.WriteLine(response);
 
             return response;
         }

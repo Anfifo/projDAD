@@ -203,7 +203,7 @@ namespace Client
                 // Repeat untill all replicas have answered
                 while (AcksCounter < View.Count)
                 {
-                    Console.WriteLine(request.RequestID);
+
                     // Send take request to all members of the view
                     this.Multicast(request, remoteCallback);
                 }
@@ -256,6 +256,9 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
+            Console.WriteLine("Response:");
+            Console.WriteLine(response);
+
             if (response.Code.Equals("ACK"))
             {
                 Interlocked.Increment(ref AcksCounter);
@@ -269,6 +272,8 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
+            Console.WriteLine("Response:");
+            Console.WriteLine(response);
             // Stores the tuple returned 
             // and the OperationID of the server that answered
             if (response.Code.Equals("OK"))
@@ -355,6 +360,8 @@ namespace Client
         /// <param name="asyncCallback">Callback function of the remote call.</param>
         private void Multicast(TSpaceMsg message, AsyncCallback asyncCallback)
         {
+            Console.WriteLine("Request:");
+            Console.WriteLine(message);
             RemoteAsyncDelegate remoteDel;
             foreach (ITSpaceServer server in View)
             {

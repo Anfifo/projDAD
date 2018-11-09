@@ -33,6 +33,7 @@ namespace Server
             {
                 if (tuple.Matches(tup))
                 {
+                    lock(TS)
                     return tup;
                 }
             }
