@@ -48,6 +48,7 @@ namespace Client
         private static int AddCounter = 0;
         private static int ReadCounter = 0;
 
+        public static TcpChannel channel;
 
         /// <summary>
         /// Constructor
@@ -56,7 +57,7 @@ namespace Client
         /// <param name="viewId">OperationID of the current view</param>
         public SMR_Client(List<string> viewUrls, int viewId, int clientID)
         {
-            TcpChannel channel = new TcpChannel();
+            channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, true);
 
             // Get the reference for the tuple space servers
@@ -202,6 +203,7 @@ namespace Client
                 // Repeat untill all replicas have answered
                 while (AcksCounter < View.Count)
                 {
+                    Console.WriteLine(request.RequestID);
                     // Send take request to all members of the view
                     this.Multicast(request, remoteCallback);
                 }
@@ -251,7 +253,6 @@ namespace Client
         private static void AcksCallback(IAsyncResult result)
         {
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
-
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
