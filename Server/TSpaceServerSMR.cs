@@ -141,8 +141,7 @@ namespace Server
             Monitor.Exit(MessageQueue);
 
             Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
-            Console.WriteLine("request:");
-            Console.WriteLine(msg);
+           
             // Execute the operation
 
             
@@ -224,11 +223,10 @@ namespace Server
                 lock (MessageQueue)
                 {
                     MessageQueue.Remove(update);
+                    Monitor.PulseAll(MessageQueue);
                 }
             }
-
-            Console.WriteLine("Response:");
-            Console.WriteLine(response);
+            
 
             return response;
         }

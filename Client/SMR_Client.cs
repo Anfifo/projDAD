@@ -98,8 +98,6 @@ namespace Client
             
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.AcksCallback);
 
-            Console.WriteLine("Request:");
-            Console.WriteLine(request);
 
             // Clear acks count 
             AcksCounter = 0;
@@ -176,9 +174,7 @@ namespace Client
             request.Code = "take1";
             request.Tuple = template;
 
-            Console.WriteLine("Request:");
-            Console.WriteLine(request);
-
+            
             // Create remote callback
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.ReadCallback);
 
@@ -283,8 +279,7 @@ namespace Client
                     {
                         Tuple = response.Tuple;
                     }
-                    Console.WriteLine("Response:");
-                    Console.WriteLine(response);
+
                 }
 
                 Interlocked.Increment(ref AcksCounter);
