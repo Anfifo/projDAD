@@ -26,14 +26,21 @@ namespace Server
         // Lock reference for take operation
         private static Object TakeLock = new Object();
 
+        private int mindelay;
+        private int maxdelay;
+
+        private Random random = new Random();
+
         public override object InitializeLifetimeService()
         {
 
             return null;
 
         }
-        public TSpaceServerSMR()
+        public TSpaceServerSMR(int _mindelay,int _maxdelay)
         {
+            mindelay = _mindelay;
+            maxdelay = _maxdelay;
             TuppleSpace = new TSpaceStorage();
             ServerID = new Random().Next();
             ProcessedRequests = new List<string>();
@@ -42,6 +49,7 @@ namespace Server
 
         public string Status()
         {
+            Thread.Sleep(random.Next(mindelay, maxdelay));
             return "I live";
         }
 
@@ -57,6 +65,7 @@ namespace Server
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
+            Thread.Sleep(random.Next(mindelay, maxdelay));
 
             TSpaceMsg response = new TSpaceMsg
             {

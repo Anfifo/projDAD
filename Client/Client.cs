@@ -26,7 +26,7 @@ namespace Client
             //ClientID random or user introduced
             int clientID = 0;
             //Type of algorithm
-            string algorithm = " "; // pre definido ou escolher no inicio?
+            string algorithm = "x"; // pre definido ou escolher no inicio?
             
             Servers.Add("tcp://localhost:50001/S");
             //PuppetMaster initialization
