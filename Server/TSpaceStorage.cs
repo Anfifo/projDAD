@@ -12,12 +12,20 @@ namespace Server
     class TSpaceStorage : ITSpace
     {
         public List<ITuple> TS = new List<ITuple>();
-        
+
+        /// <summary>
+        /// All tuples stored in this tuppleSpace
+        /// </summary>
+        /// <returns> all tuples currently in tuppleSpace</returns>
         public List<ITuple> getAll()
         {
             return TS;
         }
 
+        /// <summary>
+        /// Adds given tupple to tupple space
+        /// </summary>
+        /// <param name="tuple">Tuple to be added</param>
         public void Add(ITuple tuple)
         {
 
