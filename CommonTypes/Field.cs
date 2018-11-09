@@ -25,6 +25,7 @@ namespace CommonTypes
 
         public bool Matches(IField field)
         {
+         
             if (value is StringValue)
             {
                 //If the value we want to compare ourselfs with is not a string

@@ -14,14 +14,14 @@ namespace Client
         //List of active servers
         public static List<string> Servers = new List<string>();
 
-        //XL Client 
-        public static ITSpaceAPI XL;
+        //SMR Client 
+        public static ITSpaceAPI SMR;
 
         static void Main(string[] args)
         {
             
             Servers.Add("tcp://localhost:50001/S");
-            XL = new XL_Client(Servers, 1);
+            SMR = new SMR_Client(Servers, 1);
             try
             {
                 ExecuteFile(args[0]);
@@ -116,7 +116,7 @@ namespace Client
                         Console.WriteLine("WE ADDING");
 
                         Tuple tupleA = new Tuple(operation.getFields());
-                        XL.Add(tupleA);  
+                        SMR.Add(tupleA);  
                         break;
 
                     case "take":
@@ -125,7 +125,7 @@ namespace Client
 
                         Tuple tupleT = new Tuple(operation.getFields());
 
-                        XL.Take(tupleT);
+                        SMR.Take(tupleT);
 
                         break;
 
@@ -135,7 +135,7 @@ namespace Client
 
                         Tuple tupleR = new Tuple(operation.getFields());
                     
-                        XL.Read(tupleR);
+                        SMR.Read(tupleR);
 
                         break;
 

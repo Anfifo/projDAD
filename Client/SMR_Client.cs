@@ -16,10 +16,10 @@ namespace Client
         // View of the tuple spaces servers.
         private List<ITSpaceServer> View { get; set; } = new List<ITSpaceServer>();
 
-        // ID of the tuple spaces servers view.
+        // OperationID of the tuple spaces servers view.
         private int ViewId { get; set; }
 
-        // Client ID
+        // Client OperationID
         private readonly int ClientID;
 
         // Delegate for remote assync call to the tuple space servers
@@ -34,16 +34,22 @@ namespace Client
         // Stores the tuple returned by the
         private static ITuple Tuple;
 
-        // Request message counter
-        private static int RequestCounter = 0;
+        // Counter for operation message unique identifier
+        private static int OperationCounter = 0;
+
+        // Counter for all messages sent to the server
+        private static int RequestCounter;
+
+        // Object to use as reference for the lock to the Tuple 
+        private static Object LockRef = new Object();
 
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="viewUrls">Urls of the tuple space servers</param>
-        /// <param name="viewId">ID of the current view</param>
-        public SMR_Client(string[] viewUrls, int viewId)
+        /// <param name="viewId">OperationID of the current view</param>
+        public SMR_Client(List<string> viewUrls, int viewId)
         {
             TcpChannel channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, true);
@@ -74,12 +80,16 @@ namespace Client
             TSpaceMsg request = new TSpaceMsg();
 
             request.Code = "add";
+            request.Tuple = tuple;
             // Create unique message identifier
-            request.ID = ClientID + "_" +  (RequestCounter++);
+            request.OperationID = ClientID + "_" +  (OperationCounter++);
             // Get the sequence number of the request in the view
-            request.SequenceNumber = this.GetSequenceNumber(request.ID);
+            request.SequenceNumber = GetSequenceNumber(request.OperationID);
+            request.RequestID = ClientID + "_" + (RequestCounter++);
 
+            
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.AcksCallback);
+
 
             // Clear acks count 
             AcksCounter = 0;
@@ -106,27 +116,37 @@ namespace Client
             TSpaceMsg request = new TSpaceMsg();
             request.Code = "read";
             request.Tuple = template;
+            request.RequestID = ClientID + "_" + (RequestCounter++);
+
             // Create unique message identifier
-            request.ID = ClientID + "_" + (RequestCounter++);
+            request.OperationID = ClientID + "_" + (OperationCounter++);
 
             // Get the sequence number of the request in the view
-            request.SequenceNumber = this.GetSequenceNumber(request.ID);
+            request.SequenceNumber = this.GetSequenceNumber(request.OperationID);
 
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.ReadCallback);
 
             // Clear responses to previous request
-            lock (Tuple)
+            // Clear previous answers
+            lock (LockRef)
             {
-                AcksCounter = 0;
                 Tuple = null;
             }
+            AcksCounter = 0;
 
             // Send multicast request to all members of the view
             this.Multicast(request, remoteCallback);
 
             // Waits until one replica returns a tuple or
             // all replicas answered that they dont have a match
-            while (Tuple == null && AcksCounter < View.Count) ;
+            while (AcksCounter < View.Count)
+            {
+                lock (LockRef)
+                {
+                    if (Tuple != null)
+                        break;
+                }
+            }
 
             Console.WriteLine("Read: OK");
 
@@ -146,24 +166,32 @@ namespace Client
             TSpaceMsg request = new TSpaceMsg();
             request.Code = "take1";
             request.Tuple = template;
-            // Create unique message identifier
-            request.ID = ClientID + "_" + (RequestCounter++);
+
 
             // Create remote callback
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.ReadCallback);
 
             // Clear response from last request
-            lock (Tuple)
+            lock (LockRef)
             {
                 Tuple = null;
             }
 
             // Repeat until one matching tuple is found
-            while(Tuple == null)
+            while (true)
             {
-                // Get the sequence number of the request in the view
-                request.SequenceNumber = this.GetSequenceNumber(request.ID);
+                // Create unique message identifier
+                request.OperationID = ClientID + "_" + (OperationCounter++);
                 
+                // Get the sequence number of the request in the view
+                request.SequenceNumber = this.GetSequenceNumber(request.OperationID);
+                
+                // Create unique identifier for the round
+                request.RequestID = ClientID + "_" + (RequestCounter++);
+
+
+                Console.WriteLine("Operation counter " + RequestCounter);
+
                 //Clear acks from last request
                 AcksCounter = 0;
 
@@ -173,7 +201,19 @@ namespace Client
                     // Send take request to all members of the view
                     this.Multicast(request, remoteCallback);
                 }
+
+                // Return if there is a match
+                // Repeat otherwise
+                Monitor.Enter(LockRef);
+                if (Tuple != null)
+                {
+                    Monitor.Exit(LockRef);
+                    break;
+                }
+                Monitor.Exit(LockRef);
             }
+
+            Console.WriteLine("Take: OK");
 
             return Tuple;
         }
@@ -191,8 +231,12 @@ namespace Client
 
             if (response.Code.Equals("proposedSeq"))
             {
-                // Store porposed sequence number
-                ProposedSeq.Add(response.SequenceNumber);
+                lock (ProposedSeq)
+                {
+                    // Store porposed sequence number
+                    ProposedSeq.Add(response.SequenceNumber);
+                    Interlocked.Increment(ref AcksCounter);
+                }
             }
             
         }
@@ -221,15 +265,21 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
+            // Stores the tuple returned 
+            // and the OperationID of the server that answered
             if (response.Code.Equals("OK"))
             {
-                lock (Tuple)
+                if (response.Tuple != null)
                 {
-                    Tuple = response.Tuple;
-                    Interlocked.Increment(ref AcksCounter);
+                    lock (LockRef)
+                    {
+                        Tuple = response.Tuple;
+                    }
                 }
-            }
 
+                Interlocked.Increment(ref AcksCounter);
+
+            }
         }
 
        
@@ -240,7 +290,7 @@ namespace Client
         /// <summary>
         /// Determines the agreed sequence number of a message
         /// </summary>
-        /// <param name="id">Message ID</param>
+        /// <param name="id">Message OperationID</param>
         /// <returns>Agreed sequence number</returns>
         private int GetSequenceNumber(string id)
         {
@@ -250,8 +300,11 @@ namespace Client
             // Create request message
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "proposeSeq";
-            message.ID = id;
+            message.OperationID = id;
             message.ProcessID = ClientID;
+            message.RequestID = ClientID + "_" + (RequestCounter++);
+            message.SequenceNumber = -1;
+
 
 
             RemoteAsyncDelegate remoteDel;
@@ -259,10 +312,14 @@ namespace Client
             AsyncCallback asyncCallback = new AsyncCallback(SMR_Client.PropesedSeqCallback);
 
             // Clear proposed sequence number for previous messages
-            ProposedSeq.Clear();
+            lock (ProposedSeq)
+            {
+                AcksCounter = 0;
+                ProposedSeq.Clear();
+            }
 
             // Send message to all replicas until all have proposed a sequence number
-            while(ProposedSeq.Count < View.Count)
+            while(AcksCounter < View.Count)
             {
                 foreach (ITSpaceServer server in View)
                 {
@@ -273,11 +330,14 @@ namespace Client
                     remoteDel.BeginInvoke(message, asyncCallback, null);
                 }
             }
+            int agreedSeq;
+            lock (ProposedSeq)
+            {
+                // Agreed sequence number = highest proposed sequence number
+                agreedSeq = ProposedSeq.Max();
+            }
 
-            // Agreed sequence number = highest proposed sequence number
-            int agreedSeq = ProposedSeq.Max();
-
-            Console.WriteLine("Message " + message.ID + " (agreedSeq = " + message.SequenceNumber + ")");
+            Console.WriteLine("Message " + message.OperationID + " (agreedSeq = " + agreedSeq + ")");
 
             return agreedSeq;
         }
@@ -292,7 +352,6 @@ namespace Client
         private void Multicast(TSpaceMsg message, AsyncCallback asyncCallback)
         {
             RemoteAsyncDelegate remoteDel;
-
             foreach (ITSpaceServer server in View)
             {
                 // Create delegate for remote method

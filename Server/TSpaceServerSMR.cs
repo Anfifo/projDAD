@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CommonTypes;
-using System.Runtime.Remoting;
-
+using System.Threading;
 
 namespace Server
 {
@@ -16,17 +12,27 @@ namespace Server
 
         private readonly int ServerID;
 
-        private List<int> ProcessedRequests;
+        // Stores the OperationID of the processed requests
+        private static List<string> ProcessedRequests;
+
+        // Stores the request in hold
+        private static List<Message> MessageQueue = new List<Message>();
 
         private Boolean Frozen = false;
+
+        // Stores the most recent sequence number
+        private static int SequenceNumber;
+
+        // Lock reference for take operation
+        private static Object TakeLock = new Object();
+
         public TSpaceServerSMR()
         {
             TuppleSpace = new TSpaceStorage();
             ServerID = new Random().Next();
-            ProcessedRequests = new List<int>();
+            ProcessedRequests = new List<string>();
 
         }
-
 
         public string Status()
         {
@@ -44,26 +50,84 @@ namespace Server
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
-        { 
+        {
 
-            TSpaceMsg response = new TSpaceMsg();
-            response.ProcessID = ServerID;
-            response.SequenceNumber = msg.SequenceNumber;
-
-            // Check if request as already been processed
-            if (ProcessedRequests.Contains(msg.SequenceNumber))
+            TSpaceMsg response = new TSpaceMsg
             {
-                response.Code = "Repeated";
-                return response;
-                
+                ProcessID = ServerID,
+                OperationID = msg.OperationID,
+                RequestID = msg.RequestID
+            };
+
+            lock (ProcessedRequests)
+            {
+                // Check if request as already been processed
+                if (ProcessedRequests.Contains(msg.RequestID))
+                {
+                    Console.WriteLine("Repeated " + msg.Code);
+                    response.Code = "Repeated";
+                    return response;
+                }
+                Console.WriteLine("Processed RequestID " + msg.RequestID);
+
+                // Add sequence number of request to processed requests
+                ProcessedRequests.Add(msg.RequestID);
             }
 
-            // Add sequence number of request to processed requests
-            ProcessedRequests.Add(msg.SequenceNumber);
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.SequenceNumber + ")" );
-            
+            Console.WriteLine("Processing Request " + command + " (seq = " + msg.RequestID + ")" );
+
+            Message update = null;
+            // Sequence number proposal request
+            if (command.Equals("proposeSeq"))
+            {
+
+                // Increment sequence number
+                Interlocked.Increment(ref SequenceNumber);
+                response.SequenceNumber = SequenceNumber;
+                response.Code = "proposedSeq";
+
+                lock (MessageQueue)
+                {
+                    Message newMessage = new Message();
+                    newMessage.ProcessID = msg.ProcessID;
+                    newMessage.SequenceNumber = SequenceNumber;
+                    newMessage.Deliverable = false;
+                    newMessage.MessageID = msg.OperationID;
+
+                    // Add message to queue
+                    MessageQueue.Add(newMessage);
+                    MessageQueue.Sort();
+                }
+
+
+
+                return response;
+            }
+            // Message with agreed sequence number
+            else
+            {
+                update = UpdateMessage(msg.OperationID, msg.SequenceNumber);
+                if (update == null)
+                {
+                    Console.WriteLine("Err: operation message not in queue");
+                    response.Code = "Err";
+                    return response;
+                }
+            }
+
+            // Wait for message to be in the head of the queue
+            Monitor.Enter(MessageQueue);
+
+            while (MessageQueue.Count == 0 || !MessageQueue[0].MessageID.Equals(msg.OperationID))
+                Monitor.Wait(MessageQueue);
+
+            Monitor.Exit(MessageQueue);
+
+            Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
+
+            // Execute the operation
             switch (command)
             {
                 case "add":
@@ -73,26 +137,47 @@ namespace Server
 
                 case "read":
                     response.Tuple = TuppleSpace.Read(msg.Tuple);
+
                     response.Code = "OK";
                     if (response.Tuple == null)
-                        Console.WriteLine("Not Found");
+                        Console.WriteLine("Match not Found");
+                    else
+                        Console.WriteLine("Match found");
                     break;
 
                 case "take1":
-                    // find suitable matches for tuple
-                    List<ITuple> matches = TuppleSpace.Take1(msg.Tuple);
-                    // Locks all unlocked and matchable tuples for UserID
-                    response.Tuples = TSLockHandler.LockTuples(msg.ProcessID, matches); 
+                    lock (TakeLock)
+                    {
+                        Console.WriteLine("Start read");
+                        // Get matching tuple
+                        response.Tuple = TuppleSpace.Read(msg.Tuple);
+                        response.Code = "OK";
+                        Console.WriteLine("End read");
+                        if (response.Tuple != null)
+                        {
+                            Console.WriteLine("Start delete");
+                            // Delete it
+                            TuppleSpace.Take2(response.Tuple);
+                        }
+                    }
+
                     response.Code = "OK";
+
                     break;
 
                 case "take2":
-                    // Deletes tuple
-                    TuppleSpace.Take2(msg.Tuple);
-                    // Unlocks all tuples previously locked under UserID
-                    TSLockHandler.UnlockTuples(msg.ProcessID);
-                    response.Code = "ACK";
+                    try
+                    {
+                        response.Code = "ACK";
+                    }
+                    catch (InvalidCastException)
+                    {
+                        Console.WriteLine("Current Tuple Space not in XL mode");
+                        response.Code = "ERR";
+                    }
+
                     break;
+
 
                 // Operation exclusive of the XL Tuple Space
                 case "releaseLocks":
@@ -112,7 +197,42 @@ namespace Server
                     break;
             }
 
+            // Delete processed message from queue
+            if (update != null)
+            {
+                lock (MessageQueue)
+                {
+                    MessageQueue.Remove(update);
+                }
+            }
+
             return response;
+        }
+
+        /// <summary>
+        /// Update sequence number of the message with the given id
+        /// </summary>
+        /// <param name="id">Message id</param>
+        /// <param name="sequenceNumber">Agreed sequence number</param>
+        /// <returns></returns>
+        private Message UpdateMessage(string id, int sequenceNumber)
+        {
+            lock (MessageQueue)
+            {
+                foreach(Message msg in MessageQueue)
+                {
+                    if (msg.MessageID.Equals(id))
+                    {
+                        msg.SequenceNumber = sequenceNumber;
+                        msg.Deliverable = true;
+                        MessageQueue.Sort();
+                        Monitor.PulseAll(MessageQueue);
+                        return msg;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

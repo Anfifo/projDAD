@@ -14,13 +14,13 @@ namespace Client
         // View of the tuple spaces servers.
         private List<ITSpaceServer> View { get; set; } = new List<ITSpaceServer>();
 
-        // ID of the tuple spaces servers view.
+        // OperationID of the tuple spaces servers view.
         private int ViewId { get; set; }
 
         // Sequence number of the last request sent
         private static int SequenceNumber;
 
-        // Client ID
+        // Client OperationID
         private readonly int ClientID;
 
         // Delegate for remote assync call to the tuple space servers
@@ -83,7 +83,7 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "add";
             message.Tuple = tuple;
-            message.ID = ClientID + "_" + (++SequenceNumber);
+            message.OperationID = ClientID + "_" + (++SequenceNumber);
 
             //Clear acks
             AcksCounter = 0;
@@ -120,7 +120,7 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "read";
             message.Tuple = template;
-            message.ID = ClientID + "_" + (++SequenceNumber);
+            message.OperationID = ClientID + "_" + (++SequenceNumber);
 
 
             // Create local callback.
@@ -188,7 +188,7 @@ namespace Client
             message.Code = "take2";
             message.Tuple = selectedTuple;
             message.ProcessID = ClientID;
-            message.ID = ClientID + "_" + (++SequenceNumber);
+            message.OperationID = ClientID + "_" + (++SequenceNumber);
 
 
             // Create local callback.
@@ -222,7 +222,7 @@ namespace Client
             message.Code = "take1";
             message.Tuple = template;
             message.ProcessID = ClientID;
-            message.ID = ClientID + "_" + (++SequenceNumber);
+            message.OperationID = ClientID + "_" + (++SequenceNumber);
 
 
             // Clear responses from previour requests
@@ -262,7 +262,7 @@ namespace Client
             {
                 //Create message
                 message.Code = "releaseLocks";
-                message.ID = ClientID + "_" + (++SequenceNumber);
+                message.OperationID = ClientID + "_" + (++SequenceNumber);
 
 
                 // Clear acks
@@ -319,7 +319,7 @@ namespace Client
             TSpaceMsg response = del.EndInvoke(result);
          
             // Stores the tuple returned 
-            // and the ID of the server that answered
+            // and the OperationID of the server that answered
             if (response.Code.Equals("OK"))
             {
                 if(response.Tuple != null)
@@ -347,7 +347,7 @@ namespace Client
             TSpaceMsg response = del.EndInvoke(result);
 
             // Stores the list of matching tuples 
-            // and the ID of the server that answered
+            // and the OperationID of the server that answered
             if (response.Code.Equals("OK"))
             {
                 new CommonTypes.Tuple(response.Tuple.GetFields());

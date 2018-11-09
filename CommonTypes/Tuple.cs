@@ -38,13 +38,18 @@ namespace CommonTypes
 
         public bool Matches(ITuple tuple)
         {
+            if(tuple == null)
+            {
+                Console.WriteLine("Someone passed me a null please dont pass me a null");
+            }
             if (this.getLength() != tuple.getLength())
+            {
                 return false;
-
+            }
             for (int i = 0; i < this.getLength(); i++)
             {
                 Field field1 = (Field)tuple.GetFields()[i];
-                Field field2 = (Field)this.tuple[i]; 
+                Field field2 = (Field)this.tuple[i];
 
                 if (!field2.Matches(field1))
                 {

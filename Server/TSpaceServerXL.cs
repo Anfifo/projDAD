@@ -50,19 +50,19 @@ namespace Server
             lock (ProcessedRequests)
             {
                 // Check if request as already been processed
-                if (ProcessedRequests.Contains(msg.ID))
+                if (ProcessedRequests.Contains(msg.OperationID))
                 {
                     response.Code = "Repeated";
                     return response;
 
                 }
 
-                // Add request ID to processed requests
-                ProcessedRequests.Add(msg.ID);
+                // Add request OperationID to processed requests
+                ProcessedRequests.Add(msg.OperationID);
             }
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.ID + ")" );
+            Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
             
             switch (command)
             {
@@ -84,8 +84,10 @@ namespace Server
                 case "take1":
                     // find suitable matches for tuple
                     List<ITuple> matches = TuppleSpace.Take1(msg.Tuple);
+
                     // Locks all unlocked and matchable tuples for UserID
                     response.Tuples = TSLockHandler.LockTuples(msg.ProcessID, matches);
+
                     response.Code = "OK";
                     break;
 

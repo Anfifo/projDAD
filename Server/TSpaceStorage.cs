@@ -20,12 +20,15 @@ namespace Server
 
         public void Add(ITuple tuple)
         {
+
             lock (TS)
                 TS.Add(tuple);
+        
         }
 
         public ITuple Read(ITuple tuple)
         {
+            
             foreach(ITuple tup in TS)
             {
                 if (tuple.Matches(tup))

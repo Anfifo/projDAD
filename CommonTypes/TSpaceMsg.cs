@@ -33,7 +33,12 @@ namespace CommonTypes
         {
             get; set;
         }
-        public string ID
+        public string OperationID
+        {
+            get; set;
+        }
+
+        public string RequestID
         {
             get; set;
         }
