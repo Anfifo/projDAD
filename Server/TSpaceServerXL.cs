@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using CommonTypes;
 
 
@@ -17,8 +18,15 @@ namespace Server
         // Stores the id of the requests already processed
         private static List<string> ProcessedRequests;
 
-        public TSpaceServerXL()
+        private int mindelay;
+        private int maxdelay;
+
+        private Random random = new Random();
+
+        public TSpaceServerXL(int _mindelay,int _maxdelay)
         {
+            mindelay = _mindelay;
+            maxdelay = _maxdelay;
             TuppleSpace = new TSpaceStorage();
             ServerID = new Random().Next();
             ProcessedRequests = new List<string>();
@@ -28,7 +36,8 @@ namespace Server
 
         public string Status()
         {
-            return "I live";
+            Thread.Sleep(random.Next(mindelay, maxdelay));
+            return "I live" + this.ServerID;
         }
 
         public void Freeze()
@@ -42,8 +51,8 @@ namespace Server
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
-        { 
-
+        {
+            Thread.Sleep(random.Next(mindelay, maxdelay));
             TSpaceMsg response = new TSpaceMsg();
             response.ProcessID = ServerID;
 

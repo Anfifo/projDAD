@@ -22,7 +22,7 @@ namespace Server
             int Port;
             string Name;
             //Type of algorithm for server
-            string algorithm = " ";
+            string algorithm = "x";
 
             if (args.Length > 0)
             {
@@ -46,11 +46,19 @@ namespace Server
 
             channel = new TcpChannel(Port);
             ChannelServices.RegisterChannel(channel, true);
-            Console.WriteLine(algorithm);
-            if(algorithm == "x")
-                RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);
-            if(algorithm == "s")
-                RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
+
+            if (algorithm == "x") {
+                //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);
+                TSpaceServerXL TS = new TSpaceServerXL(MinDelay,MaxDelay);
+                RemotingServices.Marshal(TS, Name, typeof(TSpaceServerXL));
+            }
+            if (algorithm == "s")
+            {
+                TSpaceServerSMR TS = new TSpaceServerSMR(MinDelay, MaxDelay);
+                RemotingServices.Marshal(TS, Name, typeof(TSpaceServerSMR));
+                //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
+            }
+
 
             System.Console.WriteLine("<enter> para sair...");
             System.Console.ReadLine();
