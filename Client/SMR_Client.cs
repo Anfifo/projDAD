@@ -124,13 +124,7 @@ namespace Client
             TSpaceMsg request = new TSpaceMsg();
             request.Code = "read";
             request.Tuple = template;
-            request.RequestID = ClientID + "_" + (RequestCounter++);
-
-            // Create unique message identifier
-            request.OperationID = ClientID + "_" + (OperationCounter++);
-
-            // Get the sequence number of the request in the view
-            request.SequenceNumber = this.GetSequenceNumber(request.OperationID);
+            
 
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.ReadCallback);
 
@@ -140,21 +134,42 @@ namespace Client
             {
                 Tuple = null;
             }
-            AcksCounter = 0;
 
-            // Send multicast request to all members of the view
-            this.Multicast(request, remoteCallback);
+            bool matchFound = false;
 
-            // Waits until one replica returns a tuple or
-            // all replicas answered that they dont have a match
-            while (AcksCounter < View.Count)
+            while (!matchFound)
             {
-                lock (LockRef)
+                // Create unique id of the request
+                request.RequestID = ClientID + "_" + (RequestCounter++);
+
+                // Create unique message identifier
+                request.OperationID = ClientID + "_" + (OperationCounter++);
+
+                // Get the sequence number of the request in the view
+                request.SequenceNumber = this.GetSequenceNumber(request.OperationID);
+
+
+                AcksCounter = 0;
+
+                // Send multicast request to all members of the view
+                this.Multicast(request, remoteCallback);
+
+                // Waits until one replica returns a tuple or
+                // all replicas answered that they dont have a match
+                while (AcksCounter < View.Count)
                 {
-                    if (Tuple != null)
-                        break;
+                    lock (LockRef)
+                    {
+                        if (Tuple != null)
+                        {
+                            matchFound = true;
+                            break;
+                        }
+                    }
                 }
+
             }
+            
 
             Console.WriteLine("Read " + (++ReadCounter) + ": OK");
 

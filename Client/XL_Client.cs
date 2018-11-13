@@ -123,7 +123,6 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "read";
             message.Tuple = template;
-            message.OperationID = ClientID + "_" + (++SequenceNumber);
 
 
             // Create local callback.
@@ -134,20 +133,29 @@ namespace Client
             {
                 Tuple = null;
             }
-            AcksCounter = 0;
-            
 
-            // Send multicast message to all members of the view.
-            this.Multicast(message, remoteCallback);
+            bool matchFound = false;
 
-            // Waits until one replica returns a tuple or
-            // all replicas answered that they dont have a match
-            while (AcksCounter < View.Count)
+            while (!matchFound)
             {
-                lock (LockRef)
+                message.OperationID = ClientID + "_" + (++SequenceNumber);
+                AcksCounter = 0;
+
+                // Send multicast message to all members of the view.
+                this.Multicast(message, remoteCallback);
+
+                // Waits until one replica returns a tuple or
+                // all replicas answered that they dont have a match
+                while (AcksCounter < View.Count)
                 {
-                    if (Tuple != null)
-                        break;
+                    lock (LockRef)
+                    {
+                        if (Tuple != null)
+                        {
+                            matchFound = true;
+                            break;
+                        }
+                    }
                 }
             }
 
