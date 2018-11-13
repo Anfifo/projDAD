@@ -152,7 +152,7 @@ namespace Client
             }
 
             // Return first response.
-            Console.WriteLine("Add " + (++AddCounter) + ": OK");
+            Console.WriteLine("Read " + (++ReadCounter) + ": OK");
 
             return Tuple;
         }
@@ -212,7 +212,7 @@ namespace Client
             }
             Console.WriteLine("Take: Phase 2 completed");
 
-            Console.WriteLine("Add " + (++AddCounter) + ": OK");
+            Console.WriteLine("Take " + (++TakeCounter) + ": OK");
             return message.Tuple;
             
         }
