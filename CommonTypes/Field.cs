@@ -49,12 +49,8 @@ namespace CommonTypes
                     StringValue inputStringField = (StringValue)field.GetValue();
 
                     string inputString = inputStringField.field;
-
-                    if (inputString.Substring(0, myString.Length - 1) == myString.Substring(0, myString.Length - 1))
-                    {
-                        return true;
-                    }
-                    return false;
+                    
+                    return inputString.Substring(0, myString.Length - 1) == myString.Substring(0, myString.Length - 1);
 
                 }
 
@@ -67,30 +63,16 @@ namespace CommonTypes
 
                     string inputString = inputStringField.field;
 
-                    if (inputString.Substring(inputString.Length - myString.Length + 1) == myString.Substring(1))
-                    {
-                        return true;
-                    }
-                    return false;
+                    return inputString.Substring(inputString.Length - myString.Length + 1) == myString.Substring(1);
 
                 }
 
                 // if we want to compare 2 strings
                 else
                 {
-
                     StringValue sf = (StringValue)field.GetValue();
-
-                    string s = sf.field;
-
-                    string S = myStringField.field;
-
-                    if(s == S)
-                    {
-                     
-                        return true;
-                    }
-                    return false;
+                    
+                    return sf.field == myStringField.field;
                 }
             }
             

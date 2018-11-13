@@ -50,6 +50,7 @@ namespace Client
 
         public static TcpChannel channel;
 
+        private static readonly bool verbose = false;
         /// <summary>
         /// Constructor
         /// </summary>
@@ -294,7 +295,11 @@ namespace Client
                     {
                         Tuple = response.Tuple;
                     }
-
+                    if (verbose)  
+                    {
+                        Console.WriteLine("Response:");
+                        Console.WriteLine(response);
+                    }
                 }
 
                 Interlocked.Increment(ref AcksCounter);

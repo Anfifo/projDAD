@@ -43,6 +43,7 @@ namespace Client
         private static int AddCounter = 0;
         private static int ReadCounter = 0;
 
+        private static bool verbose = false;
 
         /// <summary>
         /// Constructor.
@@ -370,6 +371,12 @@ namespace Client
                     MatchingTuples.Add(response.Tuples);
                     Interlocked.Increment(ref AcksCounter);
                 }
+                if (verbose)
+                {
+                    Console.WriteLine("Response:");
+                    Console.WriteLine(response);
+                }
+
             }
         }
 
@@ -387,6 +394,13 @@ namespace Client
         private void Multicast(TSpaceMsg message, AsyncCallback asyncCallback)
         {
             RemoteAsyncDelegate remoteDel;
+
+            if (verbose)
+            {
+                Console.WriteLine(message);
+                Console.WriteLine("Sending:");
+            }
+
 
             foreach (ITSpaceServer server in View)
             {
