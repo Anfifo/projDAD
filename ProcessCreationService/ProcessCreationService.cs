@@ -9,14 +9,21 @@ using System.Threading.Tasks;
 namespace ProcessCreationService
 {
     public class ProcessCreationService : MarshalByRefObject
+
+       
     {
+        //List of clients
+        Dictionary<string, Process> Clients = new Dictionary<string, Process>();
+
+        //List of servers
+        Dictionary<string, Process> Servers = new Dictionary<string, Process>();
 
         public ProcessCreationService()
         {
 
         }
 
-        public void StartServer(string url, int mindelay, int maxdelay, string algorithm)
+        public void StartServer(string id,string url, int mindelay, int maxdelay, string algorithm)
         {
 
             //Initialize a process startinfo with the server.exe file
@@ -31,6 +38,9 @@ namespace ProcessCreationService
 
             //Start the process
             Process P = Process.Start(info);
+
+            //Add process to the process servers list
+            Servers.Add(id, P);
 
         }
 
@@ -49,7 +59,20 @@ namespace ProcessCreationService
             //Start the process
             Process P = Process.Start(info);
 
+            Clients.Add(id, P);
 
+
+        }
+
+        public void Crash(string id)
+        {
+            foreach(KeyValuePair<string, Process> ServerProcess in Servers)
+            {
+                if (id == ServerProcess.Key)
+                {
+                    ServerProcess.Value.Kill();
+                }
+            }
         }
     }
 }

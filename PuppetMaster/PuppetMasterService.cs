@@ -17,7 +17,7 @@ namespace PuppetMaster
 
     {
         //delegate to make async serverstart call to PCS
-        delegate void startServerDel(string URL, int mindelay, int maxdelay, string algorithm);
+        delegate void startServerDel(string id,string URL, int mindelay, int maxdelay, string algorithm);
 
         //delegate to make async clientstart call to PCS
         delegate void startClientDel(string URL, string random, string algorithm);
@@ -179,7 +179,7 @@ namespace PuppetMaster
             startServerDel RemoteDel = new startServerDel(P.StartServer);
 
             //make the async call 
-            IAsyncResult RemAr = RemoteDel.BeginInvoke(URL, mindelay, maxdelay, this.algorithm, null, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(serverid,URL, mindelay, maxdelay, this.algorithm, null, null);
 
 
         }
@@ -220,8 +220,14 @@ namespace PuppetMaster
             }
         }
 
-        void Crash(string processname)
+        void Crash(string id)
         {
+            Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), (string)PCS[0]);
+
+            serverOperations RemoteDel = new serverOperations(P.Crash);
+
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(id, null,null);
+
 
         }
 
@@ -241,6 +247,7 @@ namespace PuppetMaster
         {
             System.Threading.Thread.Sleep(time);
 
+
         }
 
         //Callback to get the status of the machines running
@@ -258,28 +265,3 @@ namespace PuppetMaster
     }
 }
 
-    // This classes might be needed to save more information
-    public class Client
-    {
-        string URL;
-
-        string id;
-        public Client(string _id, string _URL)
-        {
-            id = _id;
-            URL = _URL;
-        }
-    }
-
-    public class Server
-    {
-        string URL;
-
-        string id;
-        public Server(string _id, string _URL)
-        {
-            id = _id;
-            URL = _URL;
-        }
-
-    }
