@@ -239,6 +239,7 @@ namespace PuppetMaster
 
         void Wait(int time)
         {
+            System.Threading.Thread.Sleep(time);
 
         }
 
