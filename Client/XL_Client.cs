@@ -23,6 +23,7 @@ namespace Client
         // Client OperationID
         private readonly int ClientID;
 
+
         // Delegate for remote assync call to the tuple space servers
         delegate TSpaceMsg RemoteAsyncDelegate(TSpaceMsg request);
 
@@ -54,20 +55,47 @@ namespace Client
             ChannelServices.RegisterChannel(channel, true);
 
             // Get the reference for the tuple space servers
-            foreach (string serverUrl in viewUrls)
-            {
-
-                ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
-                if (server != null)
-                    View.Add(server);
-            }
-
-            ViewId = viewId;
+            UpdateView(viewUrls, viewId);
+            
 
             // Set the client unique identifier
             ClientID = clientID;
             Console.WriteLine("XL Client id = " + ClientID);
 
+        }
+
+        /// <summary>
+        /// Updates view of servers
+        /// </summary>
+        /// <param name="viewURLs">List of the view's servers URLs</param>
+        /// <param name="viewID">View version number</param>
+        private void UpdateView(List<string> viewURLs, int viewID)
+        {
+            //Clear previous view
+            View.Clear();
+
+            // Get the reference for the tuple space servers
+            foreach (string serverUrl in viewURLs)
+            {
+
+                ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
+
+                // Check if its a valid reference
+                try
+                {
+                    if (server.Ping())
+                        View.Add(server);
+                    Console.WriteLine("Sucessfully connected to " + serverUrl);
+
+                }
+                catch (System.Net.Sockets.SocketException)
+                {
+                    Console.WriteLine("Failed to connect to  " + serverUrl);
+                }
+            }
+
+            Console.WriteLine("View count = " + View.Count);
+            ViewId = viewID;
         }
 
 
@@ -399,7 +427,7 @@ namespace Client
         }
 
         /// <summary>
-        /// Class that implements a custom comparator for the tuples.
+        /// Class that implements a custom equality comparator for the tuples.
         /// </summary>
         private class TupleComparator : IEqualityComparer<ITuple>
         {

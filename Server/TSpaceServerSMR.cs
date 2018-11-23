@@ -47,6 +47,11 @@ namespace Server
 
         }
 
+        public bool Ping()
+        {
+            return true;
+        }
+
         public string Status()
         {
             if (mindelay + maxdelay != 0)

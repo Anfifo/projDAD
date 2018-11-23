@@ -12,5 +12,7 @@ namespace CommonTypes
         void Freeze();
         void Unfreeze();
         TSpaceMsg ProcessRequest(TSpaceMsg msg);
+
+        bool Ping();
     }
 }

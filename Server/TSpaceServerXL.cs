@@ -33,7 +33,7 @@ namespace Server
 
         }
 
-
+   
         public string Status()
         {   
             if(mindelay+maxdelay != 0)
@@ -138,6 +138,11 @@ namespace Server
 
             Console.WriteLine("Return answer");
             return response;
+        }
+
+        public bool Ping()
+        {
+            return true;
         }
     }
 }
