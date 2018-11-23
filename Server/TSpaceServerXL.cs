@@ -23,6 +23,8 @@ namespace Server
 
         private Random random = new Random();
 
+        private bool verbose = false;
+
         public TSpaceServerXL(int _mindelay,int _maxdelay)
         {
             mindelay = _mindelay;
@@ -57,6 +59,10 @@ namespace Server
                 Thread.Sleep(random.Next(mindelay, maxdelay));
             TSpaceMsg response = new TSpaceMsg();
             response.ProcessID = ServerID;
+
+            if (verbose)
+                Console.WriteLine(msg);
+
 
             lock (ProcessedRequests)
             {

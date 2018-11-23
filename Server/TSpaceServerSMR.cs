@@ -31,6 +31,8 @@ namespace Server
 
         private Random random = new Random();
 
+        private bool verbose = false;
+
         public override object InitializeLifetimeService()
         {
 
@@ -148,10 +150,12 @@ namespace Server
             Monitor.Exit(MessageQueue);
 
             Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
-           
+
             // Execute the operation
 
-            
+            if (verbose)
+                Console.WriteLine(msg);
+
             switch (command)
             {
                 case "add":
