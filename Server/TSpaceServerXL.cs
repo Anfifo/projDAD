@@ -25,6 +25,8 @@ namespace Server
 
         private bool verbose = false;
 
+        private static Object FreezeLock = new object();
+
         public TSpaceServerXL(int _mindelay,int _maxdelay)
         {
             mindelay = _mindelay;
@@ -51,10 +53,16 @@ namespace Server
         public void Unfreeze()
         {
             Frozen = false;
+            Console.WriteLine("got here");
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
+            Monitor.Enter(FreezeLock);
+            while (Frozen)
+                Monitor.Wait(FreezeLock);
+            Monitor.Exit(FreezeLock);
+
             if (mindelay + maxdelay != 0)
                 Thread.Sleep(random.Next(mindelay, maxdelay));
             TSpaceMsg response = new TSpaceMsg();
