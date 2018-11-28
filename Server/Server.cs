@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using CommonTypes;
 
 
 namespace Server
@@ -21,6 +22,10 @@ namespace Server
             int MaxDelay = 0;
             int Port;
             string Name;
+            List<String> Servers = new List<string>();
+            Servers.Add("tcp://localhost:50001/S");
+            Servers.Add("tcp://localhost:50002/S");
+
             //Type of algorithm for server
             string algorithm = "x";
 
@@ -28,6 +33,7 @@ namespace Server
             {
                 Url = args[0];
                 algorithm = args[1];
+                // Todo -> receive servers list as args
 
             }  
             
@@ -42,6 +48,7 @@ namespace Server
             Port = getPortFromURL(Url);
             Name = getNameFromURL(Url);
 
+            Servers.Remove(Url);
 
 
             channel = new TcpChannel(Port);
@@ -49,8 +56,21 @@ namespace Server
 
             if (algorithm == "x") {
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);
-                TSpaceServerXL TS = new TSpaceServerXL(MinDelay,MaxDelay);
-                RemotingServices.Marshal(TS, Name, typeof(TSpaceServerXL));
+                TSpaceServerXL TS = new TSpaceServerXL(Url, MinDelay,MaxDelay, Servers);
+                RemotingServices.Marshal(TS, Name, typeof(ITSpaceServer));
+
+                try
+                {
+                    TS.UpdateView();
+                    
+                }catch(Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(e.GetType().ToString());
+                    Console.WriteLine(e.StackTrace);
+
+
+                }
             }
             if (algorithm == "s")
             {
@@ -58,6 +78,7 @@ namespace Server
                 RemotingServices.Marshal(TS, Name, typeof(TSpaceServerSMR));
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
             }
+
 
 
             System.Console.WriteLine("<enter> para sair...");

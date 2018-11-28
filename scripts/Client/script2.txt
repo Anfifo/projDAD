@@ -1,3 +1,4 @@
 begin-repeat 100
 add <"a",DADTestA(1,"b")>
+read <"a",DADTestA(1,"b")>
 end-repeat

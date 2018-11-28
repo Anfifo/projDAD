@@ -1,3 +1,5 @@
 begin-repeat 50
 take <"a",DADTestA(1,"b")>
+add <"a",DADTestA(1,"b")>
+read <"a",DADTestA(1,"b")>
 end-repeat

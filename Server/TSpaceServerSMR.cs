@@ -267,5 +267,15 @@ namespace Server
 
             return null;
         }
+
+        public bool Ping(string serverURL)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<string> UpdateView()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

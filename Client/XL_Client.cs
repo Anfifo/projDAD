@@ -75,17 +75,20 @@ namespace Client
             //Clear previous view
             View.Clear();
 
+            ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), viewURLs[0]);
+            viewURLs = server.UpdateView();
+            View.Add(server);
+            
             // Get the reference for the tuple space servers
             foreach (string serverUrl in viewURLs)
             {
 
-                ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
+                server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
 
                 // Check if its a valid reference
                 try
                 {
-                    if (server.Ping())
-                        View.Add(server);
+                    View.Add(server);
                     Console.WriteLine("Sucessfully connected to " + serverUrl);
 
                 }
@@ -170,13 +173,14 @@ namespace Client
                 message.OperationID = ClientID + "_" + (++SequenceNumber);
                 AcksCounter = 0;
 
-                // Send multicast message to all members of the view.
-                this.Multicast(message, remoteCallback);
-
                 // Waits until one replica returns a tuple or
                 // all replicas answered that they dont have a match
                 while (AcksCounter < View.Count)
                 {
+                    // Send multicast message to all members of the view.
+                    this.Multicast(message, remoteCallback);
+                    
+                    // Return after first response
                     lock (LockRef)
                     {
                         if (Tuple != null)
@@ -185,6 +189,12 @@ namespace Client
                             break;
                         }
                     }
+                }
+
+                lock (LockRef)
+                {
+                    if (Tuple != null)
+                        matchFound = true;
                 }
             }
 
@@ -285,6 +295,8 @@ namespace Client
                 //Send multicast take request to all members of the view
                 this.Multicast(message, remoteCallback);
             }
+            Console.WriteLine("Callback count = " + MatchingTuples.Count);
+
 
             List<ITuple> intersection;
 
@@ -365,14 +377,14 @@ namespace Client
             // and the OperationID of the server that answered
             if (response.Code.Equals("OK"))
             {
-                if(response.Tuple != null)
+                Console.WriteLine("Callback OKKKKKKKKKKKKKKKKKKKKKKKKK:" + response.OperationID);
+                lock (LockRef)
                 {
-                    lock (LockRef)
+                    if (response.Tuple != null)
                     {
                         Tuple = response.Tuple;
                     }
                 }
-
                 Interlocked.Increment(ref AcksCounter);
             }
         }
@@ -395,9 +407,9 @@ namespace Client
             if (response.Code.Equals("OK"))
             {
                 // Tuples have to be added before the acks are incremented
-                lock (MatchingTuples) { 
-                    MatchingTuples.Add(response.Tuples);
-                    Interlocked.Increment(ref AcksCounter);
+                lock (MatchingTuples) {
+                    MatchingTuples.Add(new List<ITuple>(response.Tuples));
+                    Interlocked.Increment(ref AcksCounter);         
                 }
                 if (verbose)
                 {
