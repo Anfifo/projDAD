@@ -222,7 +222,6 @@ namespace PuppetMaster
             //iterate trough all servers
             foreach (KeyValuePair<string, string> ServerProcess in Servers)
             {
-                Console.WriteLine(ServerProcess.Value);
                 //get the server remote object
                 ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), ServerProcess.Value);
 

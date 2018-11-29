@@ -284,5 +284,10 @@ namespace Server
         {
             throw new NotImplementedException();
         }
+
+        public List<ITuple> getTuples()
+        {
+            return TuppleSpace.getAll();
+        }
     }
 }

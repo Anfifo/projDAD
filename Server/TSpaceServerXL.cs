@@ -119,7 +119,7 @@ namespace Server
         {   
             if(MinDelay+MaxDelay != 0)
                 Thread.Sleep(random.Next(MinDelay, MaxDelay));
-            return "I live" + this.ServerID;
+            return "I live" + this.ServerID + " " + "we have this many tuples:" + TuppleSpace.getAll().Count;
         }
 
         public void Freeze()
@@ -234,6 +234,14 @@ namespace Server
             return response;
         }
 
-      
+        public List<ITuple> getTuples()
+        {
+            return TuppleSpace.getAll();
+        }
+
+        public void setTuples(List<ITuple> newState)
+        {
+            TuppleSpace.setTuples(newState);
+        }
     }
 }
