@@ -23,7 +23,7 @@ namespace ProcessCreationService
 
         }
 
-        public void StartServer(string id,string url, int mindelay, int maxdelay, string algorithm)
+        public void StartServer(string id,string url, int mindelay, int maxdelay,string serverid2, string algorithm)
         {
 
             //Initialize a process startinfo with the server.exe file
@@ -34,7 +34,7 @@ namespace ProcessCreationService
             info.CreateNoWindow = false;
 
             //add the arguments to the info
-            info.Arguments = url + " " + mindelay + " " + maxdelay + " " + algorithm;
+            info.Arguments = url + " " + mindelay + " " + maxdelay + " " + serverid2 +  " " + algorithm;
 
             //Start the process
             Process P = Process.Start(info);

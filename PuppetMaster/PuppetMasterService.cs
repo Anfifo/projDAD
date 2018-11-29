@@ -17,7 +17,7 @@ namespace PuppetMaster
 
     {
         //delegate to make async serverstart call to PCS
-        delegate void startServerDel(string id,string URL, int mindelay, int maxdelay, string algorithm);
+        delegate void startServerDel(string id,string URL, int mindelay, int maxdelay,string id2, string algorithm);
 
         //delegate to make async clientstart call to PCS
         delegate void startClientDel(string URL, string random, string algorithm);
@@ -107,7 +107,7 @@ namespace PuppetMaster
                     }
 
                     //start the server
-                    this.StartServer(splitfields[1], splitfields[2], mindelay, maxdelay);
+                    this.StartServer(splitfields[1], splitfields[2], mindelay, maxdelay,splitfields[5]);
 
                     break;
 
@@ -171,7 +171,7 @@ namespace PuppetMaster
         }
 
         //Starts a server available at URL
-        void StartServer(string serverid, string URL, int mindelay, int maxdelay)
+        void StartServer(string serverid, string URL, int mindelay, int maxdelay,string serverid2)
         {
             //add to the list of servers
             Servers.Add(serverid, URL);
@@ -182,7 +182,7 @@ namespace PuppetMaster
             startServerDel RemoteDel = new startServerDel(P.StartServer);
 
             //make the async call 
-            IAsyncResult RemAr = RemoteDel.BeginInvoke(serverid,URL, mindelay, maxdelay, this.algorithm, null, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(serverid,URL, mindelay, maxdelay, serverid2, this.algorithm, null, null);
 
 
         }
