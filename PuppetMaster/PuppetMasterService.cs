@@ -26,7 +26,10 @@ namespace PuppetMaster
         delegate string serverStatus();
 
         //delegate for other async calls to the servers
-        delegate void serverOperations(string id);
+        delegate void serverCrash(string id);
+
+        //delegate for freeze and unfreeze async calls
+        delegate void serverOperations();
 
         //List of clients
         Dictionary<string, string> Clients = new Dictionary<string, string>();
@@ -224,7 +227,7 @@ namespace PuppetMaster
         {
             Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), (string)PCS[0]);
 
-            serverOperations RemoteDel = new serverOperations(P.Crash);
+            serverCrash RemoteDel = new serverCrash(P.Crash);
 
             IAsyncResult RemAr = RemoteDel.BeginInvoke(id, null,null);
 
@@ -234,13 +237,20 @@ namespace PuppetMaster
         void Freeze(string processid)
         {
             ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), Servers[processid]);
-            server.Freeze();
+
+            serverOperations RemoteDel = new serverOperations(server.Freeze);
+
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
         }
 
         void Unfreeze(string processid)
         {
+
             ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), Servers[processid]);
-            server.Unfreeze();
+
+            serverOperations RemoteDel = new serverOperations(server.Unfreeze);
+
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
         }
 
         void Wait(int time)

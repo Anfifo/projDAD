@@ -38,7 +38,10 @@ namespace Server
 
         private bool verbose = false;
 
+
         delegate void DelegateDVRS(string s);
+
+        private static Object FreezeLock = new object();
 
         public TSpaceServerXL(String url, int _mindelay,int _maxdelay, List<string> servers)
         {
@@ -49,8 +52,6 @@ namespace Server
             ProcessedRequests = new List<string>();
             AllServersURLs = servers;
             URL = url;
-           
-            
 
         }
 
@@ -129,12 +130,20 @@ namespace Server
         public void Unfreeze()
         {
             Frozen = false;
+            Console.WriteLine("got here");
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
+
+            Monitor.Enter(FreezeLock);
+            while (Frozen)
+                Monitor.Wait(FreezeLock);
+            Monitor.Exit(FreezeLock);
+
             if (MinDelay + MaxDelay != 0)
                 Thread.Sleep(random.Next(MinDelay, MaxDelay));
+
             TSpaceMsg response = new TSpaceMsg();
             response.ProcessID = ServerID;
             response.OperationID = msg.OperationID;

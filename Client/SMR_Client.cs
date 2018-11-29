@@ -275,13 +275,11 @@ namespace Client
 
                 // Return if there is a match
                 // Repeat otherwise
-                Monitor.Enter(LockRef);
-                if (Tuple != null)
+                lock (Tuple)
                 {
-                    Monitor.Exit(LockRef);
-                    break;
+                    if (Tuple != null)
+                        break;
                 }
-                Monitor.Exit(LockRef);
             }
 
             Console.WriteLine("Take "+ (++TakeCounter) + ": OK");

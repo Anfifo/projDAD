@@ -27,7 +27,9 @@ namespace Client
             string algorithm = "x"; // pre definido ou escolher no inicio?
 
             Servers.Add("tcp://localhost:50001/S");
+
             //Servers.Add("tcp://localhost:50002/S");
+
 
             //PuppetMaster initialization
             if (args.Length == 3)
