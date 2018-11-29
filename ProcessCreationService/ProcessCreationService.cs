@@ -1,70 +1,81 @@
-﻿using System;
+﻿using CommonTypes;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
 using System.Threading.Tasks;
-using CommonTypes;
 
 namespace ProcessCreationService
 {
-    class ProcessCreationServiceMain
-    {
-        
-        static void Main(string[] args)
-        {
-            TcpChannel channel = new TcpChannel(10000);
-            ChannelServices.RegisterChannel(channel, true);
-            ProcessCreationService PCS = new ProcessCreationService();
-            RemotingServices.Marshal(PCS,"ProcessCreationService", typeof(ProcessCreationService));
-            System.Console.WriteLine("<enter> para sair...");
-            System.Console.ReadLine();
-
-        }
-    }
-
     public class ProcessCreationService : MarshalByRefObject
+
+       
     {
-        
+        //List of clients
+        Dictionary<string, Process> Clients = new Dictionary<string, Process>();
+
+        //List of servers
+        Dictionary<string, Process> Servers = new Dictionary<string, Process>();
+
         public ProcessCreationService()
         {
 
         }
 
-        public void StartServer(string url, int mindelay, int maxdelay, string algorithm)
+        public void StartServer(string id,string url, int mindelay, int maxdelay,string serverid2, string algorithm)
         {
 
+            //Initialize a process startinfo with the server.exe file
             ProcessStartInfo info = new ProcessStartInfo(AuxFunctions.GetProjPath() + "\\Server\\bin\\Debug\\Server.exe");
 
             //info.UseShellExecute = false;
 
             info.CreateNoWindow = false;
 
-            info.Arguments = url + " " + mindelay + " " + maxdelay + " " + algorithm;
+            if(serverid2 != " ")
+            //add the arguments to the info
+                info.Arguments = url + " " + mindelay + " " + maxdelay + " " + serverid2 +  " " + algorithm;
+            else
+                info.Arguments = url + " " + mindelay + " " + maxdelay + " " + algorithm;
 
+            //Start the process
             Process P = Process.Start(info);
+
+            //Add process to the process servers list
+            Servers.Add(id, P);
 
         }
 
-        public void StartClient(string script,string id, string algorithm)
-        { 
-
+        public void StartClient(string script, string id, string algorithm)
+        {
+            //Initialize a process startinfo with the client.exe file
             ProcessStartInfo info = new ProcessStartInfo(AuxFunctions.GetProjPath() + "\\Client\\bin\\Debug\\Client.exe");
 
             //info.UseShellExecute = false;
 
             info.CreateNoWindow = false;
+
+            //add the arguments to the info
             info.Arguments = script + " " + id + " " + algorithm;
 
+            //Start the process
             Process P = Process.Start(info);
+
+            Clients.Add(id, P);
 
 
         }
 
-
+        public void Crash(string id)
+        {
+            foreach(KeyValuePair<string, Process> ServerProcess in Servers)
+            {
+                if (id == ServerProcess.Key)
+                {
+                    ServerProcess.Value.Kill();
+                }
+            }
+        }
     }
 }

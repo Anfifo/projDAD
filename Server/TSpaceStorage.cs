@@ -22,6 +22,11 @@ namespace Server
             return TS;
         }
 
+        public void setTuples(List<ITuple> newTuples)
+        {
+            TS = newTuples;
+        }
+
         /// <summary>
         /// Adds given tupple to tupple space
         /// </summary>

@@ -62,15 +62,7 @@ namespace Client
             ChannelServices.RegisterChannel(channel, true);
 
             // Get the reference for the tuple space servers
-            foreach (string serverUrl in viewUrls)
-            {
-
-                ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
-                if (server != null)
-                    View.Add(server);
-            }
-
-            ViewId = viewId;
+            UpdateView(viewUrls, ViewId);
 
             // Set the client unique identifier
             ClientID = clientID;
@@ -80,11 +72,52 @@ namespace Client
         }
 
         /// <summary>
+        /// Updates view of servers
+        /// </summary>
+        /// <param name="viewURLs">List of the view's servers URLs</param>
+        /// <param name="viewID">View version number</param>
+        private void UpdateView(List<string> viewURLs, int viewID)
+        {
+            //Clear previous view
+            View.Clear();
+
+            // Get the reference for the tuple space servers
+            foreach (string serverUrl in viewURLs)
+            {
+
+                ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
+
+                // Check if its a valid reference
+                try
+                {
+                    //if (server.Ping())
+                        View.Add(server);
+                    Console.WriteLine("Sucessfully connected to " + serverUrl);
+
+                }
+                catch (System.Net.Sockets.SocketException)
+                {
+                    Console.WriteLine("Failed to connect to  " + serverUrl);
+                }
+            }
+
+            Console.WriteLine("View count = " + View.Count);
+            ViewId = viewID;
+        }
+
+
+        /// <summary>
         /// Adds a tuple to the distributed tuple space.
         /// </summary>
         /// <param name="tuple">Tuple to be added.</param>
         public void Add(ITuple tuple)
         {
+
+            if (View.Count == 0)
+            {
+                Console.WriteLine("No tuple space servers available.");
+                return;
+            }
             // Create message
             TSpaceMsg request = new TSpaceMsg();
 
@@ -120,6 +153,11 @@ namespace Client
         /// <returns></returns>
         public ITuple Read(ITuple template)
         {
+            if (View.Count == 0)
+            {
+                Console.WriteLine("No tuple space servers available.");
+                return null;
+            }
 
             // Create message
             TSpaceMsg request = new TSpaceMsg();
@@ -149,16 +187,16 @@ namespace Client
                 // Get the sequence number of the request in the view
                 request.SequenceNumber = this.GetSequenceNumber(request.OperationID);
 
-
                 AcksCounter = 0;
 
-                // Send multicast request to all members of the view
-                this.Multicast(request, remoteCallback);
-
+                
                 // Waits until one replica returns a tuple or
                 // all replicas answered that they dont have a match
                 while (AcksCounter < View.Count)
                 {
+                    // Send multicast request to all members of the view
+                    this.Multicast(request, remoteCallback);
+
                     lock (LockRef)
                     {
                         if (Tuple != null)
@@ -167,6 +205,12 @@ namespace Client
                             break;
                         }
                     }
+                }
+
+                lock (LockRef)
+                {
+                    if (Tuple != null)
+                        matchFound = true;
                 }
 
             }
@@ -185,6 +229,11 @@ namespace Client
         /// <returns>Tuple matching the template</returns>
         public ITuple Take(ITuple template)
         {
+            if (View.Count == 0)
+            {
+                Console.WriteLine("No tuple space servers available.");
+                return null;
+            }
             // Create message
             TSpaceMsg request = new TSpaceMsg();
             request.Code = "take1";
@@ -226,13 +275,11 @@ namespace Client
 
                 // Return if there is a match
                 // Repeat otherwise
-                Monitor.Enter(LockRef);
-                if (Tuple != null)
+                lock (Tuple)
                 {
-                    Monitor.Exit(LockRef);
-                    break;
+                    if (Tuple != null)
+                        break;
                 }
-                Monitor.Exit(LockRef);
             }
 
             Console.WriteLine("Take "+ (++TakeCounter) + ": OK");

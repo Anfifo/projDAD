@@ -26,6 +26,8 @@ namespace Server
         // Lock reference for take operation
         private static Object TakeLock = new Object();
 
+        private static Object FreezeLock = new object();
+
         private int mindelay;
         private int maxdelay;
 
@@ -49,6 +51,11 @@ namespace Server
 
         }
 
+        public bool Ping()
+        {
+            return true;
+        }
+
         public string Status()
         {
             if (mindelay + maxdelay != 0)
@@ -68,6 +75,11 @@ namespace Server
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
+            Monitor.Enter(FreezeLock);
+            while (Frozen)
+                Monitor.Wait(FreezeLock);
+            Monitor.Exit(FreezeLock);
+
             if (mindelay + maxdelay != 0)
                 Thread.Sleep(random.Next(mindelay, maxdelay));
 
@@ -261,6 +273,21 @@ namespace Server
             }
 
             return null;
+        }
+
+        public bool Ping(string serverURL)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<string> UpdateView()
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<ITuple> getTuples()
+        {
+            return TuppleSpace.getAll();
         }
     }
 }

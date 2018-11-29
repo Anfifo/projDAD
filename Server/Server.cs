@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using CommonTypes;
 
 
 namespace Server
@@ -21,16 +22,29 @@ namespace Server
             int MaxDelay = 0;
             int Port;
             string Name;
+            List<String> Servers = new List<string>();
+            string serverid2 = " ";
+            List<ITuple> newState = new List<ITuple>();
+            ITSpaceServer server;
+
             //Type of algorithm for server
             string algorithm = "x";
+
 
             if (args.Length > 0)
             {
                 Url = args[0];
                 algorithm = args[1];
+                // Todo -> receive servers list as args
 
-            }  
-            
+            }
+
+            Port = getPortFromURL(Url);
+            Name = getNameFromURL(Url);
+
+            channel = new TcpChannel(Port);
+            ChannelServices.RegisterChannel(channel, true);
+
             if (args.Length == 4)
             {
 
@@ -39,18 +53,44 @@ namespace Server
                 algorithm = args[3];
             }
 
-            Port = getPortFromURL(Url);
-            Name = getNameFromURL(Url);
+            if(args.Length == 5)
+            {
+                MinDelay = Int32.Parse(args[1]);
+                MaxDelay = Int32.Parse(args[2]);
+                algorithm = args[4];
+                serverid2 = args[3];
+
+                //get the remote object of the other server
+                server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverid2);
+                //get the view from the other server
+                Servers = server.UpdateView();
+                //get the tuples from the other server
+                newState = server.getTuples();
+            }
 
 
 
-            channel = new TcpChannel(Port);
-            ChannelServices.RegisterChannel(channel, true);
 
             if (algorithm == "x") {
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);
-                TSpaceServerXL TS = new TSpaceServerXL(MinDelay,MaxDelay);
-                RemotingServices.Marshal(TS, Name, typeof(TSpaceServerXL));
+                TSpaceServerXL TS = new TSpaceServerXL(Url, MinDelay,MaxDelay, Servers);
+                RemotingServices.Marshal(TS, Name, typeof(ITSpaceServer));
+
+                //set the tuples of the new server
+                TS.setTuples(newState);
+
+                try
+                {
+                    TS.UpdateView();
+                    
+                }catch(Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(e.GetType().ToString());
+                    Console.WriteLine(e.StackTrace);
+
+
+                }
             }
             if (algorithm == "s")
             {
@@ -58,6 +98,7 @@ namespace Server
                 RemotingServices.Marshal(TS, Name, typeof(TSpaceServerSMR));
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
             }
+
 
 
             System.Console.WriteLine("<enter> para sair...");
