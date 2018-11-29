@@ -23,11 +23,11 @@ namespace Server
             int Port;
             string Name;
             List<String> Servers = new List<string>();
-            Servers.Add("tcp://localhost:50001/S");
-            Servers.Add("tcp://localhost:50002/S");
+            string serverid2 = " ";
 
             //Type of algorithm for server
             string algorithm = "x";
+
 
             if (args.Length > 0)
             {
@@ -35,8 +35,14 @@ namespace Server
                 algorithm = args[1];
                 // Todo -> receive servers list as args
 
-            }  
-            
+            }
+
+            Port = getPortFromURL(Url);
+            Name = getNameFromURL(Url);
+
+            channel = new TcpChannel(Port);
+            ChannelServices.RegisterChannel(channel, true);
+
             if (args.Length == 4)
             {
 
@@ -45,14 +51,18 @@ namespace Server
                 algorithm = args[3];
             }
 
-            Port = getPortFromURL(Url);
-            Name = getNameFromURL(Url);
+            if(args.Length == 5)
+            {
+                MinDelay = Int32.Parse(args[1]);
+                MaxDelay = Int32.Parse(args[2]);
+                algorithm = args[4];
+                serverid2 = args[3];
+                ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverid2);
+                Servers = server.UpdateView();
+            }
 
-            Servers.Remove(Url);
 
 
-            channel = new TcpChannel(Port);
-            ChannelServices.RegisterChannel(channel, true);
 
             if (algorithm == "x") {
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);

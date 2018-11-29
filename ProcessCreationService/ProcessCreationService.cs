@@ -33,8 +33,11 @@ namespace ProcessCreationService
 
             info.CreateNoWindow = false;
 
+            if(serverid2 != " ")
             //add the arguments to the info
-            info.Arguments = url + " " + mindelay + " " + maxdelay + " " + serverid2 +  " " + algorithm;
+                info.Arguments = url + " " + mindelay + " " + maxdelay + " " + serverid2 +  " " + algorithm;
+            else
+                info.Arguments = url + " " + mindelay + " " + maxdelay + " " + algorithm;
 
             //Start the process
             Process P = Process.Start(info);

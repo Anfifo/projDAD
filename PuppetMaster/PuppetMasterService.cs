@@ -98,16 +98,31 @@ namespace PuppetMaster
 
                     int mindelay = 0;
                     int maxdelay = 0;
+                    string serverid2 = " ";
 
-                    //if the length is 5 then there is a min and max delay
+                    if (splitfields.Length == 4)
+                    {
+                        serverid2 = splitfields[3];
+                    }
+
                     if (splitfields.Length == 5)
                     {
                         maxdelay = Int32.Parse(splitfields[4]);
                         mindelay = Int32.Parse(splitfields[3]);
                     }
 
+
+                    //if the length is 6 then there is a min and max delay
+                    if (splitfields.Length == 6)
+                    {
+                        maxdelay = Int32.Parse(splitfields[4]);
+                        mindelay = Int32.Parse(splitfields[3]);
+                        serverid2 = splitfields[5];
+                    }
+
+                    this.StartServer(splitfields[1], splitfields[2], mindelay, maxdelay, serverid2);
+
                     //start the server
-                    this.StartServer(splitfields[1], splitfields[2], mindelay, maxdelay,splitfields[5]);
 
                     break;
 
