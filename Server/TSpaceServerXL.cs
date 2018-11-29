@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using CommonTypes;
+using System.Runtime.Remoting.Messaging;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting.Channels;
+using System.Net.Sockets;
 
 
 namespace Server
@@ -18,30 +22,103 @@ namespace Server
         // Stores the id of the requests already processed
         private static List<string> ProcessedRequests;
 
-        private int mindelay;
-        private int maxdelay;
+        // URL of the server
+        private readonly string URL;
+
+        // Stores the urls of all known servers
+        private List<string> AllServersURLs;
+
+        // Stores the ID of the current view
+        private int ViewID;
+
+        private int MinDelay;
+        private int MaxDelay;
 
         private Random random = new Random();
 
         private bool verbose = false;
 
+
+        delegate void DelegateDVRS(string s);
+
         private static Object FreezeLock = new object();
 
-        public TSpaceServerXL(int _mindelay,int _maxdelay)
+        public TSpaceServerXL(String url, int _mindelay,int _maxdelay, List<string> servers)
         {
-            mindelay = _mindelay;
-            maxdelay = _maxdelay;
+            MinDelay = _mindelay;
+            MaxDelay = _maxdelay;
             TuppleSpace = new TSpaceStorage();
             ServerID = new Random().Next();
             ProcessedRequests = new List<string>();
+            AllServersURLs = servers;
+            URL = url;
 
         }
 
-   
+        /// <summary>
+        /// Updates the current view of live servers
+        /// </summary>
+        /// <returns>Current view of servers</returns>
+        public List<string> UpdateView()
+        {
+            List<string> currentViewURLs = new List<string>();
+            foreach (string serverUrl in AllServersURLs)
+            {
+                if (TryConnection(serverUrl))
+                {
+                    currentViewURLs.Add(serverUrl);
+                }
+            }
+            return currentViewURLs;
+        }
+
+        /// <summary>
+        /// Checks if server at the given location is alive
+        /// </summary>
+        /// <param name="serverUrl">Server URL</param>
+        /// <returns>True if the server is alive; false otherwise.</returns>
+        private bool TryConnection(string serverUrl)
+        {
+          
+            // Get the reference for the tuple space server
+            ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
+
+            // Check if its a valid reference
+            try
+            {
+                // Ping server
+                if (server != null && server.Ping(URL))
+                {
+                    Console.WriteLine("Alive:  " + serverUrl);
+                    return true;
+                }
+
+            }
+            catch (System.Net.Sockets.SocketException)
+            {
+                Console.WriteLine("Dead: " + serverUrl);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Adds new url to the list of known servers URLs
+        /// If the server is alive, its also added to the current view
+        /// </summary>
+        /// <param name="serverURL">Server URL</param>
+        public bool Ping(string serverURL)
+        {
+            if(!AllServersURLs.Contains(serverURL))
+                AllServersURLs.Add(serverURL);
+
+            return true;
+        }
+
         public string Status()
         {   
-            if(mindelay+maxdelay != 0)
-                Thread.Sleep(random.Next(mindelay, maxdelay));
+            if(MinDelay+MaxDelay != 0)
+                Thread.Sleep(random.Next(MinDelay, MaxDelay));
             return "I live" + this.ServerID;
         }
 
@@ -58,15 +135,18 @@ namespace Server
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
+
             Monitor.Enter(FreezeLock);
             while (Frozen)
                 Monitor.Wait(FreezeLock);
             Monitor.Exit(FreezeLock);
 
-            if (mindelay + maxdelay != 0)
-                Thread.Sleep(random.Next(mindelay, maxdelay));
+            if (MinDelay + MaxDelay != 0)
+                Thread.Sleep(random.Next(MinDelay, MaxDelay));
+
             TSpaceMsg response = new TSpaceMsg();
             response.ProcessID = ServerID;
+            response.OperationID = msg.OperationID;
 
             if (verbose)
                 Console.WriteLine(msg);
@@ -154,9 +234,6 @@ namespace Server
             return response;
         }
 
-        public bool Ping()
-        {
-            return true;
-        }
+      
     }
 }
