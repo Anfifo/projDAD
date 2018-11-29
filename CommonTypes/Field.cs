@@ -102,14 +102,23 @@ namespace CommonTypes
 
                 object[] o = new object[1];
 
-                 Type t = Type.GetType(value.GetType().ToString());
+                Type t = Type.GetType(value.GetType().ToString());
 
-                 o[0] = value;
+                o[0] = value;
 
-                 return (Boolean)field.GetValue().GetType().GetMethod("Equals").Invoke(field.GetValue(), o);
+                return (Boolean)field.GetValue().GetType().GetMethod("Equals").Invoke(field.GetValue(), o);
 
                
             }
+
+        }
+
+        public override string ToString()
+        {
+            if (value is StringValue)
+                return ((StringValue)value).field;
+
+            return value.GetType().ToString();
 
         }
     }

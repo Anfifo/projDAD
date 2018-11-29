@@ -60,5 +60,24 @@ namespace CommonTypes
 
             return true;
         }
+
+        override public string ToString()
+        {
+            string TupString = "<";
+
+            int i = 0;
+            for (i = 0; i < this.getLength() - 1 ; i++)
+            {
+                TupString += (Field)this.tuple[i] + ", ";
+            }
+
+            TupString += (Field)this.tuple[i] + ", ";
+
+
+            TupString += ">";
+
+
+            return null;
+        }
     }
 }
