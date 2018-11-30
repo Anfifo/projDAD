@@ -31,35 +31,19 @@ namespace Server
             return null;
         }
 
-        public TSpaceServerSMR(int _mindelay, int _maxdelay)
-        {
-            throw new NotImplementedException();
-        }
 
         public TSpaceServerSMR(string url, int _mindelay,int _maxdelay, List<string> servers)
         {
             TSMan = new TSpaceManager(url, _mindelay, _maxdelay, servers);
         }
 
-        public bool Ping()
-        {
-            return TSMan.Ping();
-        }
+        public bool Ping() => TSMan.Ping();
 
-        public string Status()
-        {
-            return TSMan.Status();
-        }
+        public string Status() => TSMan.Status();
 
-        public void Freeze()
-        {
-            TSMan.Freeze();
-        }
+        public void Freeze() => TSMan.Freeze();
 
-        public void Unfreeze()
-        {
-            TSMan.Unfreeze();
-        }
+        public void Unfreeze() => TSMan.Unfreeze();
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
@@ -259,19 +243,10 @@ namespace Server
             return null;
         }
 
-        public bool Ping(string serverURL)
-        {
-            return TSMan.Ping(serverURL);
-        }
+        public bool Ping(string serverURL) => TSMan.Ping(serverURL);
 
-        public List<string> UpdateView()
-        {
-            return TSMan.UpdateView();
-        }
+        public List<string> UpdateView() => TSMan.UpdateView();
 
-        public List<ITuple> getTuples()
-        {
-            return TSMan.TSpace.getAll();
-        }
+        public List<ITuple> getTuples() => TSMan.TSpace.getAll();
     }
 }
