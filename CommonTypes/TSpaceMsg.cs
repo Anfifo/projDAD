@@ -43,6 +43,11 @@ namespace CommonTypes
             get; set;
         }
 
+        public View MsgView
+        {
+            get; set;
+        }
+
         public override string ToString()
         {
             return "\t* Code: " + Code + "  SeqNr: "+ SequenceNumber + "  PID:" + ProcessID +
