@@ -8,13 +8,7 @@ namespace Server
     [Serializable]
     class TSpaceServerSMR : MarshalByRefObject, ITSpaceServer
     {
-        public TSpaceStorage TuppleSpace;
-
-        private readonly int ServerID;
-
-        // Stores the OperationID of the processed requests
-        private static List<string> ProcessedRequests;
-
+        public TSpaceManager TSMan;
         // Stores the request in hold
         private static List<Message> MessageQueue = new List<Message>();
 
@@ -27,73 +21,63 @@ namespace Server
         private static Object TakeLock = new Object();
 
         private static Object FreezeLock = new object();
-
-        private int mindelay;
-        private int maxdelay;
-
-        private Random random = new Random();
-
-        private bool verbose = false;
-
+        
+        /// <summary>
+        /// Ensures que object doesn't get cleaned while being served
+        /// </summary>
+        /// <returns></returns>
         public override object InitializeLifetimeService()
         {
-
             return null;
-
         }
-        public TSpaceServerSMR(int _mindelay,int _maxdelay)
-        {
-            mindelay = _mindelay;
-            maxdelay = _maxdelay;
-            TuppleSpace = new TSpaceStorage();
-            ServerID = new Random().Next();
-            ProcessedRequests = new List<string>();
 
+        public TSpaceServerSMR(int _mindelay, int _maxdelay)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TSpaceServerSMR(string url, int _mindelay,int _maxdelay, List<string> servers)
+        {
+            TSMan = new TSpaceManager(url, _mindelay, _maxdelay, servers);
         }
 
         public bool Ping()
         {
-            return true;
+            return TSMan.Ping();
         }
 
         public string Status()
         {
-            if (mindelay + maxdelay != 0)
-                Thread.Sleep(random.Next(mindelay, maxdelay));
-            return "I live " + ServerID;
+            return TSMan.Status();
         }
 
         public void Freeze()
         {
-            Frozen = true;
+            TSMan.Freeze();
         }
 
         public void Unfreeze()
         {
-            Frozen = false;
+            TSMan.Unfreeze();
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
-            Monitor.Enter(FreezeLock);
-            while (Frozen)
-                Monitor.Wait(FreezeLock);
-            Monitor.Exit(FreezeLock);
+            TSMan.CheckFreeze();
 
-            if (mindelay + maxdelay != 0)
-                Thread.Sleep(random.Next(mindelay, maxdelay));
+            TSMan.CheckDelay();
 
             TSpaceMsg response = new TSpaceMsg
             {
-                ProcessID = ServerID,
+                ProcessID = TSMan.ServerID,
                 OperationID = msg.OperationID,
                 RequestID = msg.RequestID
             };
 
-            lock (ProcessedRequests)
+            lock (TSpaceManager.ProcessedRequests)
             {
                 // Check if request as already been processed
-                if (ProcessedRequests.Contains(msg.RequestID))
+                if (TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
                     response.Code = "Repeated";
                     return response;
@@ -101,7 +85,7 @@ namespace Server
                 Console.WriteLine("Processed RequestID " + msg.RequestID);
 
                 // Add sequence number of request to processed requests
-                ProcessedRequests.Add(msg.RequestID);
+                TSpaceManager.ProcessedRequests.Add(msg.RequestID);
 
             }
 
@@ -160,7 +144,7 @@ namespace Server
 
             // Execute the operation
 
-            if (verbose)
+            if (TSMan.Verbose)
                 Console.WriteLine(msg);
 
             switch (command)
@@ -174,7 +158,7 @@ namespace Server
                             break;
                         }
 
-                        TuppleSpace.Add(msg.Tuple);
+                        TSMan.TSpace.Add(msg.Tuple);
                         response.Code = "ACK";
                     break;
                     }
@@ -185,7 +169,7 @@ namespace Server
                         response.Code = "ERR";
                         break;
                     }
-                    response.Tuple = TuppleSpace.Read(msg.Tuple);
+                    response.Tuple = TSMan.TSpace.Read(msg.Tuple);
                     response.Code = "OK";
                     if (response.Tuple == null)
                         Console.WriteLine("Match not Found");
@@ -203,12 +187,12 @@ namespace Server
                         }
 
                         // Get matching tuple
-                        response.Tuple = TuppleSpace.Read(msg.Tuple);
+                        response.Tuple = TSMan.TSpace.Read(msg.Tuple);
                         response.Code = "OK";
                         if (response.Tuple != null)
                         {
                             // Delete it
-                            TuppleSpace.Take2(response.Tuple);
+                            TSMan.TSpace.Take2(response.Tuple);
                         }
                     }
                     response.Code = "OK";
@@ -277,17 +261,17 @@ namespace Server
 
         public bool Ping(string serverURL)
         {
-            throw new NotImplementedException();
+            return TSMan.Ping(serverURL);
         }
 
         public List<string> UpdateView()
         {
-            throw new NotImplementedException();
+            return TSMan.UpdateView();
         }
 
         public List<ITuple> getTuples()
         {
-            return TuppleSpace.getAll();
+            return TSMan.TSpace.getAll();
         }
     }
 }
