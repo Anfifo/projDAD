@@ -206,7 +206,7 @@ namespace Client
 
                 // Return if there is a match
                 // Repeat otherwise
-                lock (Tuple)
+                lock (LockRef)
                 {
                     if (Tuple != null)
                         break;
