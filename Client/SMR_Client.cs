@@ -7,47 +7,19 @@ using System.Runtime.Remoting.Messaging;
 using System.Linq;
 using System.Threading;
 
-
-
 namespace Client
 {
-    class SMR_Client : ITSpaceAPI
+    class SMR_Client : AbstractClient, ITSpaceAPI
     {
-        // View of the tuple spaces servers.
-        private List<ITSpaceServer> View { get; set; } = new List<ITSpaceServer>();
-
-        // OperationID of the tuple spaces servers view.
-        private int ViewId { get; set; }
-
-        // Client OperationID
-        private readonly int ClientID;
-
-        // Delegate for remote assync call to the tuple space servers
-        delegate TSpaceMsg RemoteAsyncDelegate(TSpaceMsg request);
-
         // List that stores all the proposed sequence numbers
         private static List<int> ProposedSeq = new List<int>();
-
-        // Counter for the acks
-        private static int AcksCounter;
-
-        // Stores the tuple returned by the
-        private static ITuple Tuple;
 
         // Counter for operation message unique identifier
         private static int OperationCounter = 0;
 
         // Counter for all messages sent to the server
         private static int RequestCounter;
-
-        // Object to use as reference for the lock to the Tuple 
-        private static Object LockRef = new Object();
-
-        // Log variables
-        private static int TakeCounter = 0;
-        private static int AddCounter = 0;
-        private static int ReadCounter = 0;
-
+        
         public static TcpChannel channel;
 
         private static readonly bool verbose = false;
@@ -56,54 +28,12 @@ namespace Client
         /// </summary>
         /// <param name="viewUrls">Urls of the tuple space servers</param>
         /// <param name="viewId">OperationID of the current view</param>
-        public SMR_Client(List<string> viewUrls, int viewId, int clientID)
+        public SMR_Client(List<string> viewUrls, int viewId, int clientID) : 
+            base(viewUrls, viewId,clientID)
         {
-            channel = new TcpChannel();
-            ChannelServices.RegisterChannel(channel, true);
-
-            // Get the reference for the tuple space servers
-            UpdateView(viewUrls, ViewId);
-
-            // Set the client unique identifier
-            ClientID = clientID;
             Console.WriteLine("SMR Client id = " + ClientID);
-
-
         }
-
-        /// <summary>
-        /// Updates view of servers
-        /// </summary>
-        /// <param name="viewURLs">List of the view's servers URLs</param>
-        /// <param name="viewID">View version number</param>
-        private void UpdateView(List<string> viewURLs, int viewID)
-        {
-            //Clear previous view
-            View.Clear();
-
-            // Get the reference for the tuple space servers
-            foreach (string serverUrl in viewURLs)
-            {
-
-                ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
-
-                // Check if its a valid reference
-                try
-                {
-                    //if (server.Ping())
-                        View.Add(server);
-                    Console.WriteLine("Sucessfully connected to " + serverUrl);
-
-                }
-                catch (System.Net.Sockets.SocketException)
-                {
-                    Console.WriteLine("Failed to connect to  " + serverUrl);
-                }
-            }
-
-            Console.WriteLine("View count = " + View.Count);
-            ViewId = viewID;
-        }
+      
 
 
         /// <summary>
@@ -434,22 +364,5 @@ namespace Client
                 remoteDel.BeginInvoke(message, asyncCallback, null);
             }
         }
-
-        /// <summary>
-        /// Class that implements a custom comparator for the tuples.
-        /// </summary>
-        private class TupleComparator : IEqualityComparer<ITuple>
-        {
-            public bool Equals(ITuple x, ITuple y)
-            {
-                return x.Matches(y);
-            }
-
-            public int GetHashCode(ITuple obj)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
     }
 }

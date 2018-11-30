@@ -9,99 +9,19 @@ using System.Threading;
 
 namespace Client
 {
-    class XL_Client : ITSpaceAPI
+    class XL_Client : AbstractClient, ITSpaceAPI
     {
-        // View of the tuple spaces servers.
-        private List<ITSpaceServer> View { get; set; } = new List<ITSpaceServer>();
-
-        // OperationID of the tuple spaces servers view.
-        private int ViewId { get; set; }
-
-        // Sequence number of the last request sent
-        private static int SequenceNumber;
-
-        // Client OperationID
-        private readonly int ClientID;
-
-
-        // Delegate for remote assync call to the tuple space servers
-        delegate TSpaceMsg RemoteAsyncDelegate(TSpaceMsg request);
-
-        // Counter for the number of acknowledgements received 
-        private static int AcksCounter;
-
-        // Stores the tuple returned by the
-        private static ITuple Tuple;
-
-        // Stores the matching tuples returned by all tuple space servers
-        private static List<List<ITuple>> MatchingTuples = new List<List<ITuple>>();
-
-        // Object to use as reference for the lock to the Tuple 
-        private static Object LockRef = new Object();
-
-        //Log variables
-        private static int TakeCounter = 0;
-        private static int AddCounter = 0;
-        private static int ReadCounter = 0;
-
-        private static bool verbose = false;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="viewUrls">Url of the tuple space servers.</param>
-        public XL_Client(List<string> viewUrls, int viewId, int clientID)
+        public XL_Client(List<string> viewUrls, int viewId, int clientID):
+            base(viewUrls, viewId, clientID)
         {
-            TcpChannel channel = new TcpChannel();
-            ChannelServices.RegisterChannel(channel, true);
-
-            // Get the reference for the tuple space servers
-            UpdateView(viewUrls, viewId);
-            
-
-            // Set the client unique identifier
-            ClientID = clientID;
             Console.WriteLine("XL Client id = " + ClientID);
 
         }
-
-        /// <summary>
-        /// Updates view of servers
-        /// </summary>
-        /// <param name="viewURLs">List of the view's servers URLs</param>
-        /// <param name="viewID">View version number</param>
-        private void UpdateView(List<string> viewURLs, int viewID)
-        {
-            //Clear previous view
-            View.Clear();
-
-            ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), viewURLs[0]);
-            viewURLs = server.UpdateView();
-            View.Add(server);
-            
-            // Get the reference for the tuple space servers
-            foreach (string serverUrl in viewURLs)
-            {
-
-                server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
-
-                // Check if its a valid reference
-                try
-                {
-                    View.Add(server);
-                    Console.WriteLine("Sucessfully connected to " + serverUrl);
-
-                }
-                catch (System.Net.Sockets.SocketException)
-                {
-                    Console.WriteLine("Failed to connect to  " + serverUrl);
-                }
-            }
-
-            Console.WriteLine("View count = " + View.Count);
-            ViewId = viewID;
-        }
-
 
         /// <summary>
         /// Adds a tuple to the distributed tuple space.
