@@ -26,7 +26,9 @@ namespace Server
         private readonly string URL;
 
         // Stores the urls of all known servers
-        private List<string> AllServersURLs;
+        //private List<string> AllServersURLs;
+
+        private View ServerView;
 
         // Stores the ID of the current view
         private int ViewID;
@@ -51,7 +53,7 @@ namespace Server
             TSpace = new TSpaceStorage();
             ServerID = new Random().Next();
             ProcessedRequests = new List<string>();
-            AllServersURLs = servers;
+            ServerView = new View(servers);
             URL = url;
 
         }
@@ -77,11 +79,12 @@ namespace Server
         public List<string> UpdateView()
         {
             List<string> currentViewURLs = new List<string>();
-            foreach (string serverUrl in AllServersURLs)
+            foreach (string serverUrl in ServerView.GetUrls())
             {
                 if (TryConnection(serverUrl))
                 {
                     currentViewURLs.Add(serverUrl);
+                    ServerView.Add(serverUrl);
                 }
             }
             return currentViewURLs;
@@ -93,8 +96,7 @@ namespace Server
         /// <param name="serverUrl">Server URL</param>
         /// <returns>True if the server is alive; false otherwise.</returns>
         public bool TryConnection(string serverUrl)
-        {
-          
+        {          
             // Get the reference for the tuple space server
             ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
 
@@ -124,9 +126,7 @@ namespace Server
         /// <param name="serverURL">Server URL</param>
         public bool Ping(string serverURL)
         {
-            if(!AllServersURLs.Contains(serverURL))
-                AllServersURLs.Add(serverURL);
-
+            ServerView.Add(serverURL);
             return true;
         }
 
@@ -140,12 +140,13 @@ namespace Server
         public void Freeze()
         {
             Frozen = true;
+            Console.WriteLine("Freezing");
         }
 
         public void Unfreeze()
         {
             Frozen = false;
-            Console.WriteLine("got here");
+            Console.WriteLine("UnFreezing");
         }
 
         public bool Ping()
@@ -154,7 +155,7 @@ namespace Server
         }
 
 
-        public List<ITuple> getTuples()
+        public List<ITuple> GetTuples()
         {
             return TSpace.getAll();
         }

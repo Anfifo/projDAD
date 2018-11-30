@@ -19,6 +19,16 @@ namespace CommonTypes
             Servers = new List<string>();
         }
 
+        public List<String> GetUrls()
+        {
+            return Servers;
+        }
+
+        public void Remove(String url)
+        {
+            Servers.Remove(url);
+        }
+
         public View(List<String> serverList)
         {
             Servers = new List<string>();

@@ -129,7 +129,7 @@ namespace Server
             return response;
         }
 
-        public List<ITuple> GetTuples() => TSMan.getTuples();
+        public List<ITuple> GetTuples() => TSMan.GetTuples();
 
 
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);

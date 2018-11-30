@@ -14,6 +14,8 @@ namespace Client
         // View of the tuple spaces servers.
         internal List<ITSpaceServer> View { get; set; } = new List<ITSpaceServer>();
 
+        private View ServerView;
+
         // OperationID of the tuple spaces servers view.
         internal int ViewId { get; set; }
 
@@ -71,6 +73,8 @@ namespace Client
         {
             //Clear previous view
             View.Clear();
+
+            ServerView = new View(viewURLs);
 
             ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), viewURLs[0]);
             viewURLs = server.UpdateView();
