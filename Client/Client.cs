@@ -69,9 +69,9 @@ namespace Client
                 Int32.TryParse(clientid, out clientID);
             }
             if (algorithm == "x")
-                ClientType = new XL_Client(Servers, 1, clientID);
+                ClientType = new XL_Client(Servers, clientID);
             else
-                ClientType = new SMR_Client(Servers, 1, clientID);
+                ClientType = new SMR_Client(Servers, clientID);
 
             try
             {

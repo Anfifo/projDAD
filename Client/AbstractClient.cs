@@ -25,7 +25,6 @@ namespace Client
         // Client OperationID
         internal readonly int ClientID;
 
-
         // Delegate for remote assync call to the tuple space servers
         internal delegate TSpaceMsg RemoteAsyncDelegate(TSpaceMsg request);
 
@@ -52,57 +51,51 @@ namespace Client
         /// Constructor.
         /// </summary>
         /// <param name="viewUrls">Url of the tuple space servers.</param>
-        public AbstractClient(List<string> viewUrls, int viewId, int clientID)
+        public AbstractClient(List<string> viewUrls, int clientID)
         {
             TcpChannel channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, true);
 
             // Get the reference for the tuple space servers
-            UpdateView(viewUrls, viewId);
+            SetNewView(new View(viewUrls, -1));
             
             // Set the client unique identifier
             ClientID = clientID;
         }
+        
 
-        /// <summary>
-        /// Updates view of servers
-        /// </summary>
-        /// <param name="viewURLs">List of the view's servers URLs</param>
-        /// <param name="viewID">View version number</param>
-        public void UpdateView(List<string> viewURLs, int viewID)
+        public bool ValidateView(TSpaceMsg msg)
+        {
+            if (msg.Code.Equals("badView") && msg.MsgView.ID > ServerView.ID)
+            {
+                SetNewView(msg.MsgView);
+                return false;
+            }
+
+            return true;
+        }
+
+
+        public void SetNewView(View view)
         {
             //Clear previous view
             View.Clear();
 
-            ServerView = new View(viewURLs);
+            ServerView = view;
+            ITSpaceServer server = null;
 
-            ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), viewURLs[0]);
-            viewURLs = server.UpdateView();
-            View.Add(server);
-            
             // Get the reference for the tuple space servers
-            foreach (string serverUrl in viewURLs)
+            foreach (string serverUrl in ServerView.GetUrls())
             {
-
                 server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
 
                 // Check if its a valid reference
-                try
-                {
-                    View.Add(server);
-                    Console.WriteLine("Sucessfully connected to " + serverUrl);
-
-                }
-                catch (System.Net.Sockets.SocketException)
-                {
-                    Console.WriteLine("Failed to connect to  " + serverUrl);
-                }
+                View.Add(server);
+                Console.WriteLine("Sucessfully connected to " + serverUrl);
             }
 
             Console.WriteLine("View count = " + View.Count);
-            ViewId = viewID;
         }
-
 
 
         /****************************************************************

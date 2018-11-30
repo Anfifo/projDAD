@@ -14,9 +14,26 @@ namespace CommonTypes
     {
         private List<String> Servers { get; set; }
 
+        public int ID { get; set; }
+
         public View()
         {
             Servers = new List<string>();
+        }
+
+        public View(List<String> serverList)
+        {
+            Servers = new List<string>();
+            // Appends serverList do the servers
+            Servers.AddRange(serverList);
+        }
+
+        public View(List<String> serverList, int id)
+        {
+            Servers = new List<string>();
+            // Appends serverList do the servers
+            Servers.AddRange(serverList);
+            ID = id;
         }
 
         public List<String> GetUrls()
@@ -29,12 +46,7 @@ namespace CommonTypes
             Servers.Remove(url);
         }
 
-        public View(List<String> serverList)
-        {
-            Servers = new List<string>();
-            // Appends serverList do the servers
-            Servers.AddRange(serverList);
-        }
+
 
         override public string ToString()
         {

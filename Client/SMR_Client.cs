@@ -28,8 +28,8 @@ namespace Client
         /// </summary>
         /// <param name="viewUrls">Urls of the tuple space servers</param>
         /// <param name="viewId">OperationID of the current view</param>
-        public SMR_Client(List<string> viewUrls, int viewId, int clientID) : 
-            base(viewUrls, viewId,clientID)
+        public SMR_Client(List<string> viewUrls, int clientID) : 
+            base(viewUrls, clientID)
         {
             Console.WriteLine("SMR Client id = " + ClientID);
         }

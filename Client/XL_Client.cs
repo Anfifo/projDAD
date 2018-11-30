@@ -16,8 +16,8 @@ namespace Client
         /// Constructor.
         /// </summary>
         /// <param name="viewUrls">Url of the tuple space servers.</param>
-        public XL_Client(List<string> viewUrls, int viewId, int clientID):
-            base(viewUrls, viewId, clientID)
+        public XL_Client(List<string> viewUrls, int clientID):
+            base(viewUrls, clientID)
         {
             Console.WriteLine("XL Client id = " + ClientID);
 
