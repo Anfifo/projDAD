@@ -92,7 +92,7 @@ namespace Server
         /// </summary>
         /// <param name="serverUrl">Server URL</param>
         /// <returns>True if the server is alive; false otherwise.</returns>
-        private bool TryConnection(string serverUrl)
+        public bool TryConnection(string serverUrl)
         {
           
             // Get the reference for the tuple space server
@@ -259,7 +259,7 @@ namespace Server
             return TSpace.getAll();
         }
 
-        public void setTuples(List<ITuple> newState)
+        public void SetTuples(List<ITuple> newState)
         {
             TSpace.setTuples(newState);
         }

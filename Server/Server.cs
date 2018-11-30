@@ -77,7 +77,7 @@ namespace Server
                 RemotingServices.Marshal(TS, Name, typeof(ITSpaceServer));
 
                 //set the tuples of the new server
-                TS.setTuples(newState);
+                TS.SetTuples(newState);
 
                 try
                 {
