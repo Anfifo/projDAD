@@ -21,24 +21,10 @@ namespace Server
             TSMan = new TSpaceManager(url, _mindelay, _maxdelay, servers);
         }
 
-        /// <summary>
-        /// Updates the current view of live servers
-        /// </summary>
-        /// <returns>Current view of servers</returns>
         public List<string> UpdateView() => TSMan.UpdateView();
 
-        /// <summary>
-        /// Checks if server at the given location is alive
-        /// </summary>
-        /// <param name="serverUrl">Server URL</param>
-        /// <returns>True if the server is alive; false otherwise.</returns>
         private bool TryConnection(string serverUrl) => TSMan.TryConnection(serverUrl);
 
-        /// <summary>
-        /// Adds new url to the list of known servers URLs
-        /// If the server is alive, its also added to the current view
-        /// </summary>
-        /// <param name="serverURL">Server URL</param>
         public bool Ping(string serverURL) => TSMan.Ping(serverURL);
 
         public string Status() => TSMan.Status();
