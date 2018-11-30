@@ -26,14 +26,23 @@ namespace Client
             //Type of algorithm
             string algorithm = "x"; // pre definido ou escolher no inicio?
 
-            Servers.Add("tcp://localhost:50001/S");
-
-            //Servers.Add("tcp://localhost:50002/S");
-
 
             //PuppetMaster initialization
+
+            if(args.Length == 4)
+            {
+                //if defined in script
+                Servers.Add(args[3]);
+                filename = args[0];
+                clientid = args[1];
+                algorithm = args[2];
+                Int32.TryParse(clientid, out clientID);
+                Console.WriteLine(clientID);
+            }
             if (args.Length == 3)
             {
+                //if not defined in script
+                Servers.Add("tcp://localhost:50001/S");
                 filename = args[0];
                 clientid = args[1];
                 algorithm = args[2];
