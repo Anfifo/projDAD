@@ -59,6 +59,7 @@ namespace Client
             request.SequenceNumber = GetSequenceNumber(request.OperationID);
             request.RequestID = ClientID + "_" + (RequestCounter++);
 
+
             
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.AcksCallback);
 

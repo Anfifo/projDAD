@@ -17,8 +17,8 @@ namespace Server
 
 
         public TSpaceServerXL(String url, int _mindelay,int _maxdelay, List<string> servers)
-        {   TSMan = new TSpaceManager(url, _mindelay, _maxdelay, servers);
-
+        {
+            TSMan = new TSpaceManager(url, _mindelay, _maxdelay, servers);
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace Server
             return response;
         }
 
-        public List<ITuple> getTuples() => TSMan.getTuples();
+        public List<ITuple> GetTuples() => TSMan.getTuples();
 
 
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);

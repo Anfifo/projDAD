@@ -65,7 +65,7 @@ namespace Server
                 //get the view from the other server
                 Servers = server.UpdateView();
                 //get the tuples from the other server
-                newState = server.getTuples();
+                newState = server.GetTuples();
             }
 
 
@@ -94,9 +94,27 @@ namespace Server
             }
             if (algorithm == "s")
             {
-                TSpaceServerSMR TS = new TSpaceServerSMR(MinDelay, MaxDelay);
+                TSpaceServerSMR TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, Servers);
                 RemotingServices.Marshal(TS, Name, typeof(TSpaceServerSMR));
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
+
+                //set the tuples of the new server
+                TS.SetTuples(newState);
+
+                try
+                {
+                    TS.UpdateView();
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(e.GetType().ToString());
+                    Console.WriteLine(e.StackTrace);
+
+
+                }
+
             }
 
 

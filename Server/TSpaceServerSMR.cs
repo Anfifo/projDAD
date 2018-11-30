@@ -247,6 +247,8 @@ namespace Server
 
         public List<string> UpdateView() => TSMan.UpdateView();
 
-        public List<ITuple> getTuples() => TSMan.TSpace.getAll();
+        public List<ITuple> GetTuples() => TSMan.TSpace.getAll();
+
+        public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);
     }
 }

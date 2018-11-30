@@ -15,6 +15,6 @@ namespace CommonTypes
         bool Ping(string serverURL);
         List<string> UpdateView();
 
-        List<ITuple> getTuples();
+        List<ITuple> GetTuples();
     }
 }
