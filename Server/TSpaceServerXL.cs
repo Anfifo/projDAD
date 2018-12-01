@@ -16,12 +16,12 @@ namespace Server
         public TSpaceManager TSMan;
 
 
-        public TSpaceServerXL(String url, int _mindelay,int _maxdelay, List<string> servers)
+        public TSpaceServerXL(String url, int _mindelay,int _maxdelay, View view)
         {
-            TSMan = new TSpaceManager(url, _mindelay, _maxdelay, servers);
+            TSMan = new TSpaceManager(url, _mindelay, _maxdelay,view);
         }
 
-        public List<string> UpdateView() => TSMan.UpdateView();
+        public View UpdateView() => TSMan.UpdateView();
 
         private bool TryConnection(string serverUrl) => TSMan.TryConnection(serverUrl);
 

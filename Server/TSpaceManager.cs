@@ -44,7 +44,7 @@ namespace Server
         private static readonly Object FreezeLock = new object();
 
 
-        public TSpaceManager(String url, int _mindelay,int _maxdelay, List<string> servers)
+        public TSpaceManager(String url, int _mindelay,int _maxdelay, View view)
         {
             Console.WriteLine(" I am" + " " + url);
             MinDelay = _mindelay;
@@ -52,10 +52,10 @@ namespace Server
             TSpace = new TSpaceStorage();
             ServerID = new Random().Next();
             ProcessedRequests = new List<string>();
-            ServerView = new View(servers);
+            ServerView = view;
             URL = url;
             ServerView.Add(URL);
-            Console.WriteLine(servers.Count);
+   
 
         }
 
@@ -77,7 +77,7 @@ namespace Server
         /// Updates the current view of live servers
         /// </summary>
         /// <returns>Current view of servers</returns>
-        public List<string> UpdateView()
+        public View UpdateView()
         {
             Console.WriteLine("Updating view");
             List<string> currentViewURLs = new List<string>();
@@ -100,7 +100,7 @@ namespace Server
                     RemoveFromView(serverUrl);
                 }
             }
-            return currentViewURLs;
+            return new View(currentViewURLs,ServerView.ID);
         }
 
         /// <summary>

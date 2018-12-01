@@ -26,6 +26,7 @@ namespace Server
             string serverid2 = " ";
             List<ITuple> newState = new List<ITuple>();
             ITSpaceServer server;
+            View newview = new View();
 
             //Type of algorithm for server
             string algorithm = "x";
@@ -63,10 +64,10 @@ namespace Server
                 //get the remote object of the other server
                 server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverid2);
                 //get the view from the other server
-                Servers = server.UpdateView();
-                Console.WriteLine(Servers[0]);
+                newview = server.UpdateView();
                 //get the tuples from the other server
                 newState = server.GetTuples();
+
             }
 
 
@@ -74,7 +75,7 @@ namespace Server
 
             if (algorithm == "x") {
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);
-                TSpaceServerXL TS = new TSpaceServerXL(Url, MinDelay,MaxDelay, Servers);
+                TSpaceServerXL TS = new TSpaceServerXL(Url, MinDelay,MaxDelay, newview);
                 RemotingServices.Marshal(TS, Name, typeof(ITSpaceServer));
 
                 //set the tuples of the new server
@@ -95,7 +96,7 @@ namespace Server
             }
             if (algorithm == "s")
             {
-                TSpaceServerSMR TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, Servers);
+                TSpaceServerSMR TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, newview);
                 RemotingServices.Marshal(TS, Name, typeof(TSpaceServerSMR));
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
 

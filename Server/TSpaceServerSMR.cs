@@ -30,9 +30,9 @@ namespace Server
         }
 
 
-        public TSpaceServerSMR(string url, int _mindelay,int _maxdelay, List<string> servers)
+        public TSpaceServerSMR(string url, int _mindelay,int _maxdelay, View view)
         {
-            TSMan = new TSpaceManager(url, _mindelay, _maxdelay, servers);
+            TSMan = new TSpaceManager(url, _mindelay, _maxdelay, view);
         }
 
         public bool Ping() => TSMan.Ping();
@@ -61,7 +61,7 @@ namespace Server
             // Verifying View! Wrong view sends updated view
             if (!TSMan.ValidView(msg))
             {
-                Console.WriteLine("invalid view" + msg.MsgView.ToString());
+                Console.WriteLine("invalid view:" + "msgview" + msg.MsgView.ToString() + "serverview" + TSMan.GetTotalView().ToString());
                 return TSMan.CreateBadViewReply(msg);
             }
              
@@ -253,7 +253,7 @@ namespace Server
 
         public bool Ping(string serverURL) => TSMan.Ping(serverURL);
 
-        public List<string> UpdateView() => TSMan.UpdateView();
+        public View UpdateView() => TSMan.UpdateView();
 
         public List<ITuple> GetTuples() => TSMan.TSpace.getAll();
 
