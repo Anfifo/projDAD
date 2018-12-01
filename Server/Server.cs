@@ -64,7 +64,9 @@ namespace Server
                 //get the remote object of the other server
                 server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverid2);
                 //get the view from the other server
+                Console.WriteLine("Asked for view");
                 newview = server.UpdateView();
+                Console.WriteLine(newview.ToString());
                 //get the tuples from the other server
                 newState = server.GetTuples();
 

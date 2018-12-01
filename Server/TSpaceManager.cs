@@ -92,11 +92,13 @@ namespace Server
                 {
                     Console.WriteLine("added to view" + serverUrl);
                     AddToView(serverUrl);
-                    //currentViewURLs.Add(serverUrl);
+                    currentViewURLs.Add(serverUrl);
                 }
                 else
                 {
-                    Console.WriteLine("removing from view" + serverUrl);
+                    for(int i=0;i<5;i++)
+                        Console.WriteLine("removing from view" + serverUrl);
+
                     RemoveFromView(serverUrl);
                 }
             }
@@ -117,6 +119,7 @@ namespace Server
             try
             {
                 // Ping server
+                Console.WriteLine("i pinged" + " " + serverUrl);
                 if (server != null && server.Ping(URL))
                 {
                     Console.WriteLine("Alive:  " + serverUrl);

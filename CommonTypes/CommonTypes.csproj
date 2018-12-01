@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="AuxFunctions.cs" />
     <Compile Include="Field.cs" />
+    <Compile Include="Message.cs" />
     <Compile Include="NullValue.cs" />
     <Compile Include="TSpaceMsg.cs" />
     <Compile Include="StringValue.cs" />

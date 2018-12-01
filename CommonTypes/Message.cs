@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CommonTypes;
 
-namespace Server
+namespace CommonTypes
 {
-    class Message : IComparable<Message>
+    public class Message : IComparable<Message>
     {
         // Request operation message
        
