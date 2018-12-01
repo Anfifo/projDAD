@@ -12,8 +12,6 @@ namespace Server
         // Stores the request in hold
         private static List<Message> MessageQueue = new List<Message>();
 
-        private Boolean Frozen = false;
-
         // Stores the most recent sequence number
         private static int SequenceNumber;
 
@@ -50,13 +48,21 @@ namespace Server
             TSMan.CheckFreeze();
 
             TSMan.CheckDelay();
-
             TSpaceMsg response = new TSpaceMsg
             {
                 ProcessID = TSMan.ServerID,
                 OperationID = msg.OperationID,
                 RequestID = msg.RequestID
             };
+            
+            Console.WriteLine(msg);
+            // Verifying View! Wrong view sends updated view
+            if (!TSMan.ValidView(msg))
+            {
+                Console.WriteLine("invalid view");
+                return TSMan.CreateBadViewReply(msg);
+            }
+
 
             lock (TSpaceManager.ProcessedRequests)
             {
@@ -72,6 +78,8 @@ namespace Server
                 TSpaceManager.ProcessedRequests.Add(msg.RequestID);
 
             }
+
+
 
 
             string command = msg.Code;
@@ -130,6 +138,8 @@ namespace Server
 
             if (TSMan.Verbose)
                 Console.WriteLine(msg);
+
+
 
             switch (command)
             {

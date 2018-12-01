@@ -63,7 +63,14 @@ namespace Server
 
             string command = msg.Code;
             Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
-            
+
+
+            if (!TSMan.ValidView(msg))
+            {
+                return TSMan.CreateBadViewReply(msg);
+            }
+
+
             switch (command)
             {
                 case "add":

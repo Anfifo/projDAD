@@ -53,7 +53,7 @@ namespace CommonTypes
             string content = "";
             foreach(String server in Servers)
             {
-                content +=" <" +server + "> ";
+                content +=" <" +server +" id:"+ ID +"> ";
             }
             return content;
         }

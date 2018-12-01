@@ -30,10 +30,8 @@ namespace Server
 
         private View ServerView;
 
-        // Stores the ID of the current view
-        private int ViewID;
-
         private readonly int MinDelay;
+
         private readonly int MaxDelay;
 
         private Random random = new Random();
@@ -43,7 +41,7 @@ namespace Server
 
         delegate void DelegateDVRS(string s);
 
-        private static Object FreezeLock = new object();
+        private static readonly Object FreezeLock = new object();
 
 
         public TSpaceManager(String url, int _mindelay,int _maxdelay, List<string> servers)
@@ -83,8 +81,12 @@ namespace Server
             {
                 if (TryConnection(serverUrl))
                 {
+                    AddToView(serverUrl);
                     currentViewURLs.Add(serverUrl);
-                    ServerView.Add(serverUrl);
+                }
+                else
+                {
+                    RemoveFromView(serverUrl);
                 }
             }
             return currentViewURLs;
@@ -126,7 +128,7 @@ namespace Server
         /// <param name="serverURL">Server URL</param>
         public bool Ping(string serverURL)
         {
-            ServerView.Add(serverURL);
+            AddToView(serverURL);
             return true;
         }
 
@@ -163,6 +165,48 @@ namespace Server
         public void SetTuples(List<ITuple> newState)
         {
             TSpace.setTuples(newState);
+        }
+
+        public void AddToView(string url)
+        {
+            if (!ServerView.Contains(url))
+            {
+                ServerView.Add(url);
+                ServerView.ID ++;
+            }
+        }
+        public void RemoveFromView(string url)
+        {
+            if (ServerView.Contains(url))
+            {
+                ServerView.Remove(url);
+                ServerView.ID++;
+            }
+        }
+
+        public bool ValidView(TSpaceMsg msg)
+        {
+            return msg.MsgView.ID == ServerView.ID;
+        }
+
+        public View GetTotalView()
+        {
+            View view = new View(ServerView.GetUrls(), ServerView.ID);
+            view.Add(URL);
+            return view;
+        }
+
+        public TSpaceMsg CreateBadViewReply(TSpaceMsg msg)
+        {
+            TSpaceMsg response = new TSpaceMsg
+            {
+                Code = "badView",
+                ProcessID = ServerID,
+                OperationID = msg.OperationID,
+                RequestID = msg.RequestID,
+                MsgView = GetTotalView()
+            };
+            return response;
         }
     }
 }

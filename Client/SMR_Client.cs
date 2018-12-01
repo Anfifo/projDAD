@@ -20,9 +20,7 @@ namespace Client
         // Counter for all messages sent to the server
         private static int RequestCounter;
         
-        public static TcpChannel channel;
-
-        private static readonly bool verbose = false;
+        
         /// <summary>
         /// Constructor
         /// </summary>
@@ -59,8 +57,8 @@ namespace Client
             request.SequenceNumber = GetSequenceNumber(request.OperationID);
             request.RequestID = ClientID + "_" + (RequestCounter++);
 
+            request.MsgView = GetCurrentView();
 
-            
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.AcksCallback);
 
 
@@ -72,6 +70,7 @@ namespace Client
             {
                 // Send request to all replicas in the view
                 this.Multicast(request, remoteCallback);
+
             }
 
             Console.WriteLine("Add " + (++AddCounter) + ": OK");
@@ -93,6 +92,7 @@ namespace Client
             // Create message
             TSpaceMsg request = new TSpaceMsg();
             request.Code = "read";
+            request.MsgView = GetCurrentView();
             request.Tuple = template;
             
 
@@ -109,6 +109,7 @@ namespace Client
 
             while (!matchFound)
             {
+
                 // Create unique id of the request
                 request.RequestID = ClientID + "_" + (RequestCounter++);
 
@@ -136,6 +137,7 @@ namespace Client
                             break;
                         }
                     }
+
                 }
 
                 lock (LockRef)
@@ -143,6 +145,8 @@ namespace Client
                     if (Tuple != null)
                         matchFound = true;
                 }
+
+
 
             }
             
@@ -169,8 +173,9 @@ namespace Client
             TSpaceMsg request = new TSpaceMsg();
             request.Code = "take1";
             request.Tuple = template;
+            request.MsgView = GetCurrentView();
 
-            
+
             // Create remote callback
             AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.ReadCallback);
 
@@ -228,6 +233,9 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
+            if (!AbstractClient.ValidView(response))
+                return;
+
             if (response.Code.Equals("proposedSeq"))
             {
                 lock (ProposedSeq)
@@ -250,6 +258,10 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
+            if (!AbstractClient.ValidView(response))
+                return;
+
+
             if (response.Code.Equals("ACK"))
             {
                 Interlocked.Increment(ref AcksCounter);
@@ -258,11 +270,16 @@ namespace Client
 
         private static void ReadCallback(IAsyncResult result)
         {
+
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
 
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
-            
+
+
+            if (!AbstractClient.ValidView(response))
+                return;
+
             // Stores the tuple returned 
             // and the OperationID of the server that answered
             if (response.Code.Equals("OK"))
@@ -307,7 +324,7 @@ namespace Client
             message.ProcessID = ClientID;
             message.RequestID = ClientID + "_" + (RequestCounter++);
             message.SequenceNumber = -1;
-
+            message.MsgView = GetCurrentView();
 
 
             RemoteAsyncDelegate remoteDel;
@@ -332,6 +349,12 @@ namespace Client
                     // Call remote method
                     remoteDel.BeginInvoke(message, asyncCallback, null);
                 }
+
+                if (AbstractClient.CheckNeedUpdateView())
+                    message.MsgView = GetCurrentView();
+
+                Thread.Sleep(300);
+
             }
             int agreedSeq;
             lock (ProposedSeq)
@@ -354,6 +377,8 @@ namespace Client
         /// <param name="asyncCallback">Callback function of the remote call.</param>
         private void Multicast(TSpaceMsg message, AsyncCallback asyncCallback)
         {
+            if(AbstractClient.CheckNeedUpdateView())
+                message.MsgView = GetCurrentView();
 
             RemoteAsyncDelegate remoteDel;
             foreach (ITSpaceServer server in View)

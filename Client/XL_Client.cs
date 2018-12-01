@@ -371,25 +371,6 @@ namespace Client
                 remoteDel.BeginInvoke(message, asyncCallback, null);
             }
         }
-
-        /// <summary>
-        /// Class that implements a custom equality comparator for the tuples.
-        /// </summary>
-        private class TupleComparator : IEqualityComparer<ITuple>
-        {
-            public bool Equals(ITuple x, ITuple y)
-            {
-                return x.Matches(y);
-            }
-
-            public int GetHashCode(ITuple obj)
-            {
-                throw new NotImplementedException();
-            }
-        }
     }
-
-
-
 }
 
