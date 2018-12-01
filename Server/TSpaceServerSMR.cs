@@ -53,10 +53,11 @@ namespace Server
             {
                 ProcessID = TSMan.ServerID,
                 OperationID = msg.OperationID,
-                RequestID = msg.RequestID
+                RequestID = msg.RequestID,
+                MsgView = TSMan.GetTotalView()
             };
 
-            Console.WriteLine(msg);
+
             // Verifying View! Wrong view sends updated view
             if (!TSMan.ValidView(msg))
             {
@@ -105,7 +106,7 @@ namespace Server
                     MessageQueue.Add(newMessage);
                     MessageQueue.Sort();
                 }
-
+                
                 return response;
             }
             // Message with agreed sequence number
@@ -116,6 +117,7 @@ namespace Server
                 {
                     Console.WriteLine("Err: operation message not in queue");
                     response.Code = "Err";
+
                     return response;
                 }
             }

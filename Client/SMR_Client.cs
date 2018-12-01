@@ -264,8 +264,7 @@ namespace Client
             if (!AbstractClient.ValidView(response))
                 return;
 
-            Console.WriteLine("ACKING");
-
+            
             if (response.Code.Equals("ACK"))
             {
                 Interlocked.Increment(ref AcksCounter);
@@ -362,6 +361,7 @@ namespace Client
                 Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
 
             }
+
             int agreedSeq;
             lock (ProposedSeq)
             {

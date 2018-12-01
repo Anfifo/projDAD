@@ -78,14 +78,21 @@ namespace Client
 
         public static bool ValidView(TSpaceMsg msg)
         {
-            DebugPrint(" received view:" + msg.MsgView.ToString());
-            if (msg.Code.Equals("badView") && msg.MsgView.ID > ServerView.ID)
-            {
-                InvalidView = true;
-                SuggestView(msg.MsgView);
-                return false;
-            }
+            lock(ServerView){
 
+                if(msg.MsgView == null)
+                {
+                    Console.WriteLine("NO VIEW SENT WITH MESSAGE!!");
+                    return false;
+                }
+
+                if (msg.Code.Equals("badView") && msg.MsgView.ID > ServerView.ID)
+                {
+                    InvalidView = true;
+                    SuggestView(msg.MsgView);
+                    return false;
+                }
+            }
             return true;
         }
 
