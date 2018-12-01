@@ -64,6 +64,7 @@ namespace Server
                 server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverid2);
                 //get the view from the other server
                 Servers = server.UpdateView();
+                Console.WriteLine(Servers[0]);
                 //get the tuples from the other server
                 newState = server.GetTuples();
             }

@@ -46,6 +46,7 @@ namespace Server
 
         public TSpaceManager(String url, int _mindelay,int _maxdelay, List<string> servers)
         {
+            Console.WriteLine(" I am" + " " + url);
             MinDelay = _mindelay;
             MaxDelay = _maxdelay;
             TSpace = new TSpaceStorage();
@@ -53,6 +54,8 @@ namespace Server
             ProcessedRequests = new List<string>();
             ServerView = new View(servers);
             URL = url;
+            ServerView.Add(URL);
+            Console.WriteLine(servers.Count);
 
         }
 
@@ -76,16 +79,24 @@ namespace Server
         /// <returns>Current view of servers</returns>
         public List<string> UpdateView()
         {
+            Console.WriteLine("Updating view");
             List<string> currentViewURLs = new List<string>();
             foreach (string serverUrl in ServerView.GetUrls())
             {
+                if (serverUrl.Equals(URL))
+                {
+                    currentViewURLs.Add(serverUrl);
+                    continue;
+                }
                 if (TryConnection(serverUrl))
                 {
+                    Console.WriteLine("added to view" + serverUrl);
                     AddToView(serverUrl);
-                    currentViewURLs.Add(serverUrl);
+                    //currentViewURLs.Add(serverUrl);
                 }
                 else
                 {
+                    Console.WriteLine("removing from view" + serverUrl);
                     RemoveFromView(serverUrl);
                 }
             }
@@ -128,6 +139,7 @@ namespace Server
         /// <param name="serverURL">Server URL</param>
         public bool Ping(string serverURL)
         {
+            Console.WriteLine("i am in function ping adding " + serverURL);
             AddToView(serverURL);
             return true;
         }

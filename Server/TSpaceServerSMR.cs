@@ -61,7 +61,7 @@ namespace Server
             // Verifying View! Wrong view sends updated view
             if (!TSMan.ValidView(msg))
             {
-                Console.WriteLine("invalid view");
+                Console.WriteLine("invalid view" + msg.MsgView.ToString());
                 return TSMan.CreateBadViewReply(msg);
             }
              
