@@ -237,9 +237,10 @@ namespace Client
                 return;
                 
 
-            Console.WriteLine("ACK");
             if (response.Code.Equals("proposedSeq"))
             {
+                Console.WriteLine("Proposed Seq");
+
                 lock (ProposedSeq)
                 {
                     // Store porposed sequence number
@@ -256,14 +257,14 @@ namespace Client
         /// <param name="result">Async call result.</param>
         private static void AcksCallback(IAsyncResult result)
         {
-            Console.WriteLine("ACKING");
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
             if (!AbstractClient.ValidView(response))
                 return;
-                
+
+            Console.WriteLine("ACKING");
 
             if (response.Code.Equals("ACK"))
             {
