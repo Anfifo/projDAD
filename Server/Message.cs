@@ -1,10 +1,11 @@
-﻿using System;
+﻿using CommonTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CommonTypes
+namespace Server
 {
     public class Message : IComparable<Message>
     {

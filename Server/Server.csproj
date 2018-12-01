@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Message.cs" />
     <Compile Include="TSLockHandler.cs" />
     <Compile Include="TSpaceServerSMR.cs" />
     <Compile Include="TSpaceManager.cs" />

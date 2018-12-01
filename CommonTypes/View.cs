@@ -18,10 +18,6 @@ namespace CommonTypes
 
         List<ITuple> State = new List<ITuple>();
 
-        public List<Message> MessageQueue = new List<Message>();
-
-        public int SequenceNumber;
-
         public View()
         {
             Servers = new List<string>();
@@ -42,25 +38,6 @@ namespace CommonTypes
             ID = id;
         }
 
-        public View(List<String> serverList, int id, List<ITuple> newState)
-        {
-            Servers = new List<string>();
-            // Appends serverList do the servers
-            Servers.AddRange(serverList);
-            State = newState;
-            ID = id;
-        }
-
-        public View(List<String> serverList, int id, List<ITuple> newState,List<Message> newMessageQueue,int newSequenceNumber)
-        {
-            Servers = new List<string>();
-            // Appends serverList do the servers
-            Servers.AddRange(serverList);
-            State = newState;
-            ID = id;
-            MessageQueue = newMessageQueue;
-            SequenceNumber = newSequenceNumber;
-        }
 
         public List<String> GetUrls()
         {
