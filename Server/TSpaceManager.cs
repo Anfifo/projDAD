@@ -53,9 +53,9 @@ namespace Server
             ServerID = new Random().Next();
             ProcessedRequests = new List<string>();
             ServerView = view;
+            ServerView.ID++;
             URL = url;
             ServerView.Add(URL);
-   
 
         }
 
@@ -139,7 +139,7 @@ namespace Server
         /// <param name="serverURL">Server URL</param>
         public bool Ping(string serverURL)
         {
-            Console.WriteLine("i am in function ping adding " + serverURL);
+            Console.WriteLine("received in ping and adding:" + serverURL);
             AddToView(serverURL);
             return true;
         }

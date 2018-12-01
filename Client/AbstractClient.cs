@@ -88,6 +88,7 @@ namespace Client
 
                 if (msg.Code.Equals("badView") && msg.MsgView.ID > ServerView.ID)
                 {
+                   
                     InvalidView = true;
                     SuggestView(msg.MsgView);
                     return false;

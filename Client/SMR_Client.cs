@@ -346,6 +346,7 @@ namespace Client
             {
                 foreach (ITSpaceServer server in View)
                 {
+
                     // Create delegate for remote method
                     remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
 
@@ -356,7 +357,6 @@ namespace Client
                 if (AbstractClient.CheckNeedUpdateView())
                    message.MsgView = GetCurrentView();
 
-                Thread.Sleep(300);
 
                 Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
 

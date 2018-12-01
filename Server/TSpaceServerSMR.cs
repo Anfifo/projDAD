@@ -57,11 +57,11 @@ namespace Server
                 MsgView = TSMan.GetTotalView()
             };
 
-
             // Verifying View! Wrong view sends updated view
             if (!TSMan.ValidView(msg))
             {
-                Console.WriteLine("invalid view:" + "msgview" + msg.MsgView.ToString() + "serverview" + TSMan.GetTotalView().ToString());
+                //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
+                //Console.WriteLine("Wrong View");
                 return TSMan.CreateBadViewReply(msg);
             }
              
@@ -71,6 +71,7 @@ namespace Server
                 // Check if request as already been processed
                 if (TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
+                    //Console.WriteLine("getting repeated");
                     response.Code = "Repeated";
                     return response;
                 }
@@ -106,7 +107,7 @@ namespace Server
                     MessageQueue.Add(newMessage);
                     MessageQueue.Sort();
                 }
-                
+                Console.WriteLine("returned");
                 return response;
             }
             // Message with agreed sequence number
