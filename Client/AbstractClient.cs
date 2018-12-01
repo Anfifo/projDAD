@@ -78,6 +78,7 @@ namespace Client
 
         public static bool ValidView(TSpaceMsg msg)
         {
+            return true;
             DebugPrint(" received view:" + msg.MsgView.ToString());
             if (msg.Code.Equals("badView") && msg.MsgView.ID > ServerView.ID)
             {

@@ -233,9 +233,11 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
-            if (!AbstractClient.ValidView(response))
+            /*if (!AbstractClient.ValidView(response))
                 return;
+                */
 
+            Console.WriteLine("ACK");
             if (response.Code.Equals("proposedSeq"))
             {
                 lock (ProposedSeq)
@@ -254,13 +256,14 @@ namespace Client
         /// <param name="result">Async call result.</param>
         private static void AcksCallback(IAsyncResult result)
         {
+            Console.WriteLine("ACKING");
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
-            if (!AbstractClient.ValidView(response))
+            /*if (!AbstractClient.ValidView(response))
                 return;
-
+                */
 
             if (response.Code.Equals("ACK"))
             {
@@ -350,10 +353,12 @@ namespace Client
                     remoteDel.BeginInvoke(message, asyncCallback, null);
                 }
 
-                if (AbstractClient.CheckNeedUpdateView())
-                    message.MsgView = GetCurrentView();
+                //if (AbstractClient.CheckNeedUpdateView())
+                   // message.MsgView = GetCurrentView();
 
                 Thread.Sleep(300);
+
+                Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
 
             }
             int agreedSeq;
