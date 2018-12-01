@@ -78,7 +78,6 @@ namespace Client
 
         public static bool ValidView(TSpaceMsg msg)
         {
-            return true;
             DebugPrint(" received view:" + msg.MsgView.ToString());
             if (msg.Code.Equals("badView") && msg.MsgView.ID > ServerView.ID)
             {
@@ -92,19 +91,15 @@ namespace Client
 
         public static bool CheckNeedUpdateView()
         {
-            DebugPrint("Current view: " + ServerView.ToString());
-            //lock (ViewLock)
-            {       
-                if (InvalidView && SuggestedView != null)
-                {
-                    DebugPrint("Updating view to :" +  SuggestedView.ID);
-                    SetNewView(SuggestedView);
-                    SuggestedView = null;
-                    InvalidView = false;
-                    return true;
-                }
-
+            if (InvalidView && SuggestedView != null)
+            {
+                DebugPrint("Updating view to :" +  SuggestedView.ID);
+                SetNewView(SuggestedView);
+                SuggestedView = null;
+                InvalidView = false;
+                return true;
             }
+
             return false;
         }
 

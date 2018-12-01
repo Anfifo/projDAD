@@ -233,9 +233,9 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
-            /*if (!AbstractClient.ValidView(response))
+            if (!AbstractClient.ValidView(response))
                 return;
-                */
+                
 
             Console.WriteLine("ACK");
             if (response.Code.Equals("proposedSeq"))
@@ -261,9 +261,9 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
-            /*if (!AbstractClient.ValidView(response))
+            if (!AbstractClient.ValidView(response))
                 return;
-                */
+                
 
             if (response.Code.Equals("ACK"))
             {
@@ -353,8 +353,8 @@ namespace Client
                     remoteDel.BeginInvoke(message, asyncCallback, null);
                 }
 
-                //if (AbstractClient.CheckNeedUpdateView())
-                   // message.MsgView = GetCurrentView();
+                if (AbstractClient.CheckNeedUpdateView())
+                   message.MsgView = GetCurrentView();
 
                 Thread.Sleep(300);
 

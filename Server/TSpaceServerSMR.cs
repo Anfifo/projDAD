@@ -45,181 +45,181 @@ namespace Server
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
-                TSMan.CheckFreeze();
+            TSMan.CheckFreeze();
 
-                TSMan.CheckDelay();
+            TSMan.CheckDelay();
 
-                TSpaceMsg response = new TSpaceMsg
-                {
-                    ProcessID = TSMan.ServerID,
-                    OperationID = msg.OperationID,
-                    RequestID = msg.RequestID
-                };
+            TSpaceMsg response = new TSpaceMsg
+            {
+                ProcessID = TSMan.ServerID,
+                OperationID = msg.OperationID,
+                RequestID = msg.RequestID
+            };
 
-                Console.WriteLine(msg);
+            Console.WriteLine(msg);
             // Verifying View! Wrong view sends updated view
-            /* if (!TSMan.ValidView(msg))
-             {
-                 Console.WriteLine("invalid view");
-                 return TSMan.CreateBadViewReply(msg);
-             }
-             */
+            if (!TSMan.ValidView(msg))
+            {
+                Console.WriteLine("invalid view");
+                return TSMan.CreateBadViewReply(msg);
+            }
+             
 
             lock (TSpaceManager.ProcessedRequests)
+            {
+                // Check if request as already been processed
+                if (TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
-                    // Check if request as already been processed
-                    if (TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
-                    {
-                        response.Code = "Repeated";
-                        return response;
-                    }
-                    Console.WriteLine("Processed RequestID " + msg.RequestID);
-
-                    // Add sequence number of request to processed requests
-                    TSpaceManager.ProcessedRequests.Add(msg.RequestID);
-
-                }
-
-            string command = msg.Code;
-                Console.WriteLine("Processing Request " + command + " (seq = " + msg.RequestID + ")");
-
-                Message update = null;
-                // Sequence number proposal request
-                if (command.Equals("proposeSeq"))
-                {
-
-                    // Increment sequence number
-                    Interlocked.Increment(ref SequenceNumber);
-                    response.SequenceNumber = SequenceNumber;
-                    response.Code = "proposedSeq";
-
-                    lock (MessageQueue)
-                    {
-                        Message newMessage = new Message();
-                        newMessage.ProcessID = msg.ProcessID;
-                        newMessage.SequenceNumber = SequenceNumber;
-                        newMessage.Deliverable = false;
-                        newMessage.MessageID = msg.OperationID;
-
-                        // Add message to queue
-                        MessageQueue.Add(newMessage);
-                        MessageQueue.Sort();
-                    }
-
+                    response.Code = "Repeated";
                     return response;
                 }
-                // Message with agreed sequence number
-                else
+                Console.WriteLine("Processed RequestID " + msg.RequestID);
+
+                // Add sequence number of request to processed requests
+                TSpaceManager.ProcessedRequests.Add(msg.RequestID);
+
+            }
+
+        string command = msg.Code;
+            Console.WriteLine("Processing Request " + command + " (seq = " + msg.RequestID + ")");
+
+            Message update = null;
+            // Sequence number proposal request
+            if (command.Equals("proposeSeq"))
+            {
+
+                // Increment sequence number
+                Interlocked.Increment(ref SequenceNumber);
+                response.SequenceNumber = SequenceNumber;
+                response.Code = "proposedSeq";
+
+                lock (MessageQueue)
                 {
-                    update = UpdateMessage(msg.OperationID, msg.SequenceNumber);
-                    if (update == null)
-                    {
-                        Console.WriteLine("Err: operation message not in queue");
-                        response.Code = "Err";
-                        return response;
-                    }
+                    Message newMessage = new Message();
+                    newMessage.ProcessID = msg.ProcessID;
+                    newMessage.SequenceNumber = SequenceNumber;
+                    newMessage.Deliverable = false;
+                    newMessage.MessageID = msg.OperationID;
+
+                    // Add message to queue
+                    MessageQueue.Add(newMessage);
+                    MessageQueue.Sort();
                 }
-                // Wait for message to be in the head of the queue
-                Monitor.Enter(MessageQueue);
 
-                while (MessageQueue.Count == 0 || !MessageQueue[0].MessageID.Equals(msg.OperationID))
-                    Monitor.Wait(MessageQueue);
-
-                Monitor.Exit(MessageQueue);
-
-                Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
-
-                // Execute the operation
-
-                if (TSMan.Verbose)
-                    Console.WriteLine(msg);
-
-
-
-                switch (command)
+                return response;
+            }
+            // Message with agreed sequence number
+            else
+            {
+                update = UpdateMessage(msg.OperationID, msg.SequenceNumber);
+                if (update == null)
                 {
-                    case "add":
-                        lock (TakeLock)
-                        {
-                            if (msg.Tuple == null)
-                            {
-                                response.Code = "ERR";
-                                break;
-                            }
+                    Console.WriteLine("Err: operation message not in queue");
+                    response.Code = "Err";
+                    return response;
+                }
+            }
+            // Wait for message to be in the head of the queue
+            Monitor.Enter(MessageQueue);
 
-                            TSMan.TSpace.Add(msg.Tuple);
-                            response.Code = "ACK";
-                            break;
-                        }
+            while (MessageQueue.Count == 0 || !MessageQueue[0].MessageID.Equals(msg.OperationID))
+                Monitor.Wait(MessageQueue);
 
-                    case "read":
+            Monitor.Exit(MessageQueue);
+
+            Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
+
+            // Execute the operation
+
+            if (TSMan.Verbose)
+                Console.WriteLine(msg);
+
+
+
+            switch (command)
+            {
+                case "add":
+                    lock (TakeLock)
+                    {
                         if (msg.Tuple == null)
                         {
                             response.Code = "ERR";
                             break;
                         }
+
+                        TSMan.TSpace.Add(msg.Tuple);
+                        response.Code = "ACK";
+                        break;
+                    }
+
+                case "read":
+                    if (msg.Tuple == null)
+                    {
+                        response.Code = "ERR";
+                        break;
+                    }
+                    response.Tuple = TSMan.TSpace.Read(msg.Tuple);
+                    response.Code = "OK";
+                    if (response.Tuple == null)
+                        Console.WriteLine("Match not Found");
+                    else
+                        Console.WriteLine("Match found");
+                    break;
+
+                case "take1":
+                    lock (TakeLock)
+                    {
+                        if (msg.Tuple == null)
+                        {
+                            response.Code = "ERR";
+                            break;
+                        }
+
+                        // Get matching tuple
                         response.Tuple = TSMan.TSpace.Read(msg.Tuple);
                         response.Code = "OK";
-                        if (response.Tuple == null)
-                            Console.WriteLine("Match not Found");
-                        else
-                            Console.WriteLine("Match found");
-                        break;
-
-                    case "take1":
-                        lock (TakeLock)
+                        if (response.Tuple != null)
                         {
-                            if (msg.Tuple == null)
-                            {
-                                response.Code = "ERR";
-                                break;
-                            }
-
-                            // Get matching tuple
-                            response.Tuple = TSMan.TSpace.Read(msg.Tuple);
-                            response.Code = "OK";
-                            if (response.Tuple != null)
-                            {
-                                // Delete it
-                                TSMan.TSpace.Take2(response.Tuple);
-                            }
+                            // Delete it
+                            TSMan.TSpace.Take2(response.Tuple);
                         }
-                        response.Code = "OK";
-
-                        break;
-
-                    case "take2":
-                        Console.WriteLine("Current Tuple Space not in XL mode");
-                        response.Code = "ERR";
-
-                        break;
-
-
-                    // Operation exclusive of the XL Tuple Space
-                    case "releaseLocks":
-
-                        Console.WriteLine("Current Tuple Space not in XL mode");
-                        response.Code = "ERR";
-
-
-                        break;
-                    default:
-                        Console.WriteLine("Invalid command.");
-                        break;
-                }
-
-                // Delete processed message from queue
-                if (update != null)
-                {
-                    lock (MessageQueue)
-                    {
-                        MessageQueue.Remove(update);
-                        Monitor.PulseAll(MessageQueue);
                     }
+                    response.Code = "OK";
+
+                    break;
+
+                case "take2":
+                    Console.WriteLine("Current Tuple Space not in XL mode");
+                    response.Code = "ERR";
+
+                    break;
+
+
+                // Operation exclusive of the XL Tuple Space
+                case "releaseLocks":
+
+                    Console.WriteLine("Current Tuple Space not in XL mode");
+                    response.Code = "ERR";
+
+
+                    break;
+                default:
+                    Console.WriteLine("Invalid command.");
+                    break;
+            }
+
+            // Delete processed message from queue
+            if (update != null)
+            {
+                lock (MessageQueue)
+                {
+                    MessageQueue.Remove(update);
+                    Monitor.PulseAll(MessageQueue);
                 }
+            }
 
 
-                return response;
+            return response;
 
         }
 
