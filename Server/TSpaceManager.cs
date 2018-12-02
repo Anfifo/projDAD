@@ -48,6 +48,9 @@ namespace Server
         public static readonly Object GetStateLock = new object();
         private int ProcessingCounter;
 
+        public static ReaderWriterLock RWL = new ReaderWriterLock();
+
+
         public TSpaceManager(String url, int _mindelay, int _maxdelay,View view)
         {
             Console.WriteLine(" I am" + " " + url);
@@ -246,36 +249,44 @@ namespace Server
         public void setView(View view)
         {
             ServerView = view;
-            ServerView.ID++;
-            ServerView.Add(URL);
+            //ServerView.ID++;
+
         }
 
         internal void FinishedProcessing()
         {
+            RWL.ReleaseReaderLock();
+
+            /*
             lock (ProcessLock)
             {
                 ProcessingCounter--;
-                Console.WriteLine("Done Processing, current counter:" + ProcessingCounter);
+                //Console.WriteLine("Done Processing, current counter:" + ProcessingCounter);
                 if (ProcessingCounter == 0)
                 {
-                    Console.WriteLine("unlocked");
+                    //Console.WriteLine("unlocked");
                     Monitor.Exit(GetStateLock);
                 }
-            }
+            }*/
         }
 
         internal void Processing()
         {
-            lock(ProcessLock)
+
+            RWL.AcquireReaderLock(Timeout.Infinite);
+            
+            /*
+            lock (ProcessLock)
             {
                 ProcessingCounter++;
-                Console.WriteLine("Starting Processing, current counter:" + ProcessingCounter);
+                //Console.WriteLine("Starting Processing, current counter:" + ProcessingCounter);
                 if (ProcessingCounter == 1)
                 {
-                    Console.WriteLine("locked");
+                    //Console.WriteLine("locked");
                     Monitor.Enter(GetStateLock);
                 }
             }
+            */
         }
     }
 

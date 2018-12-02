@@ -50,10 +50,11 @@ namespace Server
 
         public TSpaceMsg SMRProcessRequest(TSpaceMsg msg)
         {
-            Console.WriteLine("receiving requests");
             TSMan.CheckFreeze();
 
             TSMan.CheckDelay();
+
+            Console.WriteLine("client:" + msg.MsgView.ToString() + "server:" + TSMan.GetTotalView().ToString());
 
             TSpaceMsg response = new TSpaceMsg
             {
@@ -77,7 +78,6 @@ namespace Server
                 // Check if request as already been processed
                 if (TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
-                    Console.WriteLine("getting repeated");
                     response.Code = "Repeated";
                     return response;
                 }
@@ -279,24 +279,29 @@ namespace Server
 
         }
 
-        public SMRState GetSMRState()
+        public SMRState GetSMRState(string Url)
         {
 
             SMRState smr = new SMRState();
-            Monitor.Enter(TSpaceManager.GetStateLock);
-            try{
+            // Monitor.Enter(TSpaceManager.GetStateLock);
+            // try{
+            TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
+
                 smr.MessageQueue = MessageQueue;
                 smr.SequenceNumber = SequenceNumber;
+                
+                TSMan.AddToView(Url);
                 smr.ServerView = TSMan.GetTotalView();
 
                 smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
                 smr.TupleSpace = TSMan.GetTuples();
 
-            }
-            finally
-            {
-                Monitor.Exit(TSpaceManager.GetStateLock);
-            }
+            TSpaceManager.RWL.ReleaseWriterLock();
+            //}
+            //finally
+            //{
+            //    Monitor.Exit(TSpaceManager.GetStateLock);
+            //}
 
 
             return smr;
@@ -306,8 +311,8 @@ namespace Server
         {
             TSpaceMsg response;
 
-            Console.WriteLine("started processing");
-            Console.WriteLine(msg);
+            //Console.WriteLine("started processing");
+            //Console.WriteLine(msg);
 
             TSMan.Processing();
 
@@ -315,8 +320,8 @@ namespace Server
 
 
             TSMan.FinishedProcessing();
-            Console.WriteLine("finished processing");
-            Console.WriteLine("RESPONSE:" + response);
+            //Console.WriteLine("finished processing");
+            //Console.WriteLine("RESPONSE:" + response);
 
             return response;
         }

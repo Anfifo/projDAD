@@ -23,7 +23,7 @@ namespace Server
             int Port;
             string Name;
             List<String> Servers = new List<string>();
-            string serverid2 = " ";
+            string serverid2 = "none";
             List<ITuple> newState = new List<ITuple>();
             TSpaceServerSMR server = null;
             SMRState serverState = null;
@@ -63,12 +63,6 @@ namespace Server
                 serverid2 = args[3];
 
                 //get the remote object of the other server
-                if (algorithm.Equals("s")){
-                    server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
-                    Console.WriteLine("getting state from server");
-                    serverState = server.GetSMRState();
-                    Console.WriteLine("got the state" + serverState.ServerView.ToString());
-                 } 
                 //get the view from the other server
                 Console.WriteLine("Asked for view");
                 //newview = server.UpdateView();
@@ -106,7 +100,7 @@ namespace Server
             {
                 TSpaceServerSMR TS = null;
                 //checking if there is a previous stat
-                if (serverState != null)
+                if (!serverid2.Equals("none"))
                 {
                     Console.WriteLine("previous state exists");
                     TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay);
@@ -125,8 +119,12 @@ namespace Server
 
                 try
                 {
-                    if (serverState != null)
+                    if (!serverid2.Equals("none"))
                     {
+                        server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
+                        Console.WriteLine("getting state from server");
+                        serverState = server.GetSMRState(Url);
+                        Console.WriteLine("got the state" + serverState.ServerView.ToString());
                         Console.WriteLine("Setting previous state");
                         TS.SetSMRState(serverState);
                         Console.WriteLine("I defined this view:" + TS.UpdateView().ToString());
