@@ -76,7 +76,7 @@ namespace Server
                 // Check if request as already been processed
                 if (TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
-                    Console.WriteLine("getting repeated");
+                    //Console.WriteLine("getting repeated");
                     response.Code = "Repeated";
                     return response;
                 }
@@ -272,20 +272,19 @@ namespace Server
             TSMan.setView(smr.ServerView);
             TSMan.SetTuples(smr.TupleSpace);
             SequenceNumber = smr.SequenceNumber;
-            this.UpdateView();
 
         }
 
         public SMRState GetSMRState()
         {
             SMRState smr = new SMRState();
-
             smr.MessageQueue = MessageQueue;
             smr.SequenceNumber = SequenceNumber;
             smr.ServerView = TSMan.GetTotalView();
+
             smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
             smr.TupleSpace = TSMan.GetTuples();
-            
+
             return smr;
         }
     }

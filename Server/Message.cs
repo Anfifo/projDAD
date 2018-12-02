@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Server
 {
+    [Serializable]
     public class Message : IComparable<Message>
     {
         // Request operation message

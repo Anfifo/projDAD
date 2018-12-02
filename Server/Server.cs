@@ -128,8 +128,8 @@ namespace Server
                     if (serverState != null)
                     {
                         Console.WriteLine("Setting previous state");
-                        //TS.SetSMRState(serverState);
-                        //TS.UpdateView();
+                        TS.SetSMRState(serverState);
+                        Console.WriteLine("I defined this view:" + TS.UpdateView().ToString());
                     }
                     else
                     {
