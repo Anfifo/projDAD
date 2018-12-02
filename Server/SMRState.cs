@@ -13,9 +13,12 @@ namespace Server
     public class SMRState
     {
         
-        public static List<string> ProcessedRequests { get => ProcessedRequests; set => ProcessedRequests = value; }
+        public List<string> ProcessedRequests { get => ProcessedRequests; set => ProcessedRequests = value; }
         public int SequenceNumber { get => SequenceNumber; set => SequenceNumber = value; }
         public View ServerView { get => ServerView; set => ServerView = value; }
         public List<Message> MessageQueue { get => MessageQueue; set => MessageQueue = value; }
+        public List<ITuple> TupleSpace { get => TupleSpace; set => TupleSpace = value; }
+
+
     }
 }

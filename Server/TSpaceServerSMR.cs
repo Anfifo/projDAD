@@ -259,5 +259,23 @@ namespace Server
         public List<ITuple> GetTuples() => TSMan.TSpace.getAll();
 
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);
+
+        public void SetSMRState(SMRState srm)
+        {
+
+        }
+
+        public SMRState GetSMRState()
+        {
+            SMRState srm = new SMRState();
+
+            srm.MessageQueue = MessageQueue;
+            srm.SequenceNumber = SequenceNumber;
+            srm.ServerView = TSMan.GetTotalView();
+            srm.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
+            srm.TupleSpace = TSMan.GetTuples();
+
+            return null;
+        }
     }
 }
