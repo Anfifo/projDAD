@@ -16,9 +16,9 @@ namespace Server
         public TSpaceManager TSMan;
 
 
-        public TSpaceServerXL(String url, int _mindelay,int _maxdelay, View view)
+        public TSpaceServerXL(String url, int _mindelay,int _maxdelay)
         {
-            TSMan = new TSpaceManager(url, _mindelay, _maxdelay,view);
+            TSMan = new TSpaceManager(url, _mindelay, _maxdelay);
         }
 
         public View UpdateView() => TSMan.UpdateView();

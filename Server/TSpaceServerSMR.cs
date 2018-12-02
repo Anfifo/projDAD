@@ -30,9 +30,14 @@ namespace Server
         }
 
 
-        public TSpaceServerSMR(string url, int _mindelay,int _maxdelay, View view)
+        public TSpaceServerSMR(string url, int _mindelay,int _maxdelay)
         {
-            TSMan = new TSpaceManager(url, _mindelay, _maxdelay, view);
+            TSMan = new TSpaceManager(url, _mindelay, _maxdelay);
+        }
+
+        public TSpaceServerSMR(string url, int _mindelay, int _maxdelay,View view)
+        {
+            TSMan = new TSpaceManager(url, _mindelay, _maxdelay,view);
         }
 
         public bool Ping() => TSMan.Ping();
@@ -260,22 +265,28 @@ namespace Server
 
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);
 
-        public void SetSMRState(SMRState srm)
+        public void SetSMRState(SMRState smr)
         {
+            MessageQueue = smr.MessageQueue;
+            TSpaceManager.ProcessedRequests = smr.ProcessedRequests;
+            TSMan.setView(smr.ServerView);
+            TSMan.SetTuples(smr.TupleSpace);
+            SequenceNumber = smr.SequenceNumber;
+            this.UpdateView();
 
         }
 
         public SMRState GetSMRState()
         {
-            SMRState srm = new SMRState();
+            SMRState smr = new SMRState();
 
-            srm.MessageQueue = MessageQueue;
-            srm.SequenceNumber = SequenceNumber;
-            srm.ServerView = TSMan.GetTotalView();
-            srm.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
-            srm.TupleSpace = TSMan.GetTuples();
-
-            return null;
+            smr.MessageQueue = MessageQueue;
+            smr.SequenceNumber = SequenceNumber;
+            smr.ServerView = TSMan.GetTotalView();
+            smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
+            smr.TupleSpace = TSMan.GetTuples();
+            
+            return smr;
         }
     }
 }

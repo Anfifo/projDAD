@@ -44,7 +44,7 @@ namespace Server
         private static readonly Object FreezeLock = new object();
 
 
-        public TSpaceManager(String url, int _mindelay,int _maxdelay, View view)
+        public TSpaceManager(String url, int _mindelay, int _maxdelay,View view)
         {
             Console.WriteLine(" I am" + " " + url);
             MinDelay = _mindelay;
@@ -53,9 +53,21 @@ namespace Server
             ServerID = new Random().Next();
             ProcessedRequests = new List<string>();
             ServerView = view;
+            ServerView.Add(url);
             ServerView.ID++;
             URL = url;
-            ServerView.Add(URL);
+
+        }
+
+        public TSpaceManager(String url, int _mindelay,int _maxdelay)
+        {
+            Console.WriteLine(" I am" + " " + url);
+            MinDelay = _mindelay;
+            MaxDelay = _maxdelay;
+            TSpace = new TSpaceStorage();
+            ServerID = new Random().Next();
+            ProcessedRequests = new List<string>();
+            URL = url;
 
         }
 
@@ -79,12 +91,14 @@ namespace Server
         /// <returns>Current view of servers</returns>
         public View UpdateView()
         {
+            
             Console.WriteLine("Updating view");
             List<string> currentViewURLs = new List<string>();
             foreach (string serverUrl in ServerView.GetUrls())
             {
                 if (serverUrl.Equals(URL))
                 {
+                    Console.WriteLine("adding myself");
                     currentViewURLs.Add(serverUrl);
                     continue;
                 }
@@ -102,6 +116,7 @@ namespace Server
                     RemoveFromView(serverUrl);
                 }
             }
+            Console.WriteLine("done updating");
             return new View(currentViewURLs,ServerView.ID);
         }
 
@@ -223,5 +238,13 @@ namespace Server
             };
             return response;
         }
+
+        public void setView(View view)
+        {
+            ServerView = view;
+            ServerView.ID++;
+            ServerView.Add(URL);
+        }
     }
+
 }
