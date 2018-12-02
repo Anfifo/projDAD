@@ -93,6 +93,12 @@ namespace Client
                     SuggestView(msg.MsgView);
                     return false;
                 }
+
+                if (msg.MsgView.ID < ServerView.ID)
+                {
+                    Console.WriteLine("Request in old view");
+                    return false;
+                }
             }
             return true;
         }
@@ -105,6 +111,8 @@ namespace Client
                 SetNewView(SuggestedView);
                 SuggestedView = null;
                 InvalidView = false;
+                Console.WriteLine("Cleaning Acks cause of bad view");
+                AcksCounter = 0;
                 return true;
             }
 

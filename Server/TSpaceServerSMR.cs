@@ -62,7 +62,7 @@ namespace Server
                 RequestID = msg.RequestID,
                 MsgView = TSMan.GetTotalView()
             };
-
+            //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
             // Verifying View! Wrong view sends updated view
             if (!TSMan.ValidView(msg))
             {
@@ -80,6 +80,8 @@ namespace Server
                     if(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID < TSMan.ServerView.ID)
                     {
                         Console.WriteLine("THIS HAPPENED ????");
+                        Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID);
+                        Console.WriteLine(TSMan.ServerView.ID);
                         TSpaceManager.ProcessedRequests.UpdateView(msg.RequestID, TSMan.ServerView);
                         TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response;
                         if (resp == null)
@@ -92,6 +94,7 @@ namespace Server
                     }
                     else
                     {
+                        //Console.WriteLine("repeated");
                         response.Code = "Repeated";
                         return response;
                     }
@@ -192,8 +195,8 @@ namespace Server
                     response.Code = "OK";
                     if (response.Tuple == null)
                         Console.WriteLine("Match not Found");
-                    else
-                        Console.WriteLine("Match found");
+                    //else
+                        //Console.WriteLine("Match found");
                     break;
 
                 case "take1":
@@ -338,7 +341,7 @@ namespace Server
 
             TSMan.FinishedProcessing();
 
-            if(response.Code != "Repeated")
+            if(response.Code != "Repeated" && TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, response);
             //Console.WriteLine("finished processing");
             //Console.WriteLine("RESPONSE:" + response);

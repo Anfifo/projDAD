@@ -232,7 +232,9 @@ namespace Client
             TSpaceMsg response = del.EndInvoke(result);
 
             if (!AbstractClient.ValidView(response))
+            {
                 return;
+            }
                 
 
             if (response.Code.Equals("proposedSeq"))
@@ -244,6 +246,8 @@ namespace Client
                     // Store porposed sequence number
                     ProposedSeq.Add(response.SequenceNumber);
                     Interlocked.Increment(ref AcksCounter);
+                    Console.WriteLine("Changed acks counter value to " + " " + AcksCounter);
+                    Console.WriteLine(response);
                 }
             }
             
@@ -262,10 +266,11 @@ namespace Client
             if (!AbstractClient.ValidView(response))
                 return;
 
-            
+
             if (response.Code.Equals("ACK"))
             {
                 Interlocked.Increment(ref AcksCounter);
+                Console.WriteLine(response);
             }
         }
 
@@ -299,8 +304,10 @@ namespace Client
                 }
 
                 Interlocked.Increment(ref AcksCounter);
+                Console.WriteLine(response);
 
             }
+ 
         }
 
        
@@ -356,11 +363,12 @@ namespace Client
                    message.MsgView = GetCurrentView();
 
 
-                //Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
+                Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
                 if (AcksCounter > 3)
                 {
-                    Console.WriteLine("this happened?");
-                    //throw new Exception();
+                    Console.WriteLine("this happened?" + " " + "AcksCounter:" + AcksCounter + " " + "ViewCounter:" + " " + View.Count);
+
+                    throw new Exception();
                 }
             }
 
@@ -385,8 +393,10 @@ namespace Client
         /// <param name="asyncCallback">Callback function of the remote call.</param>
         private void Multicast(TSpaceMsg message, AsyncCallback asyncCallback)
         {
-            if(AbstractClient.CheckNeedUpdateView())
+            if (AbstractClient.CheckNeedUpdateView())
+            {
                 message.MsgView = GetCurrentView();
+            }
 
             RemoteAsyncDelegate remoteDel;
             foreach (ITSpaceServer server in View)
