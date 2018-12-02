@@ -20,15 +20,14 @@ namespace Server
         private Boolean Frozen = false;
 
         // Stores the id of the requests already processed
-        public static List<string> ProcessedRequests { get; set; }
+        //public static List<string> ProcessedRequests { get; set; }
+
+        public static TSLog ProcessedRequests;
 
         // URL of the server
         private readonly string URL;
-
-        // Stores the urls of all known servers
-        //private List<string> AllServersURLs;
-
-        private View ServerView;
+        
+        public View ServerView;
 
         private readonly int MinDelay;
 
@@ -42,12 +41,6 @@ namespace Server
 
         private static readonly Object FreezeLock = new object();
 
-        // Readers-Writters like lock System
-        public static readonly Object ProcessLock = new object();
-
-        public static readonly Object GetStateLock = new object();
-        private int ProcessingCounter;
-
         public static ReaderWriterLock RWL = new ReaderWriterLock();
 
 
@@ -58,7 +51,7 @@ namespace Server
             MaxDelay = _maxdelay;
             TSpace = new TSpaceStorage();
             ServerID = new Random().Next();
-            ProcessedRequests = new List<string>();
+            ProcessedRequests = new TSLog();
             ServerView = view;
             ServerView.Add(url);
             ServerView.ID++;
@@ -73,7 +66,7 @@ namespace Server
             MaxDelay = _maxdelay;
             TSpace = new TSpaceStorage();
             ServerID = new Random().Next();
-            ProcessedRequests = new List<string>();
+            ProcessedRequests = new TSLog();
             URL = url;
 
         }
@@ -256,38 +249,13 @@ namespace Server
         internal void FinishedProcessing()
         {
             RWL.ReleaseReaderLock();
-
-            /*
-            lock (ProcessLock)
-            {
-                ProcessingCounter--;
-                //Console.WriteLine("Done Processing, current counter:" + ProcessingCounter);
-                if (ProcessingCounter == 0)
-                {
-                    //Console.WriteLine("unlocked");
-                    Monitor.Exit(GetStateLock);
-                }
-            }*/
         }
 
         internal void Processing()
         {
-
             RWL.AcquireReaderLock(Timeout.Infinite);
-            
-            /*
-            lock (ProcessLock)
-            {
-                ProcessingCounter++;
-                //Console.WriteLine("Starting Processing, current counter:" + ProcessingCounter);
-                if (ProcessingCounter == 1)
-                {
-                    //Console.WriteLine("locked");
-                    Monitor.Enter(GetStateLock);
-                }
-            }
-            */
         }
+
     }
 
 }

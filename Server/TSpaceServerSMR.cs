@@ -19,6 +19,7 @@ namespace Server
         private static Object TakeLock = new Object();
 
         private static Object FreezeLock = new object();
+
         
         /// <summary>
         /// Ensures que object doesn't get cleaned while being served
@@ -54,8 +55,6 @@ namespace Server
 
             TSMan.CheckDelay();
 
-            Console.WriteLine("client:" + msg.MsgView.ToString() + "server:" + TSMan.GetTotalView().ToString());
-
             TSpaceMsg response = new TSpaceMsg
             {
                 ProcessID = TSMan.ServerID,
@@ -67,7 +66,7 @@ namespace Server
             // Verifying View! Wrong view sends updated view
             if (!TSMan.ValidView(msg))
             {
-                Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
+                //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
                 //Console.WriteLine("Wrong View");
                 return TSMan.CreateBadViewReply(msg);
             }
@@ -78,18 +77,36 @@ namespace Server
                 // Check if request as already been processed
                 if (TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
-                    response.Code = "Repeated";
-                    return response;
+                    if(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID < TSMan.ServerView.ID)
+                    {
+                        Console.WriteLine("THIS HAPPENED ????");
+                        TSpaceManager.ProcessedRequests.UpdateView(msg.RequestID, TSMan.ServerView);
+                        TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response;
+                        if (resp == null)
+                        {
+                            Console.WriteLine("NULL RESPONSE SAVED");
+                            return null ;
+                        }
+
+                        return resp;
+                    }
+                    else
+                    {
+                        response.Code = "Repeated";
+                        return response;
+                    }
+
                 }
-                Console.WriteLine("Processed RequestID " + msg.RequestID);
+                //Console.WriteLine("Processed RequestID " + msg.RequestID);
 
                 // Add sequence number of request to processed requests
-                TSpaceManager.ProcessedRequests.Add(msg.RequestID);
+
+                TSpaceManager.ProcessedRequests.Add(msg);
 
             }
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.RequestID + ")");
+            //Console.WriteLine("Processing Request " + command + " (seq = " + msg.RequestID + ")");
             
             Message update = null;
             // Sequence number proposal request
@@ -140,7 +157,7 @@ namespace Server
 
             Monitor.Exit(MessageQueue);
 
-            Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
+            //Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
 
             // Execute the operation
 
@@ -320,6 +337,9 @@ namespace Server
 
 
             TSMan.FinishedProcessing();
+
+            if(response.Code != "Repeated")
+                TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, response);
             //Console.WriteLine("finished processing");
             //Console.WriteLine("RESPONSE:" + response);
 

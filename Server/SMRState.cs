@@ -13,7 +13,7 @@ namespace Server
     public class SMRState
     {
 
-        public List<string> ProcessedRequests;
+        public TSLog ProcessedRequests;
         public int SequenceNumber;
         public View ServerView;
         public List<Message> MessageQueue;

@@ -356,8 +356,12 @@ namespace Client
                    message.MsgView = GetCurrentView();
 
 
-                Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
-
+                //Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
+                if (AcksCounter > 3)
+                {
+                    Console.WriteLine("this happened?");
+                    //throw new Exception();
+                }
             }
 
             int agreedSeq;
@@ -367,7 +371,7 @@ namespace Client
                 agreedSeq = ProposedSeq.Max();
             }
 
-            Console.WriteLine("Message " + message.OperationID + " (agreedSeq = " + agreedSeq + ")");
+            //Console.WriteLine("Message " + message.OperationID + " (agreedSeq = " + agreedSeq + ")");
 
             return agreedSeq;
         }

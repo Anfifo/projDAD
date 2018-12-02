@@ -58,7 +58,7 @@ namespace Server
                 }
 
                 // Add request ID to processed requests
-                TSpaceManager.ProcessedRequests.Add(msg.OperationID);
+                TSpaceManager.ProcessedRequests.Add(msg);
             }
 
             string command = msg.Code;
