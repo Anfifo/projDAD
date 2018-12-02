@@ -67,7 +67,7 @@ namespace Server
                     server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
                     Console.WriteLine("getting state from server");
                     serverState = server.GetSMRState();
-                    Console.WriteLine("got the state");
+                    Console.WriteLine("got the state" + serverState.ServerView.ToString());
                  } 
                 //get the view from the other server
                 Console.WriteLine("Asked for view");

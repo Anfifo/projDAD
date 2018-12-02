@@ -48,8 +48,9 @@ namespace Server
 
         public void Unfreeze() => TSMan.Unfreeze();
 
-        public TSpaceMsg ProcessRequest(TSpaceMsg msg)
+        public TSpaceMsg SMRProcessRequest(TSpaceMsg msg)
         {
+            Console.WriteLine("receiving requests");
             TSMan.CheckFreeze();
 
             TSMan.CheckDelay();
@@ -69,14 +70,14 @@ namespace Server
                 //Console.WriteLine("Wrong View");
                 return TSMan.CreateBadViewReply(msg);
             }
-             
+
 
             lock (TSpaceManager.ProcessedRequests)
             {
                 // Check if request as already been processed
                 if (TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
-                    //Console.WriteLine("getting repeated");
+                    Console.WriteLine("getting repeated");
                     response.Code = "Repeated";
                     return response;
                 }
@@ -87,9 +88,9 @@ namespace Server
 
             }
 
-        string command = msg.Code;
+            string command = msg.Code;
             Console.WriteLine("Processing Request " + command + " (seq = " + msg.RequestID + ")");
-
+            
             Message update = null;
             // Sequence number proposal request
             if (command.Equals("proposeSeq"))
@@ -112,7 +113,6 @@ namespace Server
                     MessageQueue.Add(newMessage);
                     MessageQueue.Sort();
                 }
-                Console.WriteLine("returned");
                 return response;
             }
             // Message with agreed sequence number
@@ -131,7 +131,12 @@ namespace Server
             Monitor.Enter(MessageQueue);
 
             while (MessageQueue.Count == 0 || !MessageQueue[0].MessageID.Equals(msg.OperationID))
+            {
                 Monitor.Wait(MessageQueue);
+
+            }
+
+   
 
             Monitor.Exit(MessageQueue);
 
@@ -225,8 +230,7 @@ namespace Server
                     Monitor.PulseAll(MessageQueue);
                 }
             }
-
-
+            
             return response;
 
         }
@@ -277,15 +281,44 @@ namespace Server
 
         public SMRState GetSMRState()
         {
-            SMRState smr = new SMRState();
-            smr.MessageQueue = MessageQueue;
-            smr.SequenceNumber = SequenceNumber;
-            smr.ServerView = TSMan.GetTotalView();
 
-            smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
-            smr.TupleSpace = TSMan.GetTuples();
+            SMRState smr = new SMRState();
+            Monitor.Enter(TSpaceManager.GetStateLock);
+            try{
+                smr.MessageQueue = MessageQueue;
+                smr.SequenceNumber = SequenceNumber;
+                smr.ServerView = TSMan.GetTotalView();
+
+                smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
+                smr.TupleSpace = TSMan.GetTuples();
+
+            }
+            finally
+            {
+                Monitor.Exit(TSpaceManager.GetStateLock);
+            }
+
 
             return smr;
+        }
+
+        public TSpaceMsg ProcessRequest(TSpaceMsg msg)
+        {
+            TSpaceMsg response;
+
+            Console.WriteLine("started processing");
+            Console.WriteLine(msg);
+
+            TSMan.Processing();
+
+            response = SMRProcessRequest(msg);
+
+
+            TSMan.FinishedProcessing();
+            Console.WriteLine("finished processing");
+            Console.WriteLine("RESPONSE:" + response);
+
+            return response;
         }
     }
 }

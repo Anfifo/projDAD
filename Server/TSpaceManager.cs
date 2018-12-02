@@ -38,11 +38,15 @@ namespace Server
 
         public bool Verbose = false;
 
-
         delegate void DelegateDVRS(string s);
 
         private static readonly Object FreezeLock = new object();
 
+        // Readers-Writters like lock System
+        public static readonly Object ProcessLock = new object();
+
+        public static readonly Object GetStateLock = new object();
+        private int ProcessingCounter;
 
         public TSpaceManager(String url, int _mindelay, int _maxdelay,View view)
         {
@@ -244,6 +248,34 @@ namespace Server
             ServerView = view;
             ServerView.ID++;
             ServerView.Add(URL);
+        }
+
+        internal void FinishedProcessing()
+        {
+            lock (ProcessLock)
+            {
+                ProcessingCounter--;
+                Console.WriteLine("Done Processing, current counter:" + ProcessingCounter);
+                if (ProcessingCounter == 0)
+                {
+                    Console.WriteLine("unlocked");
+                    Monitor.Exit(GetStateLock);
+                }
+            }
+        }
+
+        internal void Processing()
+        {
+            lock(ProcessLock)
+            {
+                ProcessingCounter++;
+                Console.WriteLine("Starting Processing, current counter:" + ProcessingCounter);
+                if (ProcessingCounter == 1)
+                {
+                    Console.WriteLine("locked");
+                    Monitor.Enter(GetStateLock);
+                }
+            }
         }
     }
 
