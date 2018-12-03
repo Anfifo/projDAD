@@ -45,8 +45,17 @@ namespace Server
 
             channel = new TcpChannel(Port);
             ChannelServices.RegisterChannel(channel, true);
+            List<string> serversURL = new List<string>();
+            serversURL.Add("tcp://localhost:50001/S");
+            serversURL.Add("tcp://localhost:50002/S");
+            serversURL.Add("tcp://localhost:50003/S");
 
-            if (args.Length == 4)
+            serversURL.Remove(Url);
+
+            TSpaceSeverAdvSMR advancedServer = new TSpaceSeverAdvSMR(serversURL, Url);
+            RemotingServices.Marshal(advancedServer, Name, typeof(ITSpaceServer));
+
+           /* if (args.Length == 4)
             {
 
                 MinDelay = Int32.Parse(args[1]);
@@ -119,7 +128,7 @@ namespace Server
 
                 }
 
-            }
+            }*/
 
 
 
