@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using CommonTypes;
+using System.Timers;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
@@ -43,6 +44,8 @@ namespace Server
 
         public static ReaderWriterLock RWL = new ReaderWriterLock();
 
+        private System.Timers.Timer viewUpdateTimer;
+
 
         public TSpaceManager(String url, int _mindelay, int _maxdelay,View view)
         {
@@ -56,10 +59,12 @@ namespace Server
             ServerView.Add(url);
             ServerView.ID++;
             URL = url;
+            InitUpdateViewTimer();
+
 
         }
 
-        public TSpaceManager(String url, int _mindelay,int _maxdelay)
+        public TSpaceManager(String url, int _mindelay, int _maxdelay)
         {
             Console.WriteLine(" I am" + " " + url);
             MinDelay = _mindelay;
@@ -69,7 +74,25 @@ namespace Server
             ProcessedRequests = new TSLog();
             URL = url;
 
+            InitUpdateViewTimer();
+            
         }
+
+        private void InitUpdateViewTimer()
+        {
+            viewUpdateTimer = new System.Timers.Timer(2000);
+            viewUpdateTimer.AutoReset = true;
+            viewUpdateTimer.Elapsed += new ElapsedEventHandler(PeriodicViewUpdate);
+            viewUpdateTimer.Start();
+        }
+
+        public void PeriodicViewUpdate(object sender, ElapsedEventArgs e)
+        {
+            UpdateView();
+
+        }
+
+        
 
         public void CheckFreeze()
         {
@@ -91,32 +114,33 @@ namespace Server
         /// <returns>Current view of servers</returns>
         public View UpdateView()
         {
-            
-            Console.WriteLine("Updating view");
+            //TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
+
+            //Console.WriteLine("Updating view");
             List<string> currentViewURLs = new List<string>();
             foreach (string serverUrl in ServerView.GetUrls())
             {
+                // Dont check itself
                 if (serverUrl.Equals(URL))
                 {
-                    Console.WriteLine("adding myself");
                     currentViewURLs.Add(serverUrl);
                     continue;
                 }
+                //Verify if connection is valid
                 if (TryConnection(serverUrl))
                 {
-                    Console.WriteLine("added to view" + serverUrl);
+                    //Console.WriteLine("Adding to view: " + serverUrl);
                     AddToView(serverUrl);
                     currentViewURLs.Add(serverUrl);
                 }
                 else
                 {
-                    for(int i=0;i<5;i++)
-                        Console.WriteLine("removing from view" + serverUrl);
-
                     RemoveFromView(serverUrl);
                 }
             }
-            Console.WriteLine("done updating");
+            //TSpaceManager.RWL.ReleaseWriterLock();
+
+
             return new View(currentViewURLs,ServerView.ID);
         }
 
@@ -134,10 +158,10 @@ namespace Server
             try
             {
                 // Ping server
-                Console.WriteLine("i pinged" + " " + serverUrl);
+                //Console.WriteLine("i pinged" + " " + serverUrl);
                 if (server != null && server.Ping(URL))
                 {
-                    Console.WriteLine("Alive:  " + serverUrl);
+                    //Console.WriteLine("Alive:  " + serverUrl);
                     return true;
                 }
 
@@ -157,7 +181,7 @@ namespace Server
         /// <param name="serverURL">Server URL</param>
         public bool Ping(string serverURL)
         {
-            Console.WriteLine("received in ping and adding:" + serverURL);
+            //Console.WriteLine("received in ping and adding:" + serverURL);
             AddToView(serverURL);
             return true;
         }
@@ -201,17 +225,22 @@ namespace Server
         {
             if (!ServerView.Contains(url))
             {
+                Console.WriteLine("Adding server: " + url);
                 ServerView.Add(url);
                 ServerView.ID ++;
             }
+            Console.WriteLine("View updated to: " + ServerView.ID);
         }
         public void RemoveFromView(string url)
         {
+            Console.WriteLine("Remove from view: " + url);
             if (ServerView.Contains(url))
             {
                 ServerView.Remove(url);
                 ServerView.ID++;
             }
+            Console.WriteLine("View updated to: " + ServerView.ID);
+
         }
 
         public bool ValidView(TSpaceMsg msg)
@@ -242,7 +271,7 @@ namespace Server
         public void setView(View view)
         {
             ServerView = view;
-            //ServerView.ID++;
+            
 
         }
 

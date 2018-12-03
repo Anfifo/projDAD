@@ -380,6 +380,7 @@ namespace Client
             {
                 Console.WriteLine("Update to " + GetCurrentView());
                 message.MsgView = GetCurrentView();
+                Console.WriteLine("Send...");
             }
 
             //Console.WriteLine("Sending " + message.Code + " in view " + message.MsgView);
@@ -389,9 +390,14 @@ namespace Client
             {
                 // Create delegate for remote method
                 remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
-
-                // Call remote method
-                remoteDel.BeginInvoke(message, asyncCallback, null);
+                try
+                {
+                    // Call remote method
+                    remoteDel.BeginInvoke(message, asyncCallback, null);
+                }catch(Exception e)
+                {
+                    Console.WriteLine("Failed to send");
+                }
             }
         }
     }

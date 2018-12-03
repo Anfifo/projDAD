@@ -306,6 +306,7 @@ namespace Server
                 TSMan.setView(smr.ServerView);
                 TSMan.SetTuples(smr.TupleSpace);
                 SequenceNumber = smr.SequenceNumber;
+                Console.WriteLine("Starting with view: " + smr.ServerView.ID);
             }
 
         }
@@ -314,11 +315,11 @@ namespace Server
         {
 
             SMRState smr = new SMRState();
-            // Monitor.Enter(TSpaceManager.GetStateLock);
-            // try{
+           
             TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
 
-                smr.MessageQueue = MessageQueue;
+
+            smr.MessageQueue = MessageQueue;
                 smr.SequenceNumber = SequenceNumber;
                 
                 TSMan.AddToView(Url);
@@ -328,12 +329,6 @@ namespace Server
                 smr.TupleSpace = TSMan.GetTuples();
 
             TSpaceManager.RWL.ReleaseWriterLock();
-            //}
-            //finally
-            //{
-            //    Monitor.Exit(TSpaceManager.GetStateLock);
-            //}
-
 
             return smr;
         }
