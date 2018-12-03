@@ -96,6 +96,8 @@ namespace Server
                     {
                         //Console.WriteLine("repeated");
                         response.Code = "Repeated";
+
+                        Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response);
                         return response;
                     }
 
@@ -152,6 +154,7 @@ namespace Server
 
             while (MessageQueue.Count == 0 || !MessageQueue[0].MessageID.Equals(msg.OperationID))
             {
+                Console.WriteLine("stuck at while");
                 Monitor.Wait(MessageQueue);
 
             }
@@ -251,6 +254,7 @@ namespace Server
                 }
             }
             
+
             return response;
 
         }
@@ -341,8 +345,12 @@ namespace Server
 
             TSMan.FinishedProcessing();
 
-            if(response.Code != "Repeated" && TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
+            if(response.Code != "Repeated" && response.Code != "badView" && TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
+            {
+
                 TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, response);
+                Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
+            }
             //Console.WriteLine("finished processing");
             //Console.WriteLine("RESPONSE:" + response);
 

@@ -96,7 +96,7 @@ namespace Client
 
                 if (msg.MsgView.ID < ServerView.ID)
                 {
-                    Console.WriteLine("Request in old view");
+                    Console.WriteLine("Response in old view");
                     return false;
                 }
             }
@@ -105,15 +105,18 @@ namespace Client
 
         public static bool CheckNeedUpdateView()
         {
-            if (InvalidView && SuggestedView != null)
+            lock (ServerView)
             {
-                DebugPrint("Updating view to :" +  SuggestedView.ID);
-                SetNewView(SuggestedView);
-                SuggestedView = null;
-                InvalidView = false;
-                Console.WriteLine("Cleaning Acks cause of bad view");
-                AcksCounter = 0;
-                return true;
+                if (InvalidView && SuggestedView != null)
+                {
+                    DebugPrint("Updating view to :" +  SuggestedView.ID);
+                    SetNewView(SuggestedView);
+                    SuggestedView = null;
+                    InvalidView = false;
+                    Console.WriteLine("Cleaning Acks cause of bad view");
+                    AcksCounter = 0;
+                    return true;
+                }
             }
 
             return false;

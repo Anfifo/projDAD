@@ -70,7 +70,7 @@ namespace Client
                 this.Multicast(request, remoteCallback);
 
             }
-
+            AcksCounter = 0;
             Console.WriteLine("Add " + (++AddCounter) + ": OK");
         }
 
@@ -147,7 +147,7 @@ namespace Client
 
 
             }
-            
+            AcksCounter = 0;
 
             Console.WriteLine("Read " + (++ReadCounter) + ": OK");
 
@@ -246,8 +246,8 @@ namespace Client
                     // Store porposed sequence number
                     ProposedSeq.Add(response.SequenceNumber);
                     Interlocked.Increment(ref AcksCounter);
-                    Console.WriteLine("Changed acks counter value to " + " " + AcksCounter);
-                    Console.WriteLine(response);
+                    Console.WriteLine("PROP Changed acks counter value to " + " " + AcksCounter + " by: "+ response );
+                   
                 }
             }
             
@@ -270,7 +270,8 @@ namespace Client
             if (response.Code.Equals("ACK"))
             {
                 Interlocked.Increment(ref AcksCounter);
-                Console.WriteLine(response);
+
+                Console.WriteLine("AcksCallBack Changed acks counter value to " + " " + AcksCounter + " by: " + response);
             }
         }
 
@@ -304,7 +305,7 @@ namespace Client
                 }
 
                 Interlocked.Increment(ref AcksCounter);
-                Console.WriteLine(response);
+                Console.WriteLine("READ Changed acks counter value to " + " " + AcksCounter + " by: " + response);
 
             }
  
