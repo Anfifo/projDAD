@@ -1,3 +1,3 @@
-begin-repeat 150
-read <"a",DADTestA(1,"b")>
+begin-repeat 25
+take <"a",DADTestA(1,"b")>
 end-repeat

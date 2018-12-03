@@ -80,6 +80,7 @@ namespace Client
         /// <returns></returns>
         public ITuple Read(ITuple template)
         {
+            Console.WriteLine("Read started");
             if (View.Count == 0)
             {
                 Console.WriteLine("No tuple space servers available.");
@@ -89,7 +90,6 @@ namespace Client
             // Create message
             TSpaceMsg request = new TSpaceMsg();
             request.Code = "read";
-            request.MsgView = GetCurrentView();
             request.Tuple = template;
             
 
@@ -116,6 +116,9 @@ namespace Client
                 // Get the sequence number of the request in the view
                 request.SequenceNumber = this.GetSequenceNumber(request.OperationID);
 
+                request.MsgView = GetCurrentView();
+
+
                 AcksCounter = 0;
 
                 
@@ -136,21 +139,12 @@ namespace Client
                     }
 
                 }
-
-
-
-
                 lock (LockRef)
                 {
                     if (Tuple != null)
                         matchFound = true;
                 }
-
-
-
             }
-            
-
             Console.WriteLine("Read " + (++ReadCounter) + ": OK");
 
             // Return after the first replica answers
@@ -175,7 +169,6 @@ namespace Client
             TSpaceMsg request = new TSpaceMsg();
                 request.Code = "take1";
                 request.Tuple = template;
-                request.MsgView = GetCurrentView();
 
 
             // Create remote callback
@@ -198,6 +191,9 @@ namespace Client
                 
                 // Create unique identifier for the round
                 request.RequestID = ClientID + "_" + (RequestCounter++);
+
+                request.MsgView = GetCurrentView();
+
 
 
                 //Clear acks from last request
@@ -251,13 +247,9 @@ namespace Client
                     // Store porposed sequence number
                     ProposedSeq.Add(response.SequenceNumber);
                     Interlocked.Increment(ref AcksCounter);
-                    //Console.WriteLine("PROP Changed acks counter value to " + " " + AcksCounter + " by: "+ response );
                    
                 }
             }
-            if (response.Code.Equals("Repeated"))
-                Console.WriteLine("client getting repeated in proposecallback");
-
         }
 
         /// <summary>
@@ -277,11 +269,7 @@ namespace Client
             if (response.Code.Equals("ACK"))
             {
                 Interlocked.Increment(ref AcksCounter);
-
-                //Console.WriteLine("AcksCallBack Changed acks counter value to " + " " + AcksCounter + " by: " + response);
             }
-            if (response.Code.Equals("Repeated"))
-                Console.WriteLine("client getting repeated in ackscallback");
         }
 
         private static void ReadCallback(IAsyncResult result)
@@ -314,12 +302,7 @@ namespace Client
                 }
 
                 Interlocked.Increment(ref AcksCounter);
-                //Console.WriteLine("READ Changed acks counter value to " + " " + AcksCounter + " by: " + response);
-
-            }
-            if (response.Code.Equals("Repeated"))
-                Console.WriteLine("client getting repeated in readcallback");
- 
+            } 
         }
 
        
@@ -347,7 +330,6 @@ namespace Client
             message.MsgView = GetCurrentView();
 
 
-            RemoteAsyncDelegate remoteDel;
             // Create local callback
             AsyncCallback asyncCallback = new AsyncCallback(SMR_Client.PropesedSeqCallback);
 
@@ -361,30 +343,18 @@ namespace Client
             // Send message to all replicas until all have proposed a sequence number
             while(AcksCounter < View.Count)
             {
-                foreach (ITSpaceServer server in View)
-                {
+                this.Multicast(message, asyncCallback);
 
-                    // Create delegate for remote method
-                    remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
-
-                    // Call remote method
-                    remoteDel.BeginInvoke(message, asyncCallback, null);
-                }
-
-                if (AbstractClient.CheckNeedUpdateView())
-                   message.MsgView = GetCurrentView();
-
-
-                Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
-          /*          if (AcksCounter > 3)
+              
+                if (AcksCounter > 3)
                     {
                         Console.WriteLine(message.RequestID+message.Code+message.SequenceNumber);
                         Console.WriteLine("this happened?" + " " + "AcksCounter:" + AcksCounter + " " + "ViewCounter:" + " " + View.Count);
 
                         throw new Exception();
-                    } */
+                    } 
             }
-            Console.WriteLine("decided a proposedseq");
+            
             int agreedSeq;
             lock (ProposedSeq)
             {
@@ -392,7 +362,7 @@ namespace Client
                 agreedSeq = ProposedSeq.Max();
             }
 
-            //Console.WriteLine("Message " + message.OperationID + " (agreedSeq = " + agreedSeq + ")");
+            Console.WriteLine("Message " + message.OperationID + " (agreedSeq = " + agreedSeq + ")");
 
             return agreedSeq;
         }
@@ -408,8 +378,11 @@ namespace Client
         {
             if (AbstractClient.CheckNeedUpdateView())
             {
+                Console.WriteLine("Update to " + GetCurrentView());
                 message.MsgView = GetCurrentView();
             }
+
+            //Console.WriteLine("Sending " + message.Code + " in view " + message.MsgView);
 
             RemoteAsyncDelegate remoteDel;
             foreach (ITSpaceServer server in View)

@@ -62,27 +62,29 @@ namespace Server
                 RequestID = msg.RequestID,
                 MsgView = TSMan.GetTotalView()
             };
+
             //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
             // Verifying View! Wrong view sends updated view
-                if (!TSMan.ValidView(msg))
-                {
-                    //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
-                    //Console.WriteLine("Wrong View");
-                    return TSMan.CreateBadViewReply(msg);
-                }
+            if (!TSMan.ValidView(msg))
+            {
+                //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
+                Console.WriteLine("Wrong View ( s = " + TSMan.ServerView + "; c = " + msg.MsgView + " )" );
+                return TSMan.CreateBadViewReply(msg);
+            }
 
             lock (TSpaceManager.ProcessedRequests)
             {
                 // Check if request as already been processed
                 if (TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
+                    // Check if it was processed in a previous viwew
                     if(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID < TSMan.ServerView.ID)
                     {
                         if (TSpaceManager.ProcessedRequests.Log.Count > 150)
                             TSpaceManager.ProcessedRequests.Log.RemoveRange(0, 100);
-                        Console.WriteLine("THIS HAPPENED ????");
+                        Console.WriteLine("Processed in previous view");
                         Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID);
-                        Console.WriteLine(TSMan.ServerView.ID);
+                        //Console.WriteLine(TSMan.ServerView.ID);
                         TSpaceManager.ProcessedRequests.UpdateView(msg.RequestID, TSMan.ServerView);
                         TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response;
                         if (resp == null)
@@ -98,13 +100,13 @@ namespace Server
                         //Console.WriteLine("repeated");
                         response.Code = "Repeated";
 
-                        Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response);
+                        //Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response);
                         return response;
                     }
 
                 }
-                //Console.WriteLine("Processed RequestID " + msg.RequestID);
-
+                Console.WriteLine("Starting processing of request " + msg.RequestID);
+            
                 // Add sequence number of request to processed requests
 
                 TSpaceManager.ProcessedRequests.Add(msg);
@@ -118,7 +120,7 @@ namespace Server
             // Sequence number proposal request
             if (command.Equals("proposeSeq"))
             {
-
+                Console.WriteLine("Propose request received " + msg.OperationID);
                 // Increment sequence number
                 Interlocked.Increment(ref SequenceNumber);
                 response.SequenceNumber = SequenceNumber;
@@ -136,6 +138,8 @@ namespace Server
                     MessageQueue.Add(newMessage);
                     MessageQueue.Sort();
                 }
+
+                Console.WriteLine("Return propose answer" + msg.OperationID);
                 return response;
             }
             // Message with agreed sequence number
@@ -152,19 +156,14 @@ namespace Server
             }
             // Wait for message to be in the head of the queue
             Monitor.Enter(MessageQueue);
-
             while (MessageQueue.Count == 0 || !MessageQueue[0].MessageID.Equals(msg.OperationID))
             {
                 //Console.WriteLine("stuck at while");
                 Monitor.Wait(MessageQueue);
-
             }
-
-   
-
             Monitor.Exit(MessageQueue);
 
-            //Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
+            Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
 
             // Execute the operation
 
@@ -258,7 +257,7 @@ namespace Server
                     Monitor.PulseAll(MessageQueue);
                 }
             }
-            
+            Console.WriteLine("Return response " + msg.OperationID);
 
             return response;
 
@@ -355,7 +354,7 @@ namespace Server
                 if (response.Code != "Repeated" && response.Code != "badView" && TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
                     TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, response);
-                    Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
+                    //Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
                 }
 
             }

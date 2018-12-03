@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using CommonTypes;
-using System.Runtime.Remoting.Messaging;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
-using System.Linq;
-using System.Threading;
 
 namespace Client
 {
@@ -82,7 +79,6 @@ namespace Client
 
                 if(msg.MsgView == null)
                 {
-                    Console.WriteLine("NO VIEW SENT WITH MESSAGE!!");
                     return false;
                 }
 
@@ -96,7 +92,6 @@ namespace Client
 
                 if (msg.MsgView.ID < ServerView.ID)
                 {
-                    Console.WriteLine("Response in old view");
                     return false;
                 }
             }
@@ -109,11 +104,11 @@ namespace Client
             {
                 if (InvalidView && SuggestedView != null)
                 {
-                    DebugPrint("Updating view to :" +  SuggestedView.ID);
+                    //DebugPrint("Updating view to :" +  SuggestedView.ID);
                     SetNewView(SuggestedView);
                     SuggestedView = null;
                     InvalidView = false;
-                    Console.WriteLine("Cleaning Acks cause of bad view");
+                    Console.WriteLine("Cleaning Acks because of bad view: " + AcksCounter);
                     AcksCounter = 0;
                     return true;
                 }
@@ -125,7 +120,7 @@ namespace Client
 
         public static void SetNewView(View view)
         {
-            DebugPrint("Setting view to:" + view);
+            Console.WriteLine("Setting view to:" + view);
             //Clear previous view
             View.Clear();
 
@@ -139,8 +134,9 @@ namespace Client
                 server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
 
                 // Check if its a valid reference
-                View.Add(server);
-                Console.WriteLine("Sucessfully connected to " + serverUrl);
+                if(server != null)
+                    View.Add(server);
+               
             }
             
             Console.WriteLine("View count = " + View.Count);
@@ -177,7 +173,8 @@ namespace Client
         }
         public static void DebugPrint(string text)
         {
-            Console.WriteLine(text);
+
+           // Console.WriteLine(text);
         }
 
     }
