@@ -138,6 +138,8 @@ namespace Client
 
                 }
 
+                
+
                 lock (LockRef)
                 {
                     if (Tuple != null)
@@ -147,7 +149,7 @@ namespace Client
 
 
             }
-            AcksCounter = 0;
+            
 
             Console.WriteLine("Read " + (++ReadCounter) + ": OK");
 
@@ -162,16 +164,18 @@ namespace Client
         /// <returns>Tuple matching the template</returns>
         public ITuple Take(ITuple template)
         {
+            
             if (View.Count == 0)
             {
                 Console.WriteLine("No tuple space servers available.");
                 return null;
             }
             // Create message
+
             TSpaceMsg request = new TSpaceMsg();
-            request.Code = "take1";
-            request.Tuple = template;
-            request.MsgView = GetCurrentView();
+                request.Code = "take1";
+                request.Tuple = template;
+                request.MsgView = GetCurrentView();
 
 
             // Create remote callback
@@ -246,7 +250,7 @@ namespace Client
                     // Store porposed sequence number
                     ProposedSeq.Add(response.SequenceNumber);
                     Interlocked.Increment(ref AcksCounter);
-                    Console.WriteLine("PROP Changed acks counter value to " + " " + AcksCounter + " by: "+ response );
+                    //Console.WriteLine("PROP Changed acks counter value to " + " " + AcksCounter + " by: "+ response );
                    
                 }
             }
@@ -271,7 +275,7 @@ namespace Client
             {
                 Interlocked.Increment(ref AcksCounter);
 
-                Console.WriteLine("AcksCallBack Changed acks counter value to " + " " + AcksCounter + " by: " + response);
+                //Console.WriteLine("AcksCallBack Changed acks counter value to " + " " + AcksCounter + " by: " + response);
             }
         }
 
@@ -305,7 +309,7 @@ namespace Client
                 }
 
                 Interlocked.Increment(ref AcksCounter);
-                Console.WriteLine("READ Changed acks counter value to " + " " + AcksCounter + " by: " + response);
+                //Console.WriteLine("READ Changed acks counter value to " + " " + AcksCounter + " by: " + response);
 
             }
  
@@ -324,7 +328,7 @@ namespace Client
         private int GetSequenceNumber(string id)
         {
            
-            Console.WriteLine("Message " + id + " : request proposed sequence number");
+            //Console.WriteLine("Message " + id + " : request proposed sequence number");
 
             // Create request message
             TSpaceMsg message = new TSpaceMsg();
@@ -364,7 +368,7 @@ namespace Client
                    message.MsgView = GetCurrentView();
 
 
-                Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
+                //Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
                 if (AcksCounter > 3)
                 {
                     Console.WriteLine("this happened?" + " " + "AcksCounter:" + AcksCounter + " " + "ViewCounter:" + " " + View.Count);

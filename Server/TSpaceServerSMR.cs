@@ -64,13 +64,12 @@ namespace Server
             };
             //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
             // Verifying View! Wrong view sends updated view
-            if (!TSMan.ValidView(msg))
-            {
-                //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
-                //Console.WriteLine("Wrong View");
-                return TSMan.CreateBadViewReply(msg);
-            }
-
+                if (!TSMan.ValidView(msg))
+                {
+                    //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
+                    //Console.WriteLine("Wrong View");
+                    return TSMan.CreateBadViewReply(msg);
+                }
 
             lock (TSpaceManager.ProcessedRequests)
             {
@@ -97,7 +96,7 @@ namespace Server
                         //Console.WriteLine("repeated");
                         response.Code = "Repeated";
 
-                        Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response);
+                        //Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response);
                         return response;
                     }
 
@@ -154,7 +153,7 @@ namespace Server
 
             while (MessageQueue.Count == 0 || !MessageQueue[0].MessageID.Equals(msg.OperationID))
             {
-                Console.WriteLine("stuck at while");
+                //Console.WriteLine("stuck at while");
                 Monitor.Wait(MessageQueue);
 
             }
@@ -295,11 +294,14 @@ namespace Server
 
         public void SetSMRState(SMRState smr)
         {
-            MessageQueue = smr.MessageQueue;
-            TSpaceManager.ProcessedRequests = smr.ProcessedRequests;
-            TSMan.setView(smr.ServerView);
-            TSMan.SetTuples(smr.TupleSpace);
-            SequenceNumber = smr.SequenceNumber;
+            lock (TSpaceManager.ProcessedRequests)
+            {
+                MessageQueue = smr.MessageQueue;
+                TSpaceManager.ProcessedRequests = smr.ProcessedRequests;
+                TSMan.setView(smr.ServerView);
+                TSMan.SetTuples(smr.TupleSpace);
+                SequenceNumber = smr.SequenceNumber;
+            }
 
         }
 
@@ -342,14 +344,16 @@ namespace Server
 
             response = SMRProcessRequest(msg);
 
-
             TSMan.FinishedProcessing();
 
-            if(response.Code != "Repeated" && response.Code != "badView" && TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
+            lock (TSpaceManager.ProcessedRequests)
             {
+                if (response.Code != "Repeated" && response.Code != "badView" && TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
+                {
+                    TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, response);
+                    //Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
+                }
 
-                TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, response);
-                Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
             }
             //Console.WriteLine("finished processing");
             //Console.WriteLine("RESPONSE:" + response);
