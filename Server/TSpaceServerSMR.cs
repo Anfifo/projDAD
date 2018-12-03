@@ -78,6 +78,8 @@ namespace Server
                 {
                     if(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID < TSMan.ServerView.ID)
                     {
+                        if (TSpaceManager.ProcessedRequests.Log.Count > 150)
+                            TSpaceManager.ProcessedRequests.Log.RemoveRange(0, 100);
                         Console.WriteLine("THIS HAPPENED ????");
                         Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID);
                         Console.WriteLine(TSMan.ServerView.ID);
@@ -218,8 +220,12 @@ namespace Server
                             // Delete it
                             TSMan.TSpace.Take2(response.Tuple);
                         }
+
+                        
                     }
+
                     response.Code = "OK";
+
 
                     break;
 
@@ -233,10 +239,10 @@ namespace Server
                 // Operation exclusive of the XL Tuple Space
                 case "releaseLocks":
 
+                    lock(TakeLock)
+                        response.Code = "ERR";
                     Console.WriteLine("Current Tuple Space not in XL mode");
-                    response.Code = "ERR";
-
-
+                    
                     break;
                 default:
                     Console.WriteLine("Invalid command.");

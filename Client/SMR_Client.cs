@@ -138,7 +138,9 @@ namespace Client
 
                 }
 
-                
+                AcksCounter = 0;
+
+
 
                 lock (LockRef)
                 {
@@ -211,6 +213,8 @@ namespace Client
                     this.Multicast(request, remoteCallback);
                 }
 
+                AcksCounter = 0;
+
                 // Return if there is a match
                 // Repeat otherwise
                 lock (LockRef)
@@ -243,7 +247,7 @@ namespace Client
 
             if (response.Code.Equals("proposedSeq"))
             {
-                Console.WriteLine("Proposed Seq");
+                //Console.WriteLine("Proposed Seq");
 
                 lock (ProposedSeq)
                 {
@@ -368,15 +372,17 @@ namespace Client
                    message.MsgView = GetCurrentView();
 
 
-                //Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
-                if (AcksCounter > 3)
-                {
-                    Console.WriteLine("this happened?" + " " + "AcksCounter:" + AcksCounter + " " + "ViewCounter:" + " " + View.Count);
+                Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
+                    if (AcksCounter > 3)
+                    {
+                        Console.WriteLine(message.RequestID+message.Code+message.SequenceNumber);
+                        Console.WriteLine("this happened?" + " " + "AcksCounter:" + AcksCounter + " " + "ViewCounter:" + " " + View.Count);
 
-                    throw new Exception();
-                }
+                        throw new Exception();
+                    } 
             }
-
+            Console.WriteLine("decided a proposedseq");
+            AcksCounter = 0;
             int agreedSeq;
             lock (ProposedSeq)
             {

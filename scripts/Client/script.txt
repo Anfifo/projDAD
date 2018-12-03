@@ -1,5 +1,3 @@
-begin-repeat 500
+begin-repeat 200
 add <"a",DADTestA(1,"b")>
-read <"a",DADTestA(1,"b")>
-take <"a",DADTestA(1,"b")>
 end-repeat
