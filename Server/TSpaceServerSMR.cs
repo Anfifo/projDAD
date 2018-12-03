@@ -92,13 +92,13 @@ namespace Server
                         }
 
                         return resp;
-                    }
+                    } 
                     else
                     {
                         //Console.WriteLine("repeated");
                         response.Code = "Repeated";
 
-                        //Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response);
+                        Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response);
                         return response;
                     }
 
@@ -350,17 +350,19 @@ namespace Server
 
             response = SMRProcessRequest(msg);
 
-            TSMan.FinishedProcessing();
-
             lock (TSpaceManager.ProcessedRequests)
             {
                 if (response.Code != "Repeated" && response.Code != "badView" && TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
                     TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, response);
-                    //Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
+                    Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
                 }
 
             }
+
+            TSMan.FinishedProcessing();
+
+            
             //Console.WriteLine("finished processing");
             //Console.WriteLine("RESPONSE:" + response);
 

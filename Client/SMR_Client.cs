@@ -70,7 +70,6 @@ namespace Client
                 this.Multicast(request, remoteCallback);
 
             }
-            AcksCounter = 0;
             Console.WriteLine("Add " + (++AddCounter) + ": OK");
         }
 
@@ -138,7 +137,6 @@ namespace Client
 
                 }
 
-                AcksCounter = 0;
 
 
 
@@ -213,7 +211,6 @@ namespace Client
                     this.Multicast(request, remoteCallback);
                 }
 
-                AcksCounter = 0;
 
                 // Return if there is a match
                 // Repeat otherwise
@@ -258,7 +255,9 @@ namespace Client
                    
                 }
             }
-            
+            if (response.Code.Equals("Repeated"))
+                Console.WriteLine("client getting repeated in proposecallback");
+
         }
 
         /// <summary>
@@ -281,6 +280,8 @@ namespace Client
 
                 //Console.WriteLine("AcksCallBack Changed acks counter value to " + " " + AcksCounter + " by: " + response);
             }
+            if (response.Code.Equals("Repeated"))
+                Console.WriteLine("client getting repeated in ackscallback");
         }
 
         private static void ReadCallback(IAsyncResult result)
@@ -316,6 +317,8 @@ namespace Client
                 //Console.WriteLine("READ Changed acks counter value to " + " " + AcksCounter + " by: " + response);
 
             }
+            if (response.Code.Equals("Repeated"))
+                Console.WriteLine("client getting repeated in readcallback");
  
         }
 
@@ -373,16 +376,15 @@ namespace Client
 
 
                 Console.WriteLine("Acks Counter:" + AcksCounter + " View Count:" + View.Count);
-                    if (AcksCounter > 3)
+          /*          if (AcksCounter > 3)
                     {
                         Console.WriteLine(message.RequestID+message.Code+message.SequenceNumber);
                         Console.WriteLine("this happened?" + " " + "AcksCounter:" + AcksCounter + " " + "ViewCounter:" + " " + View.Count);
 
                         throw new Exception();
-                    } 
+                    } */
             }
             Console.WriteLine("decided a proposedseq");
-            AcksCounter = 0;
             int agreedSeq;
             lock (ProposedSeq)
             {
