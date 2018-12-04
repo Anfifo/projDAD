@@ -26,7 +26,7 @@ namespace Server
             string serverid2 = "none";
             List<ITuple> newState = new List<ITuple>();
             TSpaceServerSMR server = null;
-            SMRState serverState = null;
+            TSpaceState serverState = null;
             View newview = new View();
 
             //Type of algorithm for server

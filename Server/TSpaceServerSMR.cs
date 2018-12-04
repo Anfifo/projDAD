@@ -297,7 +297,7 @@ namespace Server
 
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);
 
-        public void SetSMRState(SMRState smr)
+        public void SetSMRState(TSpaceState smr)
         {
             lock (TSpaceManager.ProcessedRequests)
             {
@@ -311,22 +311,22 @@ namespace Server
 
         }
 
-        public SMRState GetSMRState(string Url)
+        public TSpaceState GetSMRState(string Url)
         {
 
-            SMRState smr = new SMRState();
+            TSpaceState smr = new TSpaceState();
            
             TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
 
 
             smr.MessageQueue = MessageQueue;
-                smr.SequenceNumber = SequenceNumber;
+            smr.SequenceNumber = SequenceNumber;
                 
-                TSMan.AddToView(Url);
-                smr.ServerView = TSMan.GetTotalView();
+            TSMan.AddToView(Url);
+            smr.ServerView = TSMan.GetTotalView();
 
-                smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
-                smr.TupleSpace = TSMan.GetTuples();
+            smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
+            smr.TupleSpace = TSMan.GetTuples();
 
             TSpaceManager.RWL.ReleaseWriterLock();
 

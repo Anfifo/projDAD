@@ -52,6 +52,33 @@ namespace Server
             }
         }
 
+        static public List<int> GetKeys()
+        {
+            return LockedTuples.Keys.ToList();
+        }
+
+        // the order of the values in the Dictionary.ValueCollection is unspecified, 
+        // but it is the same order as the associated keys in the Dictionary.KeyCollection returned by the Keys property.
+        static public List<List<ITuple>> GetValues()
+        {
+            return LockedTuples.Values.ToList();
+        }
+
+        static public void SetContent(List<int> keys, List<List<ITuple>> values)
+        {
+            if(keys != null && values != null)
+            {
+                LockedTuples = ListsToDictionary(keys, values);
+                LockedTuplesList = new List<ITuple>(values.SelectMany(x => x));
+            }
+        }
+
+        static public IDictionary <int, List<ITuple>> ListsToDictionary(List<int> keys, List<List<ITuple>> values)
+        {
+            return Enumerable.Range(0, keys.Count).ToDictionary(i => keys[i], i => values[i]);
+
+        }
+
     }
 
 }

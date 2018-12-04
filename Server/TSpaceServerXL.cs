@@ -21,7 +21,10 @@ namespace Server
             TSMan = new TSpaceManager(url, _mindelay, _maxdelay);
         }
 
-        public View UpdateView() => TSMan.UpdateView();
+        public TSpaceServerXL(string url, int _mindelay, int _maxdelay, View view)
+        {
+            TSMan = new TSpaceManager(url, _mindelay, _maxdelay, view);
+        }
 
         private bool TryConnection(string serverUrl) => TSMan.TryConnection(serverUrl);
 
@@ -33,15 +36,26 @@ namespace Server
 
         public void Unfreeze() => TSMan.Freeze();
 
-        public TSpaceMsg ProcessRequest(TSpaceMsg msg)
+        public TSpaceMsg XLProcessRequest(TSpaceMsg msg)
         {
 
             TSMan.CheckFreeze();
             TSMan.CheckDelay();
 
-            TSpaceMsg response = new TSpaceMsg();
-            response.ProcessID = TSMan.ServerID;
-            response.OperationID = msg.OperationID;
+            TSpaceMsg response = new TSpaceMsg
+            {
+                ProcessID = TSMan.ServerID,
+                OperationID = msg.OperationID,
+                MsgView = TSMan.GetTotalView()
+            };
+
+            // Verifying View! Wrong view sends updated view
+            if (!TSMan.ValidView(msg))
+            {
+                //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
+                Console.WriteLine("Wrong View ( s = " + TSMan.ServerView + "; c = " + msg.MsgView + " )");
+                return TSMan.CreateBadViewReply(msg);
+            }
 
             if (TSMan.Verbose)
                 Console.WriteLine(msg);
@@ -52,23 +66,46 @@ namespace Server
                 // Check if request as already been processed
                 if (TSpaceManager.ProcessedRequests.Contains(msg.OperationID))
                 {
-                    response.Code = "Repeated";
-                    return response;
+                    // Check if it was processed in a previous viwew
+                    if (TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID < TSMan.ServerView.ID)
+                    {
+                        if (TSpaceManager.ProcessedRequests.Log.Count > 150)
+                            TSpaceManager.ProcessedRequests.Log.RemoveRange(0, 100);
+                        Console.WriteLine("Processed in previous view");
+                        Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID);
+                        //Console.WriteLine(TSMan.ServerView.ID);
+                        TSpaceManager.ProcessedRequests.UpdateView(msg.OperationID, TSMan.ServerView);
+                        TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Response;
+                        if (resp == null)
+                        {
+                            Console.WriteLine("NULL RESPONSE SAVED");
+                            return null;
+                        }
+
+                        return resp;
+                    }
+                    else
+                    {
+                        //Console.WriteLine("repeated");
+                        response.Code = "Repeated";
+
+                        //Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Response);
+                        return response;
+                    }
 
                 }
+                Console.WriteLine("Starting processing of request " + msg.OperationID);
 
-                // Add request ID to processed requests
+                // Add sequence number of request to processed requests
+
                 TSpaceManager.ProcessedRequests.Add(msg);
+
             }
 
             string command = msg.Code;
             Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
 
 
-            if (!TSMan.ValidView(msg))
-            {
-                return TSMan.CreateBadViewReply(msg);
-            }
 
 
             switch (command)
@@ -140,5 +177,74 @@ namespace Server
 
 
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);
+
+
+        public View UpdateView() => TSMan.UpdateView();
+        
+
+        public void SetXLState(TSpaceState smr)
+        {
+            lock (TSpaceManager.ProcessedRequests)
+            {
+                TSpaceManager.ProcessedRequests = smr.ProcessedRequests;
+                TSMan.setView(smr.ServerView);
+                TSMan.SetTuples(smr.TupleSpace);
+                TSLockHandler.SetContent(smr.LockedTuplesKeys, smr.LockedTuplesValues);
+                Console.WriteLine("Starting with view: " + smr.ServerView.ID);
+            }
+
+        }
+
+        public TSpaceState GetSMRState(string Url)
+        {
+
+            TSpaceState smr = new TSpaceState();
+
+            TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
+
+
+            smr.LockedTuplesKeys = TSLockHandler.GetKeys();
+            smr.LockedTuplesValues = TSLockHandler.GetValues();
+
+            TSMan.AddToView(Url);
+            smr.ServerView = TSMan.GetTotalView();
+
+            smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
+            smr.TupleSpace = TSMan.GetTuples();
+
+            TSpaceManager.RWL.ReleaseWriterLock();
+
+            return smr;
+        }
+
+        public TSpaceMsg ProcessRequest(TSpaceMsg msg)
+        {
+            TSpaceMsg response;
+
+            //Console.WriteLine("started processing");
+            //Console.WriteLine(msg);
+
+            TSMan.Processing();
+
+            response = XLProcessRequest(msg);
+
+            lock (TSpaceManager.ProcessedRequests)
+            {
+                if (response.Code != "Repeated" && response.Code != "badView" && TSpaceManager.ProcessedRequests.Contains(msg.OperationID))
+                {
+                    TSpaceManager.ProcessedRequests.UpdateResponse(msg.OperationID, response);
+                    //Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
+                }
+
+            }
+
+            TSMan.FinishedProcessing();
+
+
+            //Console.WriteLine("finished processing");
+            //Console.WriteLine("RESPONSE:" + response);
+
+            return response;
+        }
     }
 }

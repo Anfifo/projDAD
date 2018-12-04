@@ -10,7 +10,7 @@ namespace Server
     /// A view is a list of the current alive servers 
     /// </summary>
     [Serializable]
-    public class SMRState
+    public class TSpaceState
     {
 
         public TSLog ProcessedRequests;
@@ -18,7 +18,8 @@ namespace Server
         public View ServerView;
         public List<Message> MessageQueue;
         public List<ITuple> TupleSpace;
-
+        public List<int> LockedTuplesKeys;
+        public List<List<ITuple>> LockedTuplesValues;
 
     }
 }

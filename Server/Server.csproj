@@ -54,7 +54,7 @@
     <Compile Include="ITSpace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
-    <Compile Include="SMRState.cs" />
+    <Compile Include="TSpaceState.cs" />
     <Compile Include="LogEntry.cs" />
   </ItemGroup>
   <ItemGroup>
