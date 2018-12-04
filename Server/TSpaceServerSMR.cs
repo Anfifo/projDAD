@@ -297,7 +297,7 @@ namespace Server
 
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);
 
-        public void SetSMRState(TSpaceState smr)
+        public void SetTSpaceState(TSpaceState smr)
         {
             lock (TSpaceManager.ProcessedRequests)
             {
@@ -311,7 +311,7 @@ namespace Server
 
         }
 
-        public TSpaceState GetSMRState(string Url)
+        public TSpaceState GetTSpaceState(string Url)
         {
 
             TSpaceState smr = new TSpaceState();

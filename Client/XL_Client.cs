@@ -10,6 +10,9 @@ namespace Client
     class XL_Client : AbstractClient, ITSpaceAPI
     {
 
+        // Stores the matching tuples returned by all tuple space servers
+        private static List<List<ITuple>> MatchingTuples = new List<List<ITuple>>();
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -19,6 +22,15 @@ namespace Client
         {
             Console.WriteLine("XL Client id = " + ClientID);
 
+        }
+
+        public override void ClearCallBacksResults()
+        {
+            AcksCounter = 0;
+            lock (MatchingTuples)
+            {
+                MatchingTuples.Clear();
+            }
         }
 
         /// <summary>
@@ -38,12 +50,13 @@ namespace Client
             message.Code = "add";
             message.Tuple = tuple;
             message.OperationID = ClientID + "_" + (++SequenceNumber);
+            message.MsgView = GetCurrentView();
 
             //Clear acks
             AcksCounter = 0;
 
             // Create local callback
-            AsyncCallback remoteCallback = new AsyncCallback(XL_Client.AddCallback);
+            AsyncCallback remoteCallback = new AsyncCallback(AddCallback);
 
             // Repeat request until all replicas have acknowledged receipt
             while (AcksCounter < View.Count)
@@ -73,10 +86,11 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "read";
             message.Tuple = template;
+            message.MsgView = GetCurrentView();
 
 
             // Create local callback.
-            AsyncCallback remoteCallback = new AsyncCallback(XL_Client.ReadCallback);
+            AsyncCallback remoteCallback = new AsyncCallback(ReadCallback);
 
             // Clear previous answers
             lock (LockRef)
@@ -161,10 +175,11 @@ namespace Client
             message.Tuple = selectedTuple;
             message.ProcessID = ClientID;
             message.OperationID = ClientID + "_" + (++SequenceNumber);
+            message.MsgView = GetCurrentView();
 
 
             // Create local callback.
-            AsyncCallback remoteCallback = new AsyncCallback(XL_Client.AddCallback);
+            AsyncCallback remoteCallback = new AsyncCallback(AddCallback);
 
             //Clear acks
             AcksCounter = 0;
@@ -195,6 +210,7 @@ namespace Client
             message.Tuple = template;
             message.ProcessID = ClientID;
             message.OperationID = ClientID + "_" + (++SequenceNumber);
+            message.MsgView = GetCurrentView();
 
 
             // Clear responses from previour requests
@@ -205,7 +221,7 @@ namespace Client
             }
 
             // Create local callback.
-            AsyncCallback remoteCallback = new AsyncCallback(XL_Client.Take1Callback);
+            AsyncCallback remoteCallback = new AsyncCallback(Take1Callback);
 
             // Repeat until all replicas have responded
             while (AcksCounter < View.Count)
@@ -213,8 +229,9 @@ namespace Client
                 //Send multicast take request to all members of the view
                 this.Multicast(message, remoteCallback);
             }
+            Console.WriteLine("Callback MatchingTSize = " + MatchingTuples.Count);
             Console.WriteLine("Callback count = " + MatchingTuples.Count);
-
+            Console.WriteLine("View Count = " + View.Count);
 
             List<ITuple> intersection;
 
@@ -243,7 +260,7 @@ namespace Client
                 AcksCounter = 0;
 
                 // Create remote callback
-                remoteCallback = new AsyncCallback(XL_Client.AddCallback);
+                remoteCallback = new AsyncCallback(AddCallback);
 
                 // Repeat until all replicas have acknowledged release
                 while (AcksCounter < View.Count)
@@ -268,11 +285,14 @@ namespace Client
         /// Callback function for the acknowledgements.
         /// </summary>
         /// <param name="result">Async callback result.</param>
-        public static void AddCallback(IAsyncResult result)
+        public void AddCallback(IAsyncResult result)
         {
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
+
+            if (!ValidView(response))
+                return;
 
             if (response.Code.Equals("ACK"))
             {
@@ -284,13 +304,16 @@ namespace Client
         /// Callback function for the read operation.
         /// </summary>
         /// <param name="result">Async callback result.</param>
-        public static void ReadCallback(IAsyncResult result)
+        public void ReadCallback(IAsyncResult result)
         {
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
 
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
-         
+
+            if (!ValidView(response))
+                return;
+
             // Stores the tuple returned 
             // and the OperationID of the server that answered
             if (response.Code.Equals("OK"))
@@ -311,14 +334,18 @@ namespace Client
         /// Callback function for the phase 1 of the take operation.
         /// </summary>
         /// <param name="result">Async calback result.</param>
-        public static void Take1Callback(IAsyncResult result)
+        public void Take1Callback(IAsyncResult result)
         {
             
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
             
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
-            
+
+
+            if (!ValidView(response))
+                return;
+
 
             // Stores the list of matching tuples 
             // and the OperationID of the server that answered
@@ -351,22 +378,29 @@ namespace Client
         /// <param name="asyncCallback">Callback function of the remote call.</param>
         private void Multicast(TSpaceMsg message, AsyncCallback asyncCallback)
         {
-            RemoteAsyncDelegate remoteDel;
-
-            if (verbose)
+            if (CheckNeedUpdateView())
             {
-                Console.WriteLine(message);
-                Console.WriteLine("Sending:");
+                Console.WriteLine("Update to " + GetCurrentView());
+                message.MsgView = GetCurrentView();
+                Console.WriteLine("Send...");
             }
 
+            //Console.WriteLine("Sending " + message.Code + " in view " + message.MsgView);
 
+            RemoteAsyncDelegate remoteDel;
             foreach (ITSpaceServer server in View)
             {
                 // Create delegate for remote method
                 remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
-
-                // Call remote method
-                remoteDel.BeginInvoke(message, asyncCallback, null);
+                try
+                {
+                    // Call remote method
+                    remoteDel.BeginInvoke(message, asyncCallback, null);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Failed to send");
+                }
             }
         }
     }

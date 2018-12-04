@@ -182,7 +182,7 @@ namespace Server
         public View UpdateView() => TSMan.UpdateView();
         
 
-        public void SetXLState(TSpaceState smr)
+        public void SetTSpaceState(TSpaceState smr)
         {
             lock (TSpaceManager.ProcessedRequests)
             {
@@ -195,7 +195,7 @@ namespace Server
 
         }
 
-        public TSpaceState GetSMRState(string Url)
+        public TSpaceState GetTSpaceState(string Url)
         {
 
             TSpaceState smr = new TSpaceState();

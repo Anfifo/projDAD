@@ -76,8 +76,8 @@ namespace Server
 
             if (algorithm == "x") {
                 TSpaceServerXL server = null;
-                //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);
                 TSpaceServerXL TS = null;
+                //checking if there is a previous stat
                 if (!serverid2.Equals("none"))
                 {
                     Console.WriteLine("previous state exists");
@@ -88,21 +88,19 @@ namespace Server
                     Console.WriteLine("no previous state exists");
                     TS = new TSpaceServerXL(Url, MinDelay, MaxDelay, newview);
                 }
+
                 RemotingServices.Marshal(TS, Name, typeof(TSpaceServerXL));
-
-                //set the tuples of the new server
-                TS.SetTuples(newState);
-
+                //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
                 try
                 {
                     if (!serverid2.Equals("none"))
                     {
                         server = (TSpaceServerXL)Activator.GetObject(typeof(TSpaceServerXL), serverid2);
                         Console.WriteLine("getting state from server");
-                        serverState = server.GetSMRState(Url);
+                        serverState = server.GetTSpaceState(Url);
                         Console.WriteLine("got the state" + serverState.ServerView.ToString());
                         Console.WriteLine("Setting previous state");
-                        TS.SetXLState(serverState);
+                        TS.SetTSpaceState(serverState);
                         Console.WriteLine("I defined this view:" + TS.UpdateView().ToString());
                     }
                     else
@@ -110,15 +108,12 @@ namespace Server
                         Console.WriteLine("no previous state need to update");
                         TS.UpdateView();
                     }
-
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
                     Console.WriteLine(e.GetType().ToString());
                     Console.WriteLine(e.StackTrace);
-
-
                 }
             }
             if (algorithm == "s")
@@ -139,36 +134,29 @@ namespace Server
 
                 RemotingServices.Marshal(TS, Name, typeof(TSpaceServerSMR));
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
-
-                //set the tuples of the new server
-                
-
                 try
                 {
                     if (!serverid2.Equals("none"))
                     {
                         server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
                         Console.WriteLine("getting state from server");
-                        serverState = server.GetSMRState(Url);
+                        serverState = server.GetTSpaceState(Url);
                         Console.WriteLine("got the state" + serverState.ServerView.ToString());
                         Console.WriteLine("Setting previous state");
-                        TS.SetSMRState(serverState);
-                        Console.WriteLine("I defined this view:" + TS.UpdateView().ToString());
+                        TS.SetTSpaceState(serverState);
+                        Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
                     }
                     else
                     {
                         Console.WriteLine("no previous state need to update");
                         TS.UpdateView();
                     }
-
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
                     Console.WriteLine(e.GetType().ToString());
                     Console.WriteLine(e.StackTrace);
-
-
                 }
 
             }
