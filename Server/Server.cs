@@ -25,7 +25,6 @@ namespace Server
             List<String> Servers = new List<string>();
             string serverid2 = "none";
             List<ITuple> newState = new List<ITuple>();
-            TSpaceServerSMR server = null;
             TSpaceState serverState = null;
             View newview = new View();
 
@@ -76,18 +75,44 @@ namespace Server
 
 
             if (algorithm == "x") {
+                TSpaceServerXL server = null;
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);
-                TSpaceServerXL TS = new TSpaceServerXL(Url, MinDelay,MaxDelay);
-                RemotingServices.Marshal(TS, Name, typeof(ITSpaceServer));
+                TSpaceServerXL TS = null;
+                if (!serverid2.Equals("none"))
+                {
+                    Console.WriteLine("previous state exists");
+                    TS = new TSpaceServerXL(Url, MinDelay, MaxDelay);
+                }
+                else
+                {
+                    Console.WriteLine("no previous state exists");
+                    TS = new TSpaceServerXL(Url, MinDelay, MaxDelay, newview);
+                }
+                RemotingServices.Marshal(TS, Name, typeof(TSpaceServerXL));
 
                 //set the tuples of the new server
                 TS.SetTuples(newState);
 
                 try
                 {
-                    TS.UpdateView();
-                    
-                }catch(Exception e)
+                    if (!serverid2.Equals("none"))
+                    {
+                        server = (TSpaceServerXL)Activator.GetObject(typeof(TSpaceServerXL), serverid2);
+                        Console.WriteLine("getting state from server");
+                        serverState = server.GetSMRState(Url);
+                        Console.WriteLine("got the state" + serverState.ServerView.ToString());
+                        Console.WriteLine("Setting previous state");
+                        TS.SetXLState(serverState);
+                        Console.WriteLine("I defined this view:" + TS.UpdateView().ToString());
+                    }
+                    else
+                    {
+                        Console.WriteLine("no previous state need to update");
+                        TS.UpdateView();
+                    }
+
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
                     Console.WriteLine(e.GetType().ToString());
@@ -98,6 +123,7 @@ namespace Server
             }
             if (algorithm == "s")
             {
+                TSpaceServerSMR server = null;
                 TSpaceServerSMR TS = null;
                 //checking if there is a previous stat
                 if (!serverid2.Equals("none"))
