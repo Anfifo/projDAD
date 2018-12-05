@@ -1,8 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
@@ -25,6 +22,7 @@ namespace Server
             List<String> Servers = new List<string>();
             string serverid2 = "none";
             List<ITuple> newState = new List<ITuple>();
+
             View newview = new View();
             string mode = "b";
 
@@ -36,8 +34,6 @@ namespace Server
             {
                 Url = args[0];
                 algorithm = args[1];
-                // Todo -> receive servers list as args
-
             }
 
             Port = getPortFromURL(Url);
@@ -66,7 +62,6 @@ namespace Server
 
                 //get the remote object of the other server
                 //get the view from the other server
-                Console.WriteLine("Asked for view");
                 //newview = server.UpdateView();
                 //Console.WriteLine(newview.ToString());
                 //get the tuples from the other server
@@ -135,6 +130,7 @@ namespace Server
             }
             if (algorithm == "s")
             {
+
                 TSpaceServerSMR server = null;
                 TSpaceServerSMR TS = null;
                 //checking if there is a previous stat
@@ -150,20 +146,21 @@ namespace Server
                 {
                     Console.WriteLine("no previous state exists");
                     if (mode == "a")
-                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, newview);
+                        TS = new TSpaceAdvServerSMR(Url, MinDelay, MaxDelay, newview);
                     if (mode == "b")
                         TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, newview);
                 }
 
-                RemotingServices.Marshal(TS, Name, typeof(TSpaceServerSMR));
+                RemotingServices.Marshal(TS, Name, typeof(TSpaceAdvServerSMR));
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
+
                 try
                 {
                     if (!serverid2.Equals("none"))
                     {
 
                         if (mode == "a")
-                            server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
+                            server = (TSpaceAdvServerSMR)Activator.GetObject(typeof(TSpaceAdvServerSMR), serverid2);
                         if (mode == "b")
                             server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
 
@@ -176,11 +173,11 @@ namespace Server
                       */
 
                         TS.changeState(server, Url);
+
                     }
                     else
                     {
-                        Console.WriteLine("no previous state need to update");
-                        TS.UpdateView();
+                        Console.WriteLine("No previous state");
                     }
                 }
                 catch (Exception e)

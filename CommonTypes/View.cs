@@ -2,6 +2,7 @@
 using CommonTypes;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace CommonTypes
 {
@@ -16,7 +17,11 @@ namespace CommonTypes
 
         public int ID { get; set; }
 
+        public int Count { get => Servers.Count;  }
+
+
         List<ITuple> State = new List<ITuple>();
+
 
         public View()
         {
@@ -38,27 +43,74 @@ namespace CommonTypes
             ID = id;
         }
 
+        public void Lock()
+        {
+            Monitor.Enter(Servers);
+        }
+
+        public void UnLock()
+        {
+            Monitor.Exit(Servers);
+        }
+        public List<String> DeepUrlsCopy()
+        {
+            lock(Servers){
+                List<String> serversUrl = new List<string>();
+                foreach (string s in Servers)
+                {
+                    serversUrl.Add(string.Copy(s));
+                }
+                return serversUrl;
+            }
+        }
+
 
         public List<String> GetUrls()
         {
-            return Servers;
+            lock (Servers)
+            {
+                return Servers;
+            }
         }
+
+        public List<ITSpaceServer> GetProxys(string url)
+        {
+            lock (Servers)
+            {
+                List<ITSpaceServer> servers = new List<ITSpaceServer>();
+            
+                foreach (string serverUrl in Servers)
+                {
+                    if(!serverUrl.Equals(url))
+                        servers.Add((ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl));
+                }
+                return servers;
+            }
+        }
+
 
         public void Remove(String url)
         {
-            Servers.Remove(url);
+            lock (Servers)
+            {
+                Servers.Remove(url);
+            }
         }
 
 
 
         override public string ToString()
         {
-            string content = "";
-            foreach(String server in Servers)
+            lock (Servers)
             {
-                content +=" <" +server +" id:"+ ID +"> ";
+                string content = "";
+                foreach (String server in Servers)
+                {
+                    content += " <" + server + " id:" + ID + "> ";
+                }
+
+                return content;
             }
-            return content;
         }
 
         /// <summary>
@@ -68,13 +120,19 @@ namespace CommonTypes
         /// <param name="server"></param>
         public void Add(String server)
         {
-            if(!Servers.Contains(server))
-                Servers.Add(server);
+            lock (Servers)
+            {
+                if (!Servers.Contains(server))
+                    Servers.Add(server);
+            }
         }
 
         public bool Contains(String server)
         {
-            return Servers.Contains(server);
+            lock (Servers)
+            {
+                return Servers.Contains(server);
+            }
         }
 
         /// <summary>
@@ -85,21 +143,23 @@ namespace CommonTypes
         public override bool Equals(object obj)
         {
             List<string> item = obj as List<String>;
-
-            if (item == null || item.Count != this.Servers.Count)
+            lock (Servers)
             {
-                return false;
-            }
-
-            foreach (String server in item)
-            {
-                if (!Servers.Contains(server))
+                if (item == null || item.Count != this.Servers.Count)
                 {
                     return false;
                 }
-            }
 
-            return true;
+                foreach (String server in item)
+                {
+                    if (!Servers.Contains(server))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
 
         /// <summary>

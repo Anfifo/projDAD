@@ -52,8 +52,14 @@ namespace CommonTypes
         {
             return "\t* Code: " + Code + "  SeqNr: "+ SequenceNumber + "  PID:" + ProcessID +
                 " OpID: " + OperationID + "\n\r\t* ReqID: " + RequestID + " Tup: " + (Tuple != null) + 
-                " Tup[]: " + (Tuples != null) + "\n\r \t* " + (MsgView != null? " ViewID :" + MsgView.ID : " no view");
+                " Tup[]: " + (Tuples != null) + "\n\r \t* " + "Suspected Dead: " +
+                (SuspectedDead != null ? SuspectedDead + " -> " + (Dead) : " none") + "\n\r \t* " +
+                 (MsgView != null? " ViewID :" + MsgView.ID : " no view");
         }
+
+        public string SuspectedDead { get; set; }
+
+        public bool Dead { get; set; }
 
     }
 }

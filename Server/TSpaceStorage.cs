@@ -68,7 +68,7 @@ namespace Server
             return list;
         }
 
-        public void Take2(ITuple tuple)
+        public Boolean Take2(ITuple tuple)
         {
             for( int i = 0; i < TS.Count; i++)
             {
@@ -76,10 +76,10 @@ namespace Server
                 {
                     lock(TS)
                         TS.RemoveAt(i);
-
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
     }
 
