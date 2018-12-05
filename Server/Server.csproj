@@ -47,6 +47,8 @@
     <Compile Include="TSLog.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="TSLockHandler.cs" />
+    <Compile Include="TSpaceAdvManager.cs" />
+    <Compile Include="TSpaceAdvServerSMR.cs" />
     <Compile Include="TSpaceServerSMR.cs" />
     <Compile Include="TSpaceManager.cs" />
     <Compile Include="TSpaceStorage.cs" />

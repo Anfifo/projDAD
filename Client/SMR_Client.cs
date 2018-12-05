@@ -345,14 +345,6 @@ namespace Client
             {
                 this.Multicast(message, asyncCallback);
 
-              
-                if (AcksCounter > 3)
-                    {
-                        Console.WriteLine(message.RequestID+message.Code+message.SequenceNumber);
-                        Console.WriteLine("this happened?" + " " + "AcksCounter:" + AcksCounter + " " + "ViewCounter:" + " " + View.Count);
-
-                        throw new Exception();
-                    } 
             }
             
             int agreedSeq;

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
@@ -25,7 +22,7 @@ namespace Server
             List<String> Servers = new List<string>();
             string serverid2 = "none";
             List<ITuple> newState = new List<ITuple>();
-            TSpaceServerSMR server = null;
+            TSpaceAdvServerSMR server = null;
             TSpaceState serverState = null;
             View newview = new View();
 
@@ -37,8 +34,6 @@ namespace Server
             {
                 Url = args[0];
                 algorithm = args[1];
-                // Todo -> receive servers list as args
-
             }
 
             Port = getPortFromURL(Url);
@@ -64,7 +59,6 @@ namespace Server
 
                 //get the remote object of the other server
                 //get the view from the other server
-                Console.WriteLine("Asked for view");
                 //newview = server.UpdateView();
                 //Console.WriteLine(newview.ToString());
                 //get the tuples from the other server
@@ -98,43 +92,43 @@ namespace Server
             }
             if (algorithm == "s")
             {
-                TSpaceServerSMR TS = null;
-                //checking if there is a previous stat
+                TSpaceAdvServerSMR TS = null;
+
+                //checking if there is a previous state
                 if (!serverid2.Equals("none"))
                 {
-                    Console.WriteLine("previous state exists");
-                    TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay);
+                    TS = new TSpaceAdvServerSMR(Url, MinDelay, MaxDelay);
                 }
                 else
                 {
-                    Console.WriteLine("no previous state exists");
-                    TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, newview);
+                    TS = new TSpaceAdvServerSMR(Url, MinDelay, MaxDelay, newview);
                 }
 
-                RemotingServices.Marshal(TS, Name, typeof(TSpaceServerSMR));
+                RemotingServices.Marshal(TS, Name, typeof(TSpaceAdvServerSMR));
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
 
                 //set the tuples of the new server
                 
-
                 try
                 {
                     if (!serverid2.Equals("none"))
                     {
-                        server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
-                        Console.WriteLine("getting state from server");
+                        server = (TSpaceAdvServerSMR)Activator.GetObject(typeof(TSpaceAdvServerSMR), serverid2);
+
+                        
+                        // Gets current state
+                        Console.WriteLine("Getting current state");
                         serverState = server.GetSMRState(Url);
-                        Console.WriteLine("got the state" + serverState.ServerView.ToString());
-                        Console.WriteLine("Setting previous state");
+
+                        //Copy state 
                         TS.SetSMRState(serverState);
-                        Console.WriteLine("I defined this view:" + TS.UpdateView().ToString());
+                        Console.WriteLine("Initializing server with state: " + serverState.ServerView.ToString());
+
                     }
                     else
                     {
-                        Console.WriteLine("no previous state need to update");
-                        TS.UpdateView();
+                        Console.WriteLine("No previous state");
                     }
-
                 }
                 catch (Exception e)
                 {
@@ -152,6 +146,8 @@ namespace Server
             System.Console.WriteLine("<enter> para sair...");
             System.Console.ReadLine();
         }
+
+
 
         static int getPortFromURL(string url)
         {
