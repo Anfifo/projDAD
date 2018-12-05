@@ -263,6 +263,19 @@ namespace Server
 
         }
 
+        internal void changeState(TSpaceServerSMR server, string url)
+        {
+            TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
+            TSpaceState serverState;
+            Console.WriteLine("getting state from server");
+            serverState = server.GetTSpaceState(url);
+            Console.WriteLine("got the state" + serverState.ServerView.ToString());
+            Console.WriteLine("Setting previous state");
+            this.SetTSpaceState(serverState);
+            Console.WriteLine("I defined this view:" + TSMan.ServerView);
+            TSpaceManager.RWL.ReleaseWriterLock();
+        }
+
         /// <summary>
         /// Update sequence number of the message with the given id
         /// </summary>
@@ -291,13 +304,15 @@ namespace Server
 
         public bool Ping(string serverURL) => TSMan.Ping(serverURL);
 
-        public View UpdateView() => TSMan.UpdateView();
+        public void UpdateView() => TSMan.UpdateView();
+
+        private void UpdateView(string url) => TSMan.UpdateView(url);
 
         public List<ITuple> GetTuples() => TSMan.TSpace.getAll();
 
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);
 
-        public void SetSMRState(TSpaceState smr)
+        public void SetTSpaceState(TSpaceState smr)
         {
             lock (TSpaceManager.ProcessedRequests)
             {
@@ -311,7 +326,7 @@ namespace Server
 
         }
 
-        public TSpaceState GetSMRState(string Url)
+        public TSpaceState GetTSpaceState(string Url)
         {
 
             TSpaceState smr = new TSpaceState();
@@ -328,10 +343,14 @@ namespace Server
             smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
             smr.TupleSpace = TSMan.GetTuples();
 
+            this.UpdateView(Url);
+
             TSpaceManager.RWL.ReleaseWriterLock();
 
             return smr;
         }
+
+
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {

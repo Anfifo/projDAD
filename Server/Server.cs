@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
@@ -22,9 +22,9 @@ namespace Server
             List<String> Servers = new List<string>();
             string serverid2 = "none";
             List<ITuple> newState = new List<ITuple>();
-            TSpaceAdvServerSMR server = null;
-            TSpaceState serverState = null;
+
             View newview = new View();
+            string mode = "b";
 
             //Type of algorithm for server
             string algorithm = "x";
@@ -42,20 +42,23 @@ namespace Server
             channel = new TcpChannel(Port);
             ChannelServices.RegisterChannel(channel, true);
 
-            if (args.Length == 4)
+            if (args.Length == 5)
             {
 
                 MinDelay = Int32.Parse(args[1]);
                 MaxDelay = Int32.Parse(args[2]);
                 algorithm = args[3];
+                mode = args[4];
+                
             }
 
-            if(args.Length == 5)
+            if(args.Length == 6)
             {
                 MinDelay = Int32.Parse(args[1]);
                 MaxDelay = Int32.Parse(args[2]);
                 algorithm = args[4];
                 serverid2 = args[3];
+                mode = args[5];
 
                 //get the remote object of the other server
                 //get the view from the other server
@@ -70,59 +73,106 @@ namespace Server
 
 
             if (algorithm == "x") {
-                //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerXL), Name, WellKnownObjectMode.Singleton);
-                TSpaceServerXL TS = new TSpaceServerXL(Url, MinDelay,MaxDelay);
-                RemotingServices.Marshal(TS, Name, typeof(ITSpaceServer));
+                TSpaceServerXL server = null;
+                TSpaceServerXL TS = null;
+                //checking if there is a previous stat
+                if (!serverid2.Equals("none"))
+                {
+                    Console.WriteLine("previous state exists");
+                    if (mode == "a")
+                        TS = new TSpaceServerXL(Url, MinDelay, MaxDelay);
+                    if (mode == "b")
+                        TS = new TSpaceServerXL(Url, MinDelay, MaxDelay);
+                }
+                else
+                {
+                    Console.WriteLine("no previous state exists");
+                    if (mode == "a")
+                        TS = new TSpaceServerXL(Url, MinDelay, MaxDelay,newview);
+                    if (mode == "b")
+                        TS = new TSpaceServerXL(Url, MinDelay, MaxDelay, newview);
 
-                //set the tuples of the new server
-                TS.SetTuples(newState);
+                }
 
+                RemotingServices.Marshal(TS, Name, typeof(TSpaceServerXL));
+                //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
                 try
                 {
-                    TS.UpdateView();
-                    
-                }catch(Exception e)
+                    if (!serverid2.Equals("none"))
+                    {
+                        if(mode == "a")
+                            server = (TSpaceServerXL)Activator.GetObject(typeof(TSpaceServerXL), serverid2);
+                        if (mode == "b")
+                            server = (TSpaceServerXL)Activator.GetObject(typeof(TSpaceServerXL), serverid2);
+
+                        /* Console.WriteLine("getting state from server");
+                         serverState = server.GetTSpaceState(Url);
+                         Console.WriteLine("got the state" + serverState.ServerView.ToString());
+                         Console.WriteLine("Setting previous state");
+                         TS.SetTSpaceState(serverState);
+                         Console.WriteLine("I defined this view:" + TS.UpdateView().ToString());
+                         */
+
+                        TS.changeState(server,Url);
+                    }
+                    else
+                    {
+                        Console.WriteLine("no previous state need to update");
+                        TS.UpdateView();
+                    }
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
                     Console.WriteLine(e.GetType().ToString());
                     Console.WriteLine(e.StackTrace);
-
-
                 }
             }
             if (algorithm == "s")
             {
-                TSpaceAdvServerSMR TS = null;
 
-                //checking if there is a previous state
+                TSpaceServerSMR server = null;
+                TSpaceServerSMR TS = null;
+                //checking if there is a previous stat
                 if (!serverid2.Equals("none"))
                 {
-                    TS = new TSpaceAdvServerSMR(Url, MinDelay, MaxDelay);
+                    Console.WriteLine("previous state exists");
+                    if (mode == "a")
+                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay);
+                    if (mode == "b")
+                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay);
                 }
                 else
                 {
-                    TS = new TSpaceAdvServerSMR(Url, MinDelay, MaxDelay, newview);
+                    Console.WriteLine("no previous state exists");
+                    if (mode == "a")
+                        TS = new TSpaceAdvServerSMR(Url, MinDelay, MaxDelay, newview);
+                    if (mode == "b")
+                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, newview);
                 }
 
                 RemotingServices.Marshal(TS, Name, typeof(TSpaceAdvServerSMR));
                 //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
 
-                //set the tuples of the new server
-                
                 try
                 {
                     if (!serverid2.Equals("none"))
                     {
-                        server = (TSpaceAdvServerSMR)Activator.GetObject(typeof(TSpaceAdvServerSMR), serverid2);
 
-                        
-                        // Gets current state
-                        Console.WriteLine("Getting current state");
-                        serverState = server.GetSMRState(Url);
+                        if (mode == "a")
+                            server = (TSpaceAdvServerSMR)Activator.GetObject(typeof(TSpaceAdvServerSMR), serverid2);
+                        if (mode == "b")
+                            server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
 
-                        //Copy state 
-                        TS.SetSMRState(serverState);
-                        Console.WriteLine("Initializing server with state: " + serverState.ServerView.ToString());
+                        /*  Console.WriteLine("getting state from server");
+                          serverState = server.GetTSpaceState(Url);
+                          Console.WriteLine("got the state" + serverState.ServerView.ToString());
+                          Console.WriteLine("Setting previous state");
+                          TS.SetTSpaceState(serverState);
+                          Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
+                      */
+
+                        TS.changeState(server, Url);
 
                     }
                     else
@@ -135,8 +185,6 @@ namespace Server
                     Console.WriteLine(e.Message);
                     Console.WriteLine(e.GetType().ToString());
                     Console.WriteLine(e.StackTrace);
-
-
                 }
 
             }

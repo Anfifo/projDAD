@@ -8,6 +8,9 @@ namespace Client
 {
     abstract class AbstractClient
     {
+        // Singleton
+        public static AbstractClient Singleton = null;
+
         // View of the tuple spaces servers.
         internal static List<ITSpaceServer> View { get; set; } = new List<ITSpaceServer>();
 
@@ -37,9 +40,7 @@ namespace Client
         // The view suggested by servers
         internal static View SuggestedView = null;
 
-        // Stores the matching tuples returned by all tuple space servers
-        internal static List<List<ITuple>> MatchingTuples = new List<List<ITuple>>();
-
+        
         // Object to use as reference for the lock to the Tuple 
         internal static Object LockRef = new Object();
 
@@ -51,7 +52,7 @@ namespace Client
         internal static int ReadCounter = 0;
 
         internal static bool verbose = false;
-
+        
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -67,13 +68,18 @@ namespace Client
             // Set the client unique identifier
             ClientID = clientID;
         }
-        
+
+        public virtual void ClearCallBacksResults()
+        {
+            AcksCounter = 0;
+        }
+
         public View GetCurrentView()
         {
             return ServerView;
         }
 
-        public static bool ValidView(TSpaceMsg msg)
+        public bool ValidView(TSpaceMsg msg)
         {
             lock(ServerView){
 
@@ -84,7 +90,6 @@ namespace Client
 
                 if (msg.Code.Equals("badView") && msg.MsgView.ID > ServerView.ID)
                 {
-                   
                     InvalidView = true;
                     SuggestView(msg.MsgView);
                     return false;
@@ -98,7 +103,7 @@ namespace Client
             return true;
         }
 
-        public static bool CheckNeedUpdateView()
+        public bool CheckNeedUpdateView()
         {
             lock (ServerView)
             {
@@ -109,7 +114,7 @@ namespace Client
                     SuggestedView = null;
                     InvalidView = false;
                     Console.WriteLine("Cleaning Acks because of bad view: " + AcksCounter);
-                    AcksCounter = 0;
+                    ClearCallBacksResults();
                     return true;
                 }
             }
@@ -118,7 +123,7 @@ namespace Client
         }
 
 
-        public static void SetNewView(View view)
+        public void SetNewView(View view)
         {
             Console.WriteLine("Setting view to:" + view);
             //Clear previous view
@@ -142,7 +147,7 @@ namespace Client
             Console.WriteLine("View count = " + View.Count);
         }
 
-        public static void SuggestView(View view)
+        public void SuggestView(View view)
         {
             DebugPrint("Suggesting View: " + view);
             if(SuggestedView == null || view.ID > SuggestedView.ID)

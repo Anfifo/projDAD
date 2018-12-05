@@ -13,8 +13,9 @@ namespace CommonTypes
         void Unfreeze();
         TSpaceMsg ProcessRequest(TSpaceMsg msg);
         bool Ping(string serverURL);
-        View UpdateView();
+        void UpdateView();
 
         List<ITuple> GetTuples();
+
     }
 }

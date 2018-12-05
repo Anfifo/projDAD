@@ -26,7 +26,7 @@ namespace Server
             TSMan = new TSpaceManager(url, _mindelay, _maxdelay, view);
         }
 
-        private bool TryConnection(string serverUrl) => TSMan.TryConnection(serverUrl);
+        private bool TryConnection(string serverUrl,string url) => TSMan.TryConnection(serverUrl,url);
 
         public bool Ping(string serverURL) => TSMan.Ping(serverURL);
 
@@ -69,8 +69,7 @@ namespace Server
                     // Check if it was processed in a previous viwew
                     if (TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID < TSMan.ServerView.ID)
                     {
-                        if (TSpaceManager.ProcessedRequests.Log.Count > 150)
-                            TSpaceManager.ProcessedRequests.Log.RemoveRange(0, 100);
+
                         Console.WriteLine("Processed in previous view");
                         Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID);
                         //Console.WriteLine(TSMan.ServerView.ID);
@@ -94,7 +93,7 @@ namespace Server
                     }
 
                 }
-                Console.WriteLine("Starting processing of request " + msg.OperationID);
+                //Console.WriteLine("Starting processing of request " + msg.OperationID);
 
                 // Add sequence number of request to processed requests
 
@@ -103,7 +102,7 @@ namespace Server
             }
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
+            //Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
 
 
 
@@ -169,8 +168,21 @@ namespace Server
                     break;
             }
 
-            Console.WriteLine("Return answer");
+            //Console.WriteLine("Return answer");
             return response;
+        }
+
+        internal void changeState(TSpaceServerXL server, string url)
+        {
+            TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
+            TSpaceState serverState;
+            Console.WriteLine("getting state from server");
+            serverState = server.GetTSpaceState(url);
+            Console.WriteLine("got the state" + serverState.ServerView.ToString());
+            Console.WriteLine("Setting previous state");
+            this.SetTSpaceState(serverState);
+            Console.WriteLine("I defined this view:" + this.TSMan.ServerView);
+            TSpaceManager.RWL.ReleaseWriterLock();
         }
 
         public List<ITuple> GetTuples() => TSMan.GetTuples();
@@ -179,10 +191,10 @@ namespace Server
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);
 
 
-        public View UpdateView() => TSMan.UpdateView();
+        public void UpdateView() => TSMan.UpdateView();
         
 
-        public void SetXLState(TSpaceState smr)
+        public void SetTSpaceState(TSpaceState smr)
         {
             lock (TSpaceManager.ProcessedRequests)
             {
@@ -195,26 +207,26 @@ namespace Server
 
         }
 
-        public TSpaceState GetSMRState(string Url)
+        public TSpaceState GetTSpaceState(string Url)
         {
 
-            TSpaceState smr = new TSpaceState();
+            TSpaceState xl = new TSpaceState();
 
             TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
 
 
-            smr.LockedTuplesKeys = TSLockHandler.GetKeys();
-            smr.LockedTuplesValues = TSLockHandler.GetValues();
+            xl.LockedTuplesKeys = TSLockHandler.GetKeys();
+            xl.LockedTuplesValues = TSLockHandler.GetValues();
 
             TSMan.AddToView(Url);
-            smr.ServerView = TSMan.GetTotalView();
+            xl.ServerView = TSMan.GetTotalView();
 
-            smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
-            smr.TupleSpace = TSMan.GetTuples();
+            xl.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
+            xl.TupleSpace = TSMan.GetTuples();
 
             TSpaceManager.RWL.ReleaseWriterLock();
 
-            return smr;
+            return xl;
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)

@@ -17,10 +17,10 @@ namespace PuppetMaster
 
     {
         //delegate to make async serverstart call to PCS
-        delegate void startServerDel(string id,string URL, int mindelay, int maxdelay,string id2, string algorithm);
+        delegate void startServerDel(string id,string URL, int mindelay, int maxdelay,string id2, string algorithm,string mode);
 
         //delegate to make async clientstart call to PCS
-        delegate void startClientDel(string URL, string random, string algorithm);
+        delegate void startClientDel(string URL, string random, string algorithm,string mode);
 
         //delegate to make async serverstatus call to all servers
         delegate string serverStatus();
@@ -49,9 +49,13 @@ namespace PuppetMaster
         //type of algorithm XL or SMR
         string algorithm;
 
-        public PuppetMasterService(string _algorithm)
+        //type of implementation
+        string mode;
+
+        public PuppetMasterService(string _algorithm,string _mode)
         {
             algorithm = _algorithm;
+            mode = _mode;
             PCS = getPCS();
             channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, true);
@@ -188,32 +192,53 @@ namespace PuppetMaster
         //Starts a server available at URL
         void StartServer(string serverid, string URL, int mindelay, int maxdelay,string serverid2)
         {
+            string PCStoUse = "none";
+            for (int i = 0; i < PCS.Count; i++)
+            {
+                if ((getIP((string)PCS[i])).Equals(getIP(URL)))
+                {
+                    PCStoUse = (string)PCS[i];
+                    Console.WriteLine("Using this PCS:" + " " + PCStoUse);
+                }
+            }
             //add to the list of servers
             Servers.Add(serverid, URL);
 
             //get the PCS remote object
-            Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), (string)PCS[0]);
+            Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), PCStoUse);
 
             startServerDel RemoteDel = new startServerDel(P.StartServer);
 
             //make the async call 
-            IAsyncResult RemAr = RemoteDel.BeginInvoke(serverid,URL, mindelay, maxdelay, serverid2, this.algorithm, null, null);
+            Console.WriteLine("sending the command");
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(serverid,URL, mindelay, maxdelay, serverid2, this.algorithm,this.mode, null, null);
 
 
         }
+
+
         //Starts a client available at URL
         void StartClient(string clientid, string URL, string script)
         {
+            string PCStoUse = "none";
+            for (int i = 0; i < PCS.Count; i++)
+            {
+                if ((getIP((string)PCS[i])).Equals(getIP(URL)))
+                {
+                    PCStoUse = (string)PCS[i];
+                    Console.WriteLine("Using this PCS:" + " " + PCStoUse);
+                }
+            }
             //add to the list of servers
             Clients.Add(clientid, URL);
 
             //get the PCS remote object
-            Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), (string)PCS[0]);
+            Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), PCStoUse);
 
             startClientDel RemoteDel = new startClientDel(P.StartClient);
 
             //make the async call
-            IAsyncResult RemAr = RemoteDel.BeginInvoke(script, random.Next().ToString(), this.algorithm, null, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(script, random.Next().ToString(), this.algorithm,this.mode, null, null);
 
         }
 
@@ -285,6 +310,15 @@ namespace PuppetMaster
             Console.WriteLine(state);
         }
 
+        public string getIP(string Url)
+        {
+
+            string[] splitUrl = Url.Split(':');
+
+            Console.WriteLine("this is the result of the get ip" + splitUrl[1]);
+            return splitUrl[1];
+
+        }
 
     }
 }

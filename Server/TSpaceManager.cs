@@ -112,36 +112,12 @@ namespace Server
         /// Updates the current view of live servers
         /// </summary>
         /// <returns>Current view of servers</returns>
-        public View UpdateView()
+        public void UpdateView()
         {
             //TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
 
             //Console.WriteLine("Updating view");
-            List<string> currentViewURLs = new List<string>();
-            foreach (string serverUrl in ServerView.GetUrls())
-            {
-                // Dont check itself
-                if (serverUrl.Equals(URL))
-                {
-                    currentViewURLs.Add(serverUrl);
-                    continue;
-                }
-                //Verify if connection is valid
-                if (TryConnection(serverUrl))
-                {
-                    //Console.WriteLine("Adding to view: " + serverUrl);
-                    AddToView(serverUrl);
-                    currentViewURLs.Add(serverUrl);
-                }
-                else
-                {
-                    RemoveFromView(serverUrl);
-                }
-            }
-            //TSpaceManager.RWL.ReleaseWriterLock();
-
-
-            return new View(currentViewURLs,ServerView.ID);
+            this.UpdateView(URL);
         }
 
         /// <summary>
@@ -149,7 +125,7 @@ namespace Server
         /// </summary>
         /// <param name="serverUrl">Server URL</param>
         /// <returns>True if the server is alive; false otherwise.</returns>
-        public bool TryConnection(string serverUrl)
+        public bool TryConnection(string serverUrl,string url)
         {          
             // Get the reference for the tuple space server
             ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
@@ -159,7 +135,7 @@ namespace Server
             {
                 // Ping server
                 //Console.WriteLine("i pinged" + " " + serverUrl);
-                if (server != null && server.Ping(URL))
+                if (server != null && server.Ping(url))
                 {
                     //Console.WriteLine("Alive:  " + serverUrl);
                     return true;
@@ -228,8 +204,8 @@ namespace Server
                 Console.WriteLine("Adding server: " + url);
                 ServerView.Add(url);
                 ServerView.ID ++;
+                Console.WriteLine("View updated to: " + ServerView.ID);
             }
-            Console.WriteLine("View updated to: " + ServerView.ID);
         }
         public void RemoveFromView(string url)
         {
@@ -238,13 +214,16 @@ namespace Server
             {
                 ServerView.Remove(url);
                 ServerView.ID++;
+                Console.WriteLine("View updated to: " + ServerView.ID);
             }
-            Console.WriteLine("View updated to: " + ServerView.ID);
+            
 
         }
 
         public bool ValidView(TSpaceMsg msg)
         {
+            if (msg.MsgView == null)
+                Console.WriteLine("NO VIEW SENT WITH MSG");
             return msg.MsgView.ID == ServerView.ID;
         }
 
@@ -285,6 +264,35 @@ namespace Server
             RWL.AcquireReaderLock(Timeout.Infinite);
         }
 
+        internal void UpdateView(string url)
+        {
+            //TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
+
+            //Console.WriteLine("Updating view");
+            List<string> currentViewURLs = new List<string>();
+            foreach (string serverUrl in ServerView.GetUrls())
+            {
+                // Dont check itself
+                if (serverUrl.Equals(URL))
+                {
+                    currentViewURLs.Add(serverUrl);
+                    continue;
+                }
+                //Verify if connection is valid
+                if (TryConnection(serverUrl,url))
+                {
+                    //Console.WriteLine("Adding to view: " + serverUrl);
+                    AddToView(serverUrl);
+                    currentViewURLs.Add(serverUrl);
+                }
+                else
+                {
+                    RemoveFromView(serverUrl);
+                }
+            }
+            //TSpaceManager.RWL.ReleaseWriterLock();
+           
+        }
     }
 
 }

@@ -25,27 +25,31 @@ namespace Client
             int clientID = 0;
             //Type of algorithm
             string algorithm = "x"; // pre definido ou escolher no inicio?
+            //Type of implementation
+            string mode = "b";
 
 
             //PuppetMaster initialization
 
-            if(args.Length == 4)
+            if(args.Length == 5)
             {
                 //if defined in script
-                Servers.Add(args[3]);
                 filename = args[0];
                 clientid = args[1];
                 algorithm = args[2];
+                Servers.Add(args[3]);   
+                mode = args[4];
                 Int32.TryParse(clientid, out clientID);
                 Console.WriteLine(clientID);
             }
-            if (args.Length == 3)
+            if (args.Length == 4)
             {
                 //if not defined in script
                 Servers.Add("tcp://localhost:50001/S");
                 filename = args[0];
                 clientid = args[1];
                 algorithm = args[2];
+                mode = args[3];
                 Int32.TryParse(clientid, out clientID);
                 Console.WriteLine(clientID);
             }
@@ -69,9 +73,21 @@ namespace Client
                 Int32.TryParse(clientid, out clientID);
             }
             if (algorithm == "x")
-                ClientType = new XL_Client(Servers, clientID);
-            else
-                ClientType = new SMR_Client(Servers, clientID);
+            {
+                if (mode == "a")
+                    ClientType = new XL_Client(Servers, clientID);
+                if (mode == "b")
+                    ClientType = new XL_Client(Servers, clientID);
+            }
+            if (algorithm == "s")
+            {
+                if(mode == "a")
+                    ClientType = new SMR_Client(Servers, clientID);
+                if (mode == "b")
+                    ClientType = new SMR_Client(Servers, clientID);
+            }
+
+
 
             try
             {

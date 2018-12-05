@@ -57,7 +57,7 @@ namespace Client
 
             request.MsgView = GetCurrentView();
 
-            AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.AcksCallback);
+            AsyncCallback remoteCallback = new AsyncCallback(AcksCallback);
 
 
             // Clear acks count 
@@ -93,7 +93,7 @@ namespace Client
             request.Tuple = template;
             
 
-            AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.ReadCallback);
+            AsyncCallback remoteCallback = new AsyncCallback(ReadCallback);
 
             // Clear responses to previous request
             // Clear previous answers
@@ -172,7 +172,7 @@ namespace Client
 
 
             // Create remote callback
-            AsyncCallback remoteCallback = new AsyncCallback(SMR_Client.ReadCallback);
+            AsyncCallback remoteCallback = new AsyncCallback(ReadCallback);
 
             // Clear response from last request
             lock (LockRef)
@@ -225,14 +225,14 @@ namespace Client
         /****************************************************************
          *                   CALLBACK FUNCTIONS
          ****************************************************************/
-        private static void PropesedSeqCallback(IAsyncResult result)
+        private void PropesedSeqCallback(IAsyncResult result)
         {
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
 
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
-            if (!AbstractClient.ValidView(response))
+            if (!ValidView(response))
             {
                 return;
             }
@@ -256,13 +256,13 @@ namespace Client
         /// Callback function for the acknowledgements.
         /// </summary>
         /// <param name="result">Async call result.</param>
-        private static void AcksCallback(IAsyncResult result)
+        private void AcksCallback(IAsyncResult result)
         {
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
-            if (!AbstractClient.ValidView(response))
+            if (!ValidView(response))
                 return;
 
 
@@ -272,7 +272,7 @@ namespace Client
             }
         }
 
-        private static void ReadCallback(IAsyncResult result)
+        private void ReadCallback(IAsyncResult result)
         {
 
             RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)result).AsyncDelegate;
@@ -281,7 +281,7 @@ namespace Client
             TSpaceMsg response = del.EndInvoke(result);
 
 
-            if (!AbstractClient.ValidView(response))
+            if (!ValidView(response))
                 return;
 
             // Stores the tuple returned 
@@ -331,7 +331,7 @@ namespace Client
 
 
             // Create local callback
-            AsyncCallback asyncCallback = new AsyncCallback(SMR_Client.PropesedSeqCallback);
+            AsyncCallback asyncCallback = new AsyncCallback(PropesedSeqCallback);
 
             // Clear proposed sequence number for previous messages
             lock (ProposedSeq)
@@ -368,7 +368,7 @@ namespace Client
         /// <param name="asyncCallback">Callback function of the remote call.</param>
         private void Multicast(TSpaceMsg message, AsyncCallback asyncCallback)
         {
-            if (AbstractClient.CheckNeedUpdateView())
+            if (CheckNeedUpdateView())
             {
                 Console.WriteLine("Update to " + GetCurrentView());
                 message.MsgView = GetCurrentView();
