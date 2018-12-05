@@ -13,7 +13,7 @@ namespace Server
 
         List<ITuple> Take1(ITuple tuple);
 
-        void Take2(ITuple tuple);
+        Boolean Take2(ITuple tuple);
 
         void Add(ITuple tuple);
 
