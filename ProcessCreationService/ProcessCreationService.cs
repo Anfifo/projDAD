@@ -23,7 +23,7 @@ namespace ProcessCreationService
 
         }
 
-        public void StartServer(string id,string url, int mindelay, int maxdelay,string serverid2, string algorithm)
+        public void StartServer(string id,string url, int mindelay, int maxdelay,string serverid2, string algorithm,string mode)
         {
 
             //Initialize a process startinfo with the server.exe file
@@ -33,11 +33,11 @@ namespace ProcessCreationService
 
             info.CreateNoWindow = false;
 
-            if(serverid2 != " ")
+            if(serverid2 != " ") 
             //add the arguments to the info
-                info.Arguments = url + " " + mindelay + " " + maxdelay + " " + serverid2 +  " " + algorithm;
+                info.Arguments = url + " " + mindelay + " " + maxdelay + " " + serverid2 +  " " + algorithm + " " + mode;
             else
-                info.Arguments = url + " " + mindelay + " " + maxdelay + " " + algorithm;
+                info.Arguments = url + " " + mindelay + " " + maxdelay + " " + algorithm + " " + mode;
 
             //Start the process
             Process P = Process.Start(info);
@@ -47,9 +47,10 @@ namespace ProcessCreationService
 
         }
 
-        public void StartClient(string script, string id, string algorithm)
+        public void StartClient(string script, string id, string algorithm,string mode)
         {
             //Initialize a process startinfo with the client.exe file
+
             ProcessStartInfo info = new ProcessStartInfo(AuxFunctions.GetProjPath() + "\\Client\\bin\\Debug\\Client.exe");
 
             //info.UseShellExecute = false;
@@ -57,7 +58,7 @@ namespace ProcessCreationService
             info.CreateNoWindow = false;
 
             //add the arguments to the info
-            info.Arguments = script + " " + id + " " + algorithm;
+            info.Arguments = script + " " + id + " " + algorithm + " " + mode;
 
             //Start the process
             Process P = Process.Start(info);

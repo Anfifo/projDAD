@@ -41,8 +41,13 @@ namespace PuppetMaster
             //get the type of algorithm
             string algorithm = Console.ReadLine();
 
+            Console.WriteLine("Choose the mode: a for advanced, b for basic");
+
+            string  mode = Console.ReadLine();
+
+
             //initiliaze a executer of commands
-            PuppetMasterService MasterofPuppets = new PuppetMasterService(algorithm);
+            PuppetMasterService MasterofPuppets = new PuppetMasterService(algorithm,mode);
 
             //get the commands from cmd input
             if (reader == null){

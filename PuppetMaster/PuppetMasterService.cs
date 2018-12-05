@@ -17,10 +17,10 @@ namespace PuppetMaster
 
     {
         //delegate to make async serverstart call to PCS
-        delegate void startServerDel(string id,string URL, int mindelay, int maxdelay,string id2, string algorithm);
+        delegate void startServerDel(string id,string URL, int mindelay, int maxdelay,string id2, string algorithm,string mode);
 
         //delegate to make async clientstart call to PCS
-        delegate void startClientDel(string URL, string random, string algorithm);
+        delegate void startClientDel(string URL, string random, string algorithm,string mode);
 
         //delegate to make async serverstatus call to all servers
         delegate string serverStatus();
@@ -49,9 +49,13 @@ namespace PuppetMaster
         //type of algorithm XL or SMR
         string algorithm;
 
-        public PuppetMasterService(string _algorithm)
+        //type of implementation
+        string mode;
+
+        public PuppetMasterService(string _algorithm,string _mode)
         {
             algorithm = _algorithm;
+            mode = _mode;
             PCS = getPCS();
             channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, true);
@@ -207,7 +211,7 @@ namespace PuppetMaster
 
             //make the async call 
             Console.WriteLine("sending the command");
-            IAsyncResult RemAr = RemoteDel.BeginInvoke(serverid,URL, mindelay, maxdelay, serverid2, this.algorithm, null, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(serverid,URL, mindelay, maxdelay, serverid2, this.algorithm,this.mode, null, null);
 
 
         }
@@ -234,7 +238,7 @@ namespace PuppetMaster
             startClientDel RemoteDel = new startClientDel(P.StartClient);
 
             //make the async call
-            IAsyncResult RemAr = RemoteDel.BeginInvoke(script, random.Next().ToString(), this.algorithm, null, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(script, random.Next().ToString(), this.algorithm,this.mode, null, null);
 
         }
 

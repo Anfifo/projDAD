@@ -27,6 +27,7 @@ namespace Server
             List<ITuple> newState = new List<ITuple>();
             TSpaceState serverState = null;
             View newview = new View();
+            string mode = "b";
 
             //Type of algorithm for server
             string algorithm = "x";
@@ -46,20 +47,23 @@ namespace Server
             channel = new TcpChannel(Port);
             ChannelServices.RegisterChannel(channel, true);
 
-            if (args.Length == 4)
+            if (args.Length == 5)
             {
 
                 MinDelay = Int32.Parse(args[1]);
                 MaxDelay = Int32.Parse(args[2]);
                 algorithm = args[3];
+                mode = args[4];
+                
             }
 
-            if(args.Length == 5)
+            if(args.Length == 6)
             {
                 MinDelay = Int32.Parse(args[1]);
                 MaxDelay = Int32.Parse(args[2]);
                 algorithm = args[4];
                 serverid2 = args[3];
+                mode = args[5];
 
                 //get the remote object of the other server
                 //get the view from the other server
@@ -81,12 +85,19 @@ namespace Server
                 if (!serverid2.Equals("none"))
                 {
                     Console.WriteLine("previous state exists");
-                    TS = new TSpaceServerXL(Url, MinDelay, MaxDelay);
+                    if (mode == "a")
+                        TS = new TSpaceServerXL(Url, MinDelay, MaxDelay);
+                    if (mode == "b")
+                        TS = new TSpaceServerXL(Url, MinDelay, MaxDelay);
                 }
                 else
                 {
                     Console.WriteLine("no previous state exists");
-                    TS = new TSpaceServerXL(Url, MinDelay, MaxDelay, newview);
+                    if (mode == "a")
+                        TS = new TSpaceServerXL(Url, MinDelay, MaxDelay,newview);
+                    if (mode == "b")
+                        TS = new TSpaceServerXL(Url, MinDelay, MaxDelay, newview);
+
                 }
 
                 RemotingServices.Marshal(TS, Name, typeof(TSpaceServerXL));
@@ -95,7 +106,11 @@ namespace Server
                 {
                     if (!serverid2.Equals("none"))
                     {
-                        server = (TSpaceServerXL)Activator.GetObject(typeof(TSpaceServerXL), serverid2);
+                        if(mode == "a")
+                            server = (TSpaceServerXL)Activator.GetObject(typeof(TSpaceServerXL), serverid2);
+                        if (mode == "b")
+                            server = (TSpaceServerXL)Activator.GetObject(typeof(TSpaceServerXL), serverid2);
+
                         Console.WriteLine("getting state from server");
                         serverState = server.GetTSpaceState(Url);
                         Console.WriteLine("got the state" + serverState.ServerView.ToString());
@@ -124,12 +139,18 @@ namespace Server
                 if (!serverid2.Equals("none"))
                 {
                     Console.WriteLine("previous state exists");
-                    TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay);
+                    if (mode == "a")
+                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay);
+                    if (mode == "b")
+                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay);
                 }
                 else
                 {
                     Console.WriteLine("no previous state exists");
-                    TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, newview);
+                    if (mode == "a")
+                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, newview);
+                    if (mode == "b")
+                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, newview);
                 }
 
                 RemotingServices.Marshal(TS, Name, typeof(TSpaceServerSMR));
@@ -138,7 +159,12 @@ namespace Server
                 {
                     if (!serverid2.Equals("none"))
                     {
-                        server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
+
+                        if (mode == "a")
+                            server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
+                        if (mode == "b")
+                            server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
+
                         Console.WriteLine("getting state from server");
                         serverState = server.GetTSpaceState(Url);
                         Console.WriteLine("got the state" + serverState.ServerView.ToString());
