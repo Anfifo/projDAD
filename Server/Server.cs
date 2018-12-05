@@ -130,61 +130,100 @@ namespace Server
             }
             if (algorithm == "s")
             {
-
-                TSpaceServerSMR server = null;
-                TSpaceServerSMR TS = null;
-                //checking if there is a previous stat
-                if (!serverid2.Equals("none"))
+                if (mode == "a")
                 {
-                    Console.WriteLine("previous state exists");
-                    if (mode == "a")
-                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay);
-                    if (mode == "b")
-                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay);
-                }
-                else
-                {
-                    Console.WriteLine("no previous state exists");
-                    if (mode == "a")
-                        TS = new TSpaceAdvServerSMR(Url, MinDelay, MaxDelay, newview);
-                    if (mode == "b")
-                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, newview);
-                }
-
-                RemotingServices.Marshal(TS, Name, typeof(TSpaceAdvServerSMR));
-                //RemotingConfiguration.RegisterWellKnownServiceType(typeof(TSpaceServerSMR), Name, WellKnownObjectMode.Singleton);
-
-                try
-                {
+                    TSpaceAdvServerSMR TS = null;
+                    TSpaceAdvServerSMR server = null;
                     if (!serverid2.Equals("none"))
                     {
-
-                        if (mode == "a")
-                            server = (TSpaceAdvServerSMR)Activator.GetObject(typeof(TSpaceAdvServerSMR), serverid2);
-                        if (mode == "b")
-                            server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
-
-                        /*  Console.WriteLine("getting state from server");
-                          serverState = server.GetTSpaceState(Url);
-                          Console.WriteLine("got the state" + serverState.ServerView.ToString());
-                          Console.WriteLine("Setting previous state");
-                          TS.SetTSpaceState(serverState);
-                          Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
-                      */
-
-                        TS.changeState(server, Url);
-
+                         TS = new TSpaceAdvServerSMR(Url, MinDelay, MaxDelay);
                     }
+
                     else
                     {
-                        Console.WriteLine("No previous state");
+                        Console.WriteLine("no previous state exists");
+                            TS = new TSpaceAdvServerSMR(Url, MinDelay, MaxDelay, newview);
+                    }
+
+                    RemotingServices.Marshal(TS, Name, typeof(TSpaceAdvServerSMR));
+
+                    try
+                    {
+                        if (!serverid2.Equals("none"))
+                        {
+
+                                server = (TSpaceAdvServerSMR)Activator.GetObject(typeof(TSpaceAdvServerSMR), serverid2);
+
+                            /*  Console.WriteLine("getting state from server");
+                              serverState = server.GetTSpaceState(Url);
+                              Console.WriteLine("got the state" + serverState.ServerView.ToString());
+                              Console.WriteLine("Setting previous state");
+                              TS.SetTSpaceState(serverState);
+                              Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
+                          */
+
+                            TS.changeState(server, Url);
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("No previous state");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        Console.WriteLine(e.GetType().ToString());
+                        Console.WriteLine(e.StackTrace);
                     }
                 }
-                catch (Exception e)
+
+                if (mode == "b")
                 {
-                    Console.WriteLine(e.Message);
-                    Console.WriteLine(e.GetType().ToString());
-                    Console.WriteLine(e.StackTrace);
+                    TSpaceServerSMR TS = null;
+                    TSpaceServerSMR server = null;
+                    if (!serverid2.Equals("none"))
+                    {
+                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay);
+                    }
+
+                    else
+                    {
+                        Console.WriteLine("no previous state exists");
+                        TS = new TSpaceServerSMR(Url, MinDelay, MaxDelay, newview);
+                    }
+
+                    RemotingServices.Marshal(TS, Name, typeof(TSpaceServerSMR));
+
+                    try
+                    {
+                        if (!serverid2.Equals("none"))
+                        {
+
+                            server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
+
+                            /*  Console.WriteLine("getting state from server");
+                              serverState = server.GetTSpaceState(Url);
+                              Console.WriteLine("got the state" + serverState.ServerView.ToString());
+                              Console.WriteLine("Setting previous state");
+                              TS.SetTSpaceState(serverState);
+                              Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
+                          */
+
+                            TS.changeState(server, Url);
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("No previous state");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        Console.WriteLine(e.GetType().ToString());
+                        Console.WriteLine(e.StackTrace);
+                    }
                 }
 
             }

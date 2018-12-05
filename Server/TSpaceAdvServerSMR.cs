@@ -273,6 +273,19 @@ namespace Server
             return response;
         }
 
+        internal void changeState(TSpaceAdvServerSMR server, string url)
+        {
+            TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
+            TSpaceState serverState;
+            Console.WriteLine("getting state from server");
+            serverState = server.GetTSpaceState(url);
+            Console.WriteLine("got the state" + serverState.ServerView.ToString());
+            Console.WriteLine("Setting previous state");
+            this.SetTSpaceState(serverState);
+            Console.WriteLine("I defined this view:" + TSMan.ServerView);
+            TSpaceAdvManager.RWL.ReleaseWriterLock();
+        }
+
         private static void AddMessageToQueue(TSpaceMsg msg)
         {
             lock (MessageQueue)
@@ -352,7 +365,7 @@ namespace Server
         /// </summary>
         /// <param name="smr">state</param>
        
-        public void SetSMRState(TSpaceState smr)
+        public void SetTSpaceState(TSpaceState smr)
         {
             lock (TSpaceAdvManager.ProcessedRequests)
             {
@@ -371,7 +384,7 @@ namespace Server
         /// </summary>
         /// <param name="Url">url of the server requesting the state</param>
         /// <returns></returns>
-        public TSpaceState GetSMRState(string Url)
+        public TSpaceState GetTSpaceState(string Url)
         {
             TSpaceState smr = new TSpaceState();
             //Create operationID
@@ -773,7 +786,10 @@ namespace Server
             {
                 //Already has been removed
                 if (!SuspectedDead.ContainsKey(deadURL))
+                {
+                    Console.WriteLine("We returned after he died");
                     return;
+                }
             }
 
             // Get operation sequence number
@@ -785,6 +801,11 @@ namespace Server
 
             Console.WriteLine("View updated: " + TSMan.ServerView.ID);
             
+        }
+
+        void ITSpaceServer.UpdateView()
+        {
+            throw new NotImplementedException();
         }
     }
 }

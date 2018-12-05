@@ -26,8 +26,6 @@ namespace Server
             TSMan = new TSpaceManager(url, _mindelay, _maxdelay, view);
         }
 
-        private bool TryConnection(string serverUrl) => TSMan.TryConnection(serverUrl);
-
         public bool Ping(string serverURL) => TSMan.Ping(serverURL);
 
         public string Status() => TSMan.Status();
@@ -184,7 +182,7 @@ namespace Server
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);
 
 
-        public View UpdateView() => TSMan.UpdateView();
+        public void UpdateView() => TSMan.UpdateView();
         
 
         public void SetXLState(TSpaceState xl)
@@ -253,6 +251,11 @@ namespace Server
             //Console.WriteLine("RESPONSE:" + response);
 
             return response;
+        }
+
+        void ITSpaceServer.UpdateView()
+        {
+            throw new NotImplementedException();
         }
     }
 }
