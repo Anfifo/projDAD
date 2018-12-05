@@ -36,8 +36,9 @@ namespace Server
         private Dictionary<string, int> AddingToView = new Dictionary<string, int>();
 
         // Counter for the number of acknowledgements received 
-        static int SeqsCounter;
-        static int UpdatesCounter;
+        static int AcksCounter;
+
+        static int ViewAcksCounter;
 
         /// <summary>
         /// Ensures que object doesn't get cleaned while being served
@@ -135,7 +136,9 @@ namespace Server
                         TSpaceMsg resp = TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID).Response;
 
                         if (resp == null)
+                        {
                             return null;
+                        }
 
                         // Return the response sent in the previous view
                         return resp;
@@ -154,36 +157,21 @@ namespace Server
             }
 
             string command = msg.Code;
-            //Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")");
+            Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")");
             
             Message update = null;
             
             // Sequence number proposal request
             if (command.Equals("proposeSeq"))
             {
-                
 
                 // Increment sequence number
                 Interlocked.Increment(ref SequenceNumber);
                 response.SequenceNumber = SequenceNumber;
                 response.Code = "proposedSeq";
+                AddMessageToQueue(msg);
 
-
-                lock (MessageQueue)
-                {
-                    Message newMessage = new Message();
-                    newMessage.ProcessID = msg.ProcessID;
-                    newMessage.SequenceNumber = SequenceNumber;
-                    newMessage.Deliverable = false;
-                    newMessage.MessageID = msg.OperationID;
-
-                    // Add message to queue
-                    MessageQueue.Add(newMessage);
-                    MessageQueue.Sort();
-                }
-
-               
-                Console.WriteLine("******************Proposing (id = " + msg.OperationID + "; seq = " + response.SequenceNumber +")");
+                Console.WriteLine("Proposing (id = " + msg.OperationID + "; seq = " + response.SequenceNumber + ")");
 
 
                 return response;
@@ -285,6 +273,22 @@ namespace Server
             return response;
         }
 
+        private static void AddMessageToQueue(TSpaceMsg msg)
+        {
+            lock (MessageQueue)
+            {
+                Message newMessage = new Message();
+                newMessage.ProcessID = msg.ProcessID;
+                newMessage.SequenceNumber = SequenceNumber;
+                newMessage.Deliverable = false;
+                newMessage.MessageID = msg.OperationID;
+
+                // Add message to queue
+                MessageQueue.Add(newMessage);
+                MessageQueue.Sort();
+            }
+        }
+
         private void RemoveFromQueue(Message msg)
         {
             // Delete processed message from queue
@@ -373,24 +377,17 @@ namespace Server
             //Create operationID
             string id = TSMan.URL + "_" + (ViewUpdateCounter++);
 
-            Console.WriteLine("========Getting state request: " + Url);
-
             lock (AddingToView)
             {
-                Console.WriteLine("$$$$$$$$$$$$$$$$$$$$$$$  " + Url);
                 int seqNum = GetSequenceNumber(id, null);
-                
                 AddingToView.Add(Url, seqNum);
             }
-
-            Console.WriteLine("========Sequence for: " + Url + " => " + AddingToView[Url]);
 
             //Wait to be head of queue
             WaitTurn(id);
 
             //Get current list of servers
             List<string> serversUrl = TSMan.ServerView.DeepUrlsCopy();
-            Console.WriteLine("========Entering view in: " + Url + " => " + serversUrl.Count);
 
             //Copy state
             smr.MessageQueue = MessageQueue;
@@ -404,11 +401,10 @@ namespace Server
             smr.ProcessedRequests = TSpaceAdvManager.ProcessedRequests;
             smr.TupleSpace = TSMan.GetTuples();
 
-            Console.WriteLine("========Sending add for: " + Url + " => " + AddingToView[Url]);
             //Send update view to all servers
             UpdateView(Url, id, serversUrl, AddingToView[Url], true);
 
-            Console.WriteLine("========Return state to: " + Url + " => " + AddingToView[Url]);
+            Console.WriteLine("Return state to: " + Url);
             AddingToView.Remove(Url);
 
             return smr;
@@ -418,7 +414,7 @@ namespace Server
         {
 
             // Clear previous responses
-            UpdatesCounter = 0;
+            ViewAcksCounter = 0;
             majorityHasView = false;
 
             AsyncCallback remoteCallback = new AsyncCallback(UpdateViewCallback);
@@ -440,7 +436,6 @@ namespace Server
                 }
                 try
                 {
-                    Console.WriteLine("Sending to " + serverUrl);
                     // Call remote method
                     remoteDel.BeginInvoke(updateServer, operationID, seqNum, remoteCallback, null);
                 }
@@ -450,12 +445,9 @@ namespace Server
 
             // Wait for all
             Monitor.Enter(UpdateViewLock);
-            while (UpdatesCounter < Quorum(allServers.Count))
+            while (ViewAcksCounter < Quorum(allServers.Count))
                 Monitor.Wait(UpdateViewLock);
             Monitor.Exit(UpdateViewLock);
-
-            Console.WriteLine("===========AcksCounter = " + UpdatesCounter);
-            Console.WriteLine("===========View count = " + allServers.Count);
         }
 
 
@@ -524,17 +516,15 @@ namespace Server
             {
                 new Task(() => { TryConnection(url, true); }).Start();
             }
-            Console.WriteLine("Current view = " + TSMan.ServerView.ID);
 
         }
         private void UpdateViewCallback(IAsyncResult result)
         {
-            Interlocked.Increment(ref UpdatesCounter);
+            Interlocked.Increment(ref ViewAcksCounter);
             lock (UpdateViewLock)
             {
                 Monitor.Pulse(UpdateViewLock);
             }
-            Console.WriteLine("AcksCounter: " + UpdatesCounter);
         }
 
         /// <summary>
@@ -546,7 +536,7 @@ namespace Server
         {
             Monitor.Enter(SequenceNumberLock);
            
-            Console.WriteLine("««««««««««««««Message " + id + " : request proposed sequence number");
+            Console.WriteLine("Message " + id + " : request proposed sequence number");
 
             // Create request message
             TSpaceMsg message = new TSpaceMsg();
@@ -566,23 +556,28 @@ namespace Server
             // Clear proposed sequence number for previous messages
             lock (ProposedSeq)
             {
-                SeqsCounter = 0;
+                AcksCounter = 1;
                 ProposedSeq.Clear();
-            }
 
-            
-            
+                // Add my proposal
+                Interlocked.Increment(ref SequenceNumber);
+                ProposedSeq.Add(SequenceNumber);
+                AddMessageToQueue(message);
+            }
             
             // Send message to all replicas until all have proposed a sequence number
-            while (SeqsCounter < Quorum(TSMan.ServerView.Count))
+            while (AcksCounter < Quorum(TSMan.ServerView.Count))
             {
                 if(message.MsgView != TSMan.ServerView)
                 {
                     Console.WriteLine("Msg was in old view");
-                    SeqsCounter = 0;
+                    AcksCounter = 1;
+                    ProposedSeq.Clear();
+                    ProposedSeq.Add(SequenceNumber);
                     message.MsgView = TSMan.ServerView;
                 }
                 this.Multicast(message, asyncCallback);
+              
             }
 
             int agreedSeq;
@@ -592,7 +587,7 @@ namespace Server
                 agreedSeq = ProposedSeq.Max();
             }
 
-            Console.WriteLine("»»»»»»»»»»»»Message " + message.OperationID + " (agreedSeq = " + agreedSeq + ")");
+            Console.WriteLine("Message " + message.OperationID + " (agreedSeq = " + agreedSeq + ")");
 
             Monitor.Exit(SequenceNumberLock);
             return agreedSeq;
@@ -610,7 +605,6 @@ namespace Server
 
             // Retrieve results.
             bool isDead = !del.EndInvoke(result);
-            Console.WriteLine("SuspectedDead[" + serverURL +"] = " + SuspectedDead[serverURL]);
 
             lock (SuspectedDead)
             {
@@ -641,7 +635,7 @@ namespace Server
                 {
                     // Store porposed sequence number
                     ProposedSeq.Add(response.SequenceNumber);
-                    Interlocked.Increment(ref SeqsCounter);
+                    Interlocked.Increment(ref AcksCounter);
                 }
             }
         }
@@ -657,12 +651,13 @@ namespace Server
             //Never happens in this implementation
             if (message.Code.Equals("badView") && message.MsgView.ID > TSMan.ServerView.ID)
             {
-                Console.WriteLine("Cleaning Acks because of bad view: " + SeqsCounter);
-                SeqsCounter = 0;
+                Console.WriteLine("Cleaning Acks because of bad view: " + AcksCounter);
+                AcksCounter = 0;
             }
 
-            List<ITSpaceServer> servers = TSMan.ServerView.GetProxys();
+            List<ITSpaceServer> servers = TSMan.ServerView.GetProxys(TSMan.URL);
             RemoteAsyncDelegate remoteDel;
+            int i = 0;
             foreach (ITSpaceServer server in servers)
             {
 
@@ -670,6 +665,7 @@ namespace Server
                 remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
                 try
                 {
+                    
                     // Call remote method
                     remoteDel.BeginInvoke(message, asyncCallback, null);
                 }
@@ -691,6 +687,7 @@ namespace Server
 
             TSMan.CheckDelay();
 
+            
             if (serverUrl.Equals(TSMan.URL))
             {
                 return true;
@@ -783,7 +780,6 @@ namespace Server
             string operationID = TSMan.URL + "_" + (ViewUpdateCounter++);
             int seqNum = GetSequenceNumber(operationID, deadURL);
 
-            Console.WriteLine("Send update view");
             //Send view update to all servers and wait for majority
             UpdateView(deadURL, operationID, serversUrl, seqNum, false);
 

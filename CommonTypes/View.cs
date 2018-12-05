@@ -73,7 +73,7 @@ namespace CommonTypes
             }
         }
 
-        public List<ITSpaceServer> GetProxys()
+        public List<ITSpaceServer> GetProxys(string url)
         {
             lock (Servers)
             {
@@ -81,7 +81,8 @@ namespace CommonTypes
             
                 foreach (string serverUrl in Servers)
                 {
-                    servers.Add((ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl));
+                    if(!serverUrl.Equals(url))
+                        servers.Add((ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl));
                 }
                 return servers;
             }

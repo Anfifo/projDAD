@@ -57,7 +57,7 @@ namespace Server
 
         public TSpaceAdvManager(String url, int _mindelay, int _maxdelay)
         {
-            Console.WriteLine(" I am" + " " + url);
+            Console.WriteLine("I am" + " " + url);
             MinDelay = _mindelay;
             MaxDelay = _maxdelay;
             TSpace = new TSpaceStorage();
@@ -120,6 +120,10 @@ namespace Server
         public void Unfreeze()
         {
             Frozen = false;
+            lock (FreezeLock)
+            {
+                Monitor.PulseAll(FreezeLock);
+            }
             Console.WriteLine("UnFreezing");
         }
 
@@ -162,10 +166,12 @@ namespace Server
 
             CheckDelay();
 
+
             if (url.Equals(URL))
             {
                 Console.WriteLine("I have been kicked out of the view.");
                 //TODO: exit
+                
             }
 
             if (ServerView.Contains(url))
