@@ -69,8 +69,7 @@ namespace Server
                     // Check if it was processed in a previous viwew
                     if (TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID < TSMan.ServerView.ID)
                     {
-                        if (TSpaceManager.ProcessedRequests.Log.Count > 150)
-                            TSpaceManager.ProcessedRequests.Log.RemoveRange(0, 100);
+
                         Console.WriteLine("Processed in previous view");
                         Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID);
                         //Console.WriteLine(TSMan.ServerView.ID);
@@ -94,7 +93,7 @@ namespace Server
                     }
 
                 }
-                Console.WriteLine("Starting processing of request " + msg.OperationID);
+                //Console.WriteLine("Starting processing of request " + msg.OperationID);
 
                 // Add sequence number of request to processed requests
 
@@ -103,7 +102,7 @@ namespace Server
             }
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
+            //Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
 
 
 
@@ -169,7 +168,7 @@ namespace Server
                     break;
             }
 
-            Console.WriteLine("Return answer");
+            //Console.WriteLine("Return answer");
             return response;
         }
 

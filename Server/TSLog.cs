@@ -38,7 +38,7 @@ namespace Server
         public LogEntry GetByKey(String ID)
         {
             foreach(LogEntry entry in Log){
-                if (entry.Request.RequestID == ID)
+                if (entry.Request.RequestID == ID || entry.Request.OperationID == ID)
                     return entry;
             }
             return null;

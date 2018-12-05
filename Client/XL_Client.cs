@@ -26,9 +26,11 @@ namespace Client
 
         public override void ClearCallBacksResults()
         {
-            AcksCounter = 0;
+            
             lock (MatchingTuples)
             {
+                Console.WriteLine("cleared acks #1");
+                AcksCounter = 0;
                 MatchingTuples.Clear();
             }
         }
@@ -162,6 +164,7 @@ namespace Client
             {
                 Console.WriteLine("Take 1: " + SequenceNumber);
                 selectedTuple = this.Take1(template);
+
             }
             
             Console.WriteLine("Take: Phase 1 completed");
@@ -216,23 +219,27 @@ namespace Client
             // Clear responses from previour requests
             lock (MatchingTuples)
             {
+                Console.WriteLine("cleared acks #2");
+
                 AcksCounter = 0;
                 MatchingTuples.Clear();
             }
 
             // Create local callback.
             AsyncCallback remoteCallback = new AsyncCallback(Take1Callback);
-
+            
             // Repeat until all replicas have responded
             while (AcksCounter < View.Count)
             {
                 //Send multicast take request to all members of the view
                 this.Multicast(message, remoteCallback);
             }
-            Console.WriteLine("Callback MatchingTSize = " + MatchingTuples.Count);
-            Console.WriteLine("Callback count = " + MatchingTuples.Count);
-            Console.WriteLine("View Count = " + View.Count);
+            //Console.WriteLine("Callback MatchingTSize = " + MatchingTuples.Count);
+            //Console.WriteLine("Callback count = " + AcksCounter);
+            //Console.WriteLine("View Count = " + View.Count);
 
+            if (AcksCounter > View.Count)
+                throw new Exception();
             List<ITuple> intersection;
 
             lock (MatchingTuples)
@@ -291,11 +298,15 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
+
+            //Console.WriteLine("add" + response);
+
             if (!ValidView(response))
                 return;
 
             if (response.Code.Equals("ACK"))
             {
+                Console.WriteLine("Increment #3");
                 Interlocked.Increment(ref AcksCounter);
             }
         }
@@ -326,6 +337,7 @@ namespace Client
                         Tuple = response.Tuple;
                     }
                 }
+                Console.WriteLine("Increment #1");
                 Interlocked.Increment(ref AcksCounter);
             }
         }
@@ -342,6 +354,7 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
+            //Console.WriteLine("take1" + response);
 
             if (!ValidView(response))
                 return;
@@ -354,6 +367,7 @@ namespace Client
                 // Tuples have to be added before the acks are incremented
                 lock (MatchingTuples) {
                     MatchingTuples.Add(new List<ITuple>(response.Tuples));
+                    Console.WriteLine("Increment #2");
                     Interlocked.Increment(ref AcksCounter);         
                 }
                 if (verbose)

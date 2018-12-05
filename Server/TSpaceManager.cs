@@ -228,8 +228,8 @@ namespace Server
                 Console.WriteLine("Adding server: " + url);
                 ServerView.Add(url);
                 ServerView.ID ++;
+                Console.WriteLine("View updated to: " + ServerView.ID);
             }
-            Console.WriteLine("View updated to: " + ServerView.ID);
         }
         public void RemoveFromView(string url)
         {
@@ -238,13 +238,16 @@ namespace Server
             {
                 ServerView.Remove(url);
                 ServerView.ID++;
+                Console.WriteLine("View updated to: " + ServerView.ID);
             }
-            Console.WriteLine("View updated to: " + ServerView.ID);
+            
 
         }
 
         public bool ValidView(TSpaceMsg msg)
         {
+            if (msg.MsgView == null)
+                Console.WriteLine("NO VIEW SENT WITH MSG");
             return msg.MsgView.ID == ServerView.ID;
         }
 
