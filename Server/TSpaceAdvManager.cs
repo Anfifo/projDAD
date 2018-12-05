@@ -101,8 +101,7 @@ namespace Server
         public bool Ping(string serverURL)
         {
 
-            AddToView(serverURL);
-            return true;
+            return Ping();
         }
 
         public string Status()
@@ -162,12 +161,10 @@ namespace Server
             CheckFreeze();
 
             CheckDelay();
-            Console.WriteLine("Unfreeeeezzzzzeee");
 
             if (url.Equals(URL))
             {
                 Console.WriteLine("I have been kicked out of the view.");
-                //Console.ReadLine();
                 //TODO: exit
             }
 

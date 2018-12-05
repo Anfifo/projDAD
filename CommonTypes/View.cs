@@ -2,6 +2,7 @@
 using CommonTypes;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace CommonTypes
 {
@@ -20,6 +21,7 @@ namespace CommonTypes
 
 
         List<ITuple> State = new List<ITuple>();
+
 
         public View()
         {
@@ -41,6 +43,15 @@ namespace CommonTypes
             ID = id;
         }
 
+        public void Lock()
+        {
+            Monitor.Enter(Servers);
+        }
+
+        public void UnLock()
+        {
+            Monitor.Exit(Servers);
+        }
         public List<String> DeepUrlsCopy()
         {
             lock(Servers){
@@ -54,11 +65,25 @@ namespace CommonTypes
         }
 
 
-    public List<String> GetUrls()
+        public List<String> GetUrls()
         {
             lock (Servers)
             {
                 return Servers;
+            }
+        }
+
+        public List<ITSpaceServer> GetProxys()
+        {
+            lock (Servers)
+            {
+                List<ITSpaceServer> servers = new List<ITSpaceServer>();
+            
+                foreach (string serverUrl in Servers)
+                {
+                    servers.Add((ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl));
+                }
+                return servers;
             }
         }
 
