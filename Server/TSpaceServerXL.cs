@@ -26,7 +26,7 @@ namespace Server
             TSMan = new TSpaceManager(url, _mindelay, _maxdelay, view);
         }
 
-        private bool TryConnection(string serverUrl) => TSMan.TryConnection(serverUrl);
+        private bool TryConnection(string serverUrl,string url) => TSMan.TryConnection(serverUrl,url);
 
         public bool Ping(string serverURL) => TSMan.Ping(serverURL);
 
@@ -172,13 +172,26 @@ namespace Server
             return response;
         }
 
+        internal void changeState(TSpaceServerXL server, string url)
+        {
+            TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
+            TSpaceState serverState;
+            Console.WriteLine("getting state from server");
+            serverState = server.GetTSpaceState(url);
+            Console.WriteLine("got the state" + serverState.ServerView.ToString());
+            Console.WriteLine("Setting previous state");
+            this.SetTSpaceState(serverState);
+            Console.WriteLine("I defined this view:" + this.TSMan.ServerView);
+            TSpaceManager.RWL.ReleaseWriterLock();
+        }
+
         public List<ITuple> GetTuples() => TSMan.GetTuples();
 
 
         public void SetTuples(List<ITuple> newState) => TSMan.SetTuples(newState);
 
 
-        public View UpdateView() => TSMan.UpdateView();
+        public void UpdateView() => TSMan.UpdateView();
         
 
         public void SetTSpaceState(TSpaceState smr)
@@ -197,23 +210,23 @@ namespace Server
         public TSpaceState GetTSpaceState(string Url)
         {
 
-            TSpaceState smr = new TSpaceState();
+            TSpaceState xl = new TSpaceState();
 
             TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
 
 
-            smr.LockedTuplesKeys = TSLockHandler.GetKeys();
-            smr.LockedTuplesValues = TSLockHandler.GetValues();
+            xl.LockedTuplesKeys = TSLockHandler.GetKeys();
+            xl.LockedTuplesValues = TSLockHandler.GetValues();
 
             TSMan.AddToView(Url);
-            smr.ServerView = TSMan.GetTotalView();
+            xl.ServerView = TSMan.GetTotalView();
 
-            smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
-            smr.TupleSpace = TSMan.GetTuples();
+            xl.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
+            xl.TupleSpace = TSMan.GetTuples();
 
             TSpaceManager.RWL.ReleaseWriterLock();
 
-            return smr;
+            return xl;
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)

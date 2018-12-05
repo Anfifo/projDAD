@@ -25,7 +25,6 @@ namespace Server
             List<String> Servers = new List<string>();
             string serverid2 = "none";
             List<ITuple> newState = new List<ITuple>();
-            TSpaceState serverState = null;
             View newview = new View();
             string mode = "b";
 
@@ -111,12 +110,15 @@ namespace Server
                         if (mode == "b")
                             server = (TSpaceServerXL)Activator.GetObject(typeof(TSpaceServerXL), serverid2);
 
-                        Console.WriteLine("getting state from server");
-                        serverState = server.GetTSpaceState(Url);
-                        Console.WriteLine("got the state" + serverState.ServerView.ToString());
-                        Console.WriteLine("Setting previous state");
-                        TS.SetTSpaceState(serverState);
-                        Console.WriteLine("I defined this view:" + TS.UpdateView().ToString());
+                        /* Console.WriteLine("getting state from server");
+                         serverState = server.GetTSpaceState(Url);
+                         Console.WriteLine("got the state" + serverState.ServerView.ToString());
+                         Console.WriteLine("Setting previous state");
+                         TS.SetTSpaceState(serverState);
+                         Console.WriteLine("I defined this view:" + TS.UpdateView().ToString());
+                         */
+
+                        TS.changeState(server,Url);
                     }
                     else
                     {
@@ -165,12 +167,15 @@ namespace Server
                         if (mode == "b")
                             server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
 
-                        Console.WriteLine("getting state from server");
-                        serverState = server.GetTSpaceState(Url);
-                        Console.WriteLine("got the state" + serverState.ServerView.ToString());
-                        Console.WriteLine("Setting previous state");
-                        TS.SetTSpaceState(serverState);
-                        Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
+                        /*  Console.WriteLine("getting state from server");
+                          serverState = server.GetTSpaceState(Url);
+                          Console.WriteLine("got the state" + serverState.ServerView.ToString());
+                          Console.WriteLine("Setting previous state");
+                          TS.SetTSpaceState(serverState);
+                          Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
+                      */
+
+                        TS.changeState(server, Url);
                     }
                     else
                     {
@@ -192,6 +197,8 @@ namespace Server
             System.Console.WriteLine("<enter> para sair...");
             System.Console.ReadLine();
         }
+
+
 
         static int getPortFromURL(string url)
         {
