@@ -106,7 +106,7 @@ namespace Server
                               Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
                           */
 
-                            TS.changeState(server, Url);
+                            TS.ChangeState(server, Url);
 
                         }
                         else

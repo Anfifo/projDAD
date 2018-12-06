@@ -156,7 +156,7 @@ namespace Server
             CheckFreeze();
 
             CheckDelay();
-
+            Console.WriteLine("AddToView( " + url + ")");
             if (!ServerView.Contains(url))
             {
                 ServerView.Add(url);
@@ -173,7 +173,8 @@ namespace Server
 
             if (url.Equals(URL))
             {
-                RWL.AcquireWriterLock(Timeout.Infinite);
+                //Only lock in SMR (XL already locked)
+                //RWL.AcquireWriterLock(Timeout.Infinite);
                 
                 Console.WriteLine("I have been kicked out of the view.");
                 Console.WriteLine("Exiting...");
