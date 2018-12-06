@@ -107,6 +107,7 @@ namespace Server
 
         public TSpaceMsg SMRProcessRequest(TSpaceMsg msg)
         {
+            
             TSMan.CheckFreeze();
 
             TSMan.CheckDelay();
@@ -181,7 +182,6 @@ namespace Server
                 AddMessageToQueue(msg);
 
                 Console.WriteLine("Proposing (id = " + msg.OperationID + "; seq = " + response.SequenceNumber + ")");
-
 
                 return response;
             }
@@ -278,6 +278,7 @@ namespace Server
             }
 
             RemoveFromQueue(update);
+            Console.WriteLine("Return response: " + response.OperationID);
             
             return response;
         }
@@ -408,6 +409,8 @@ namespace Server
         /// <returns></returns>
         public TSpaceState GetTSpaceState(string Url)
         {
+            TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
+
             TSpaceState smr = new TSpaceState();
             //Create operationID
             string id = TSMan.URL + "_" + (ViewUpdateCounter++);
@@ -439,8 +442,11 @@ namespace Server
             //Send update view to all servers
             UpdateView(Url, id, serversUrl, AddingToView[Url], true);
 
-            Console.WriteLine("Return state to: " + Url);
+            
             AddingToView.Remove(Url);
+            TSpaceAdvManager.RWL.ReleaseWriterLock();
+            Console.WriteLine("Return state to: " + Url);
+
 
             return smr;
         }

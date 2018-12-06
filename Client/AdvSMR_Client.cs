@@ -63,7 +63,6 @@ namespace Client
 
             // Clear acks count 
             AcksCounter = 0;
-
             // Repeat until all replicas have acknowledged receipt
             while(AcksCounter < Quorum())
             {
@@ -83,7 +82,6 @@ namespace Client
         /// <returns></returns>
         public ITuple Read(ITuple template)
         {
-            Console.WriteLine("Read started");
             if (View.Count == 0)
             {
                 Console.WriteLine("No tuple space servers available.");
@@ -251,13 +249,12 @@ namespace Client
 
             if (response.Code.Equals("proposedSeq"))
             {
-                //Console.WriteLine("Proposed Seq");
 
                 lock (ProposedSeq)
                 {
                     // Store porposed sequence number
                     ProposedSeq.Add(response.SequenceNumber);
-                    Interlocked.Increment(ref AcksCounter);
+                    IncrementAcksCounter(response.RequestID);
                    
                 }
             }
@@ -279,7 +276,7 @@ namespace Client
 
             if (response.Code.Equals("ACK"))
             {
-                Interlocked.Increment(ref AcksCounter);
+                IncrementAcksCounter(response.RequestID);
             }
         }
 
@@ -312,8 +309,9 @@ namespace Client
                     }
                 }
 
-                Interlocked.Increment(ref AcksCounter);
-            } 
+                IncrementAcksCounter(response.RequestID);
+
+            }
         }
 
        
@@ -385,7 +383,6 @@ namespace Client
             {
                 Console.WriteLine("Update to " + GetCurrentView());
                 message.MsgView = GetCurrentView();
-                Console.WriteLine("Send...");
             }
 
             //Console.WriteLine("Sending " + message.Code + " in view " + message.MsgView);
@@ -399,7 +396,7 @@ namespace Client
                 {
                     // Call remote method
                     remoteDel.BeginInvoke(message, asyncCallback, null);
-                }catch(Exception e)
+                }catch(Exception)
                 {
                     Console.WriteLine("Failed to send");
                 }

@@ -82,7 +82,7 @@ namespace Client
             if (algorithm == "s")
             {
                 if(mode == "a")
-                    ClientType = new SMR_Client(Servers, clientID);
+                    ClientType = new AdvSMR_Client(Servers, clientID);
                 if (mode == "b")
                     ClientType = new SMR_Client(Servers, clientID);
             }

@@ -44,7 +44,7 @@ namespace Server
 
             TSpaceMsg response = new TSpaceMsg
             {
-                ProcessID = TSMan.ServerID,
+                ProcessID = TSMan.URL,
                 OperationID = msg.OperationID,
                 MsgView = TSMan.GetTotalView()
             };

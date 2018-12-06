@@ -1,6 +1,3 @@
-Client c2 tcp://localhost:8083/Client script2.txt
+Server s1 tcp://localhost:50007/S
+Client c1 tcp://localhost:80001/Client script.txt
 Server s2 tcp://localhost:50008/S
-Wait 2000
-Crash s1
-Client c3 tcp://localhost:8082/Client script.txt
-Server s3 tcp://localhost:50005/S

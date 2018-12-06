@@ -35,7 +35,7 @@ namespace Client
         // Counter for the number of acknowledgements received 
         internal static int AcksCounter;
 
-        internal static List<String> ActiveOperations = new List<string>(); 
+        internal static List<string> ActiveOperations = new List<string>(); 
 
         // Stores the tuple returned by the
         internal static ITuple Tuple;
@@ -80,7 +80,9 @@ namespace Client
         internal void IncrementAcksCounter(string operationID)
         {
             if (ActiveOperations.Contains(operationID))
+            {
                 Interlocked.Increment(ref AcksCounter);
+            }
         }
 
         public virtual void ClearCallBacksResults()
