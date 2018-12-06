@@ -31,7 +31,7 @@ namespace ProcessCreationService
 
             //info.UseShellExecute = false;
 
-            info.CreateNoWindow = false;
+            info.CreateNoWindow = false;    
 
             if(serverid2 != " ") 
             //add the arguments to the info
@@ -47,7 +47,7 @@ namespace ProcessCreationService
 
         }
 
-        public void StartClient(string script, string id, string algorithm,string mode)
+        public void StartClient(string script, string id,string serverurl, string algorithm,string mode)
         {
             //Initialize a process startinfo with the client.exe file
 
@@ -58,8 +58,10 @@ namespace ProcessCreationService
             info.CreateNoWindow = false;
 
             //add the arguments to the info
-            info.Arguments = script + " " + id + " " + algorithm + " " + mode;
-
+            if(serverurl == "none")
+                info.Arguments = script + " " + id + " " + algorithm + " " + mode;
+            else
+                info.Arguments = script + " " + id + " " + algorithm + " " + serverurl + " " + mode;
             //Start the process
             Process P = Process.Start(info);
 

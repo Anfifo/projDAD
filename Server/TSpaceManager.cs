@@ -270,26 +270,33 @@ namespace Server
 
             //Console.WriteLine("Updating view");
             List<string> currentViewURLs = new List<string>();
-            foreach (string serverUrl in ServerView.GetUrls())
+            List<string> servers = new List<string>();
+
+            for (int i = 0; i < ServerView.GetUrls().Count; i++)
             {
-                // Dont check itself
-                if (serverUrl.Equals(URL))
-                {
-                    currentViewURLs.Add(serverUrl);
-                    continue;
-                }
-                //Verify if connection is valid
-                if (TryConnection(serverUrl,url))
-                {
-                    //Console.WriteLine("Adding to view: " + serverUrl);
-                    AddToView(serverUrl);
-                    currentViewURLs.Add(serverUrl);
-                }
-                else
-                {
-                    RemoveFromView(serverUrl);
-                }
+                servers.Add(ServerView.GetUrls()[i]);
             }
+
+            foreach (string serverUrl in servers)
+                {
+                    // Dont check itself
+                    if (serverUrl.Equals(URL))
+                    {
+                        currentViewURLs.Add(serverUrl);
+                        continue;
+                    }
+                    //Verify if connection is valid
+                    if (TryConnection(serverUrl, url))
+                    {
+                        //Console.WriteLine("Adding to view: " + serverUrl);
+                        AddToView(serverUrl);
+                        currentViewURLs.Add(serverUrl);
+                    }
+                    else
+                    {
+                        RemoveFromView(serverUrl);
+                    }
+                }
             //TSpaceManager.RWL.ReleaseWriterLock();
            
         }

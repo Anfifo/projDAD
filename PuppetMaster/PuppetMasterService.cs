@@ -20,7 +20,7 @@ namespace PuppetMaster
         delegate void startServerDel(string id,string URL, int mindelay, int maxdelay,string id2, string algorithm,string mode);
 
         //delegate to make async clientstart call to PCS
-        delegate void startClientDel(string URL, string random, string algorithm,string mode);
+        delegate void startClientDel(string URL, string random,string serverurl, string algorithm,string mode);
 
         //delegate to make async serverstatus call to all servers
         delegate string serverStatus();
@@ -201,6 +201,18 @@ namespace PuppetMaster
                     Console.WriteLine("Using this PCS:" + " " + PCStoUse);
                 }
             }
+            if(serverid2.Count() == 1)
+            {
+                Console.WriteLine("no server was introduced");
+                if (!(Servers.Count() == 0))
+                {
+                    Console.WriteLine("choosing server");
+                    serverid2 = Servers.ElementAt(random.Next(0, Servers.Count-1)).Value;
+                    Console.WriteLine("Selected server:" + " " + serverid2);
+                }
+                else
+                    serverid2 = "none";
+            }
             //add to the list of servers
             Servers.Add(serverid, URL);
 
@@ -210,7 +222,6 @@ namespace PuppetMaster
             startServerDel RemoteDel = new startServerDel(P.StartServer);
 
             //make the async call 
-            Console.WriteLine("sending the command");
             IAsyncResult RemAr = RemoteDel.BeginInvoke(serverid,URL, mindelay, maxdelay, serverid2, this.algorithm,this.mode, null, null);
 
 
@@ -221,6 +232,7 @@ namespace PuppetMaster
         void StartClient(string clientid, string URL, string script)
         {
             string PCStoUse = "none";
+            string serverurl;
             for (int i = 0; i < PCS.Count; i++)
             {
                 if ((getIP((string)PCS[i])).Equals(getIP(URL)))
@@ -235,10 +247,15 @@ namespace PuppetMaster
             //get the PCS remote object
             Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), PCStoUse);
 
+            if (Servers.Count() == 0)
+                serverurl = "none";
+            else
+                serverurl = Servers.ElementAt(random.Next(0, Servers.Count - 1)).Value;
+
             startClientDel RemoteDel = new startClientDel(P.StartClient);
 
             //make the async call
-            IAsyncResult RemAr = RemoteDel.BeginInvoke(script, random.Next().ToString(), this.algorithm,this.mode, null, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(script, random.Next().ToString(),serverurl, this.algorithm,this.mode, null, null);
 
         }
 
@@ -270,6 +287,7 @@ namespace PuppetMaster
 
             IAsyncResult RemAr = RemoteDel.BeginInvoke(id, null,null);
 
+            Servers.Remove(id);
 
         }
 
