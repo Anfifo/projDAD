@@ -153,10 +153,10 @@ namespace Server
 
         public void AddToView(string url)
         {
+
             CheckFreeze();
 
             CheckDelay();
-            Console.WriteLine("AddToView( " + url + ")");
             if (!ServerView.Contains(url))
             {
                 ServerView.Add(url);

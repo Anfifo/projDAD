@@ -48,6 +48,7 @@ namespace Server
 
         public void AddToView(string subject)
         {
+
             //Himself
             if (subject.Equals(TSMan.URL))
                 return;
@@ -256,8 +257,11 @@ namespace Server
             TSpaceState serverState;
             Console.WriteLine("Synchronizing state...");
             serverState = server.GetTSpaceState(url);
+            //Console.WriteLine("Setting state state...");
             this.SetTSpaceState(serverState);
             TSpaceAdvManager.RWL.ReleaseWriterLock();
+            Console.WriteLine("Starting with view: " + TSMan.ServerView);
+
         }
 
         public List<ITuple> GetTuples() => TSMan.GetTuples();
@@ -277,7 +281,6 @@ namespace Server
                 TSMan.SetTuples(xl.TupleSpace);
                 Freezer = xl.Freezer;
                 TSLockHandler.SetContent(xl.LockedTuplesKeys, xl.LockedTuplesValues);
-                Console.WriteLine("Starting with view: " + xl.ServerView);
             
 
         }
@@ -285,7 +288,7 @@ namespace Server
         public TSpaceState GetTSpaceState(string Url)
         {
             //Acquire the lock to stop the server from processing requests
-            TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
+            TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
             Console.WriteLine("Getting state for: " + Url);
 
             /*
@@ -302,8 +305,9 @@ namespace Server
             UpdateAll(Url, "AddToView");
 
             Console.WriteLine("Return state to: " + Url);
+
             // Release lock allowing the server to process requests
-            TSpaceManager.RWL.ReleaseWriterLock();
+            TSpaceAdvManager.RWL.ReleaseWriterLock();
 
             return xl;
         }
@@ -318,7 +322,7 @@ namespace Server
 
             while (UpdateViewCounter < TSMan.Quorum(TSMan.ServerView.Count))
             {
-                Console.WriteLine("Send AddToView to all servers");
+                Console.WriteLine("Send UpdateView to all servers");
                 Multicast(url, callback, operationID);
 
                 //Releases until it acquires the lock or timeout elapses
@@ -412,6 +416,7 @@ namespace Server
 
         private TSpaceState CopyState(string Url)
         {
+            Console.WriteLine("CopyState(" + Url + ")");
             TSpaceState xl = new TSpaceState();
             xl.LockedTuplesKeys = TSLockHandler.GetKeys();
             xl.LockedTuplesValues = TSLockHandler.GetValues();
