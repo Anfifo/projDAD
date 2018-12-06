@@ -201,7 +201,8 @@ namespace PuppetMaster
                     Console.WriteLine("Using this PCS:" + " " + PCStoUse);
                 }
             }
-            if(serverid2.Count() == 1)
+            
+            if(serverid2.Trim().Count() == 0)
             {
                 Console.WriteLine("no server was introduced");
                 if (!(Servers.Count() == 0))
