@@ -2,5 +2,8 @@ Server s1 tcp://localhost:50001/S
 Server s2 tcp://localhost:50002/S tcp://localhost:50001/S
 Server s3 tcp://localhost:50003/S tcp://localhost:50002/S
 Server s4 tcp://localhost:50004/S tcp://localhost:50003/S
+Server s5 tcp://localhost:50005/S tcp://localhost:50004/S
+Server s6 tcp://localhost:50006/S tcp://localhost:50005/S
+Server s7 tcp://localhost:50007/S tcp://localhost:50006/S
+Server s8 tcp://localhost:50008/S tcp://localhost:50007/S
 Client c1 tcp://localhost:80001/Client script.txt
- 

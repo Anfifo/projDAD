@@ -66,7 +66,9 @@ namespace Client
                 //Send multicast message to all members of the view
                 this.Multicast(message, remoteCallback);
 
+                Console.WriteLine(AcksCounter + "/" + View.Count + "  for msgID: " + message.OperationID);
             }
+            Console.WriteLine(AcksCounter + "/" + View.Count + "  for msgID: " + message.OperationID);
 
             Console.WriteLine("Add " + (++AddCounter) + ": OK");
         }
@@ -308,6 +310,7 @@ namespace Client
             {
                 Console.WriteLine("Increment #3");
                 Interlocked.Increment(ref AcksCounter);
+                Console.WriteLine(AcksCounter + "/" + View.Count + "   by " + response.ProcessID);
             }
         }
 

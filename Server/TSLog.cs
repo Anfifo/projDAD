@@ -61,8 +61,8 @@ namespace Server
             {
                 if (entry.Request.RequestID == id || entry.Request.OperationID == id)
                 {
-                    entry.Request.MsgView = view;
-                    entry.Response.MsgView = view;
+                    entry.Request.MsgView = new View(view);
+                    entry.Response.MsgView = new View(view);
                 }
             }
         }

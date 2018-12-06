@@ -66,29 +66,41 @@ namespace Server
                 // Check if request as already been processed
                 if (TSpaceManager.ProcessedRequests.Contains(msg.OperationID))
                 {
+                    LogEntry Temp = TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID);
                     // Check if it was processed in a previous viwew
-                    if (TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID < TSMan.ServerView.ID)
+                    if (Temp.Request.MsgView.ID < TSMan.ServerView.ID ||
+                        (Temp.Response != null && Temp.Response.ProcessID != TSMan.URL))
                     {
-
                         Console.WriteLine("Processed in previous view");
                         Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID);
                         //Console.WriteLine(TSMan.ServerView.ID);
-                        TSpaceManager.ProcessedRequests.UpdateView(msg.OperationID, TSMan.ServerView);
+
                         TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Response;
+                        
                         if (resp == null)
                         {
                             Console.WriteLine("NULL RESPONSE SAVED");
                             return null;
                         }
 
+                        resp.MsgView = TSMan.ServerView;
+
+                        TSpaceManager.ProcessedRequests.UpdateView(msg.OperationID, TSMan.ServerView);
+                        TSpaceManager.ProcessedRequests.UpdateResponse(msg.OperationID, resp);
+
+
+                        Console.WriteLine(resp);
                         return resp;
                     }
                     else
                     {
+                        
                         //Console.WriteLine("repeated");
                         response.Code = "Repeated";
 
-                        //Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Response);
+                        Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Response
+                            + "\r\n IN RESPONSE TO " + msg);
+                        
                         return response;
                     }
 
@@ -220,9 +232,11 @@ namespace Server
             xl.LockedTuplesKeys = TSLockHandler.GetKeys();
             xl.LockedTuplesValues = TSLockHandler.GetValues();
 
+
             this.UpdateView(Url);
 
             TSMan.AddToView(Url);
+
             xl.ServerView = TSMan.GetTotalView();
 
             xl.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
@@ -259,7 +273,7 @@ namespace Server
 
 
             //Console.WriteLine("finished processing");
-            Console.WriteLine("RESPONSE:" + response);
+            //Console.WriteLine("RESPONSE:" + response);
 
             return response;
         }

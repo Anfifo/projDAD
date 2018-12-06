@@ -101,12 +101,12 @@ namespace Client
 
                 if(msg.MsgView == null)
                 {
-                    Console.WriteLine("Message sent without view!!!");
                     return false;
                 }
 
                 if (msg.Code.Equals("badView") && msg.MsgView.ID > ServerView.ID)
                 {
+                    
                     InvalidView = true;
                     SuggestView(msg.MsgView);
                     return false;
@@ -117,6 +117,7 @@ namespace Client
                     return false;
                 }
             }
+            
             return true;
         }
 
