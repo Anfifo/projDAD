@@ -1,6 +1,8 @@
+Client c1 tcp://localhost:8081/Client script.txt
 Server s1 tcp://localhost:50001/S
-Server s2 tcp://localhost:50002/S tcp://localhost:50001/S
-Server s3 tcp://localhost:50003/S tcp://localhost:50001/S
-Freeze s1
-Unfreeze s1
-
+Client c2 tcp://localhost:8083/Client script2.txt
+Server s2 tcp://localhost:50008/S
+Wait 2000
+Crash s1
+Client c3 tcp://localhost:8082/Client script.txt
+Server s3 tcp://localhost:50005/S

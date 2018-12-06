@@ -176,6 +176,19 @@ namespace Server
             return response;
         }
 
+        internal void changeState(TSpaceAdvServerXL server, string url)
+        {
+            TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
+            TSpaceState serverState;
+            Console.WriteLine("getting state from server");
+            serverState = server.GetTSpaceState(url);
+            Console.WriteLine("got the state" + serverState.ServerView.ToString());
+            Console.WriteLine("Setting previous state");
+            this.SetTSpaceState(serverState);
+            Console.WriteLine("I defined this view:" + this.TSMan.ServerView);
+            TSpaceManager.RWL.ReleaseWriterLock();
+        }
+
         public List<ITuple> GetTuples() => TSMan.GetTuples();
 
 
@@ -185,7 +198,7 @@ namespace Server
         public void UpdateView() => TSMan.UpdateView();
         
 
-        public void SetXLState(TSpaceState xl)
+        public void SetTSpaceState(TSpaceState xl)
         {
             lock (TSpaceManager.ProcessedRequests)
             {
@@ -199,7 +212,7 @@ namespace Server
 
         }
 
-        public TSpaceState GetXLState(string Url)
+        public TSpaceState GetTSpaceState(string Url)
         {
 
             TSpaceState xl = new TSpaceState();

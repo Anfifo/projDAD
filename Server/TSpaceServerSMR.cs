@@ -337,13 +337,17 @@ namespace Server
             smr.MessageQueue = MessageQueue;
             smr.SequenceNumber = SequenceNumber;
                 
+            
+
+            this.UpdateView(Url);
+
             TSMan.AddToView(Url);
+
             smr.ServerView = TSMan.GetTotalView();
 
             smr.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
             smr.TupleSpace = TSMan.GetTuples();
 
-            this.UpdateView(Url);
 
             TSpaceManager.RWL.ReleaseWriterLock();
 

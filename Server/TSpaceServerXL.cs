@@ -192,7 +192,9 @@ namespace Server
 
 
         public void UpdateView() => TSMan.UpdateView();
-        
+
+        public void UpdateView(string url) => TSMan.UpdateView(url);
+
 
         public void SetTSpaceState(TSpaceState smr)
         {
@@ -218,11 +220,14 @@ namespace Server
             xl.LockedTuplesKeys = TSLockHandler.GetKeys();
             xl.LockedTuplesValues = TSLockHandler.GetValues();
 
+            this.UpdateView(Url);
+
             TSMan.AddToView(Url);
             xl.ServerView = TSMan.GetTotalView();
 
             xl.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
             xl.TupleSpace = TSMan.GetTuples();
+
 
             TSpaceManager.RWL.ReleaseWriterLock();
 
