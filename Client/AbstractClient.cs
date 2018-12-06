@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CommonTypes;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
+using System.Threading;
 
 namespace Client
 {
@@ -33,6 +34,8 @@ namespace Client
 
         // Counter for the number of acknowledgements received 
         internal static int AcksCounter;
+
+        internal static List<String> ActiveOperations = new List<string>(); 
 
         // Stores the tuple returned by the
         internal static ITuple Tuple;
@@ -67,6 +70,17 @@ namespace Client
             
             // Set the client unique identifier
             ClientID = clientID;
+        }
+
+        internal int Quorum()
+        {
+            return (int)Math.Floor((View.Count / 2.0) + 1);
+        }
+
+        internal void IncrementAcksCounter(string operationID)
+        {
+            if (ActiveOperations.Contains(operationID))
+                Interlocked.Increment(ref AcksCounter);
         }
 
         public virtual void ClearCallBacksResults()

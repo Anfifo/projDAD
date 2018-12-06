@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Client
 {
-    class SMR_Client : AbstractClient, ITSpaceAPI
+    class AdvSMR_Client : AbstractClient, ITSpaceAPI
     {
         // List that stores all the proposed sequence numbers
         private static List<int> ProposedSeq = new List<int>();
@@ -24,13 +24,13 @@ namespace Client
         /// </summary>
         /// <param name="viewUrls">Urls of the tuple space servers</param>
         /// <param name="viewId">OperationID of the current view</param>
-        public SMR_Client(List<string> viewUrls, int clientID) : 
+        public AdvSMR_Client(List<string> viewUrls, int clientID) : 
             base(viewUrls, clientID)
         {
             Console.WriteLine("SMR Client id = " + ClientID);
         }
-      
 
+        
 
         /// <summary>
         /// Adds a tuple to the distributed tuple space.
@@ -54,6 +54,7 @@ namespace Client
             // Get the sequence number of the request in the view
             request.SequenceNumber = GetSequenceNumber(request.OperationID);
             request.RequestID = ClientID + "_" + (RequestCounter++);
+            ActiveOperations.Add(request.RequestID);
 
             request.MsgView = GetCurrentView();
 
@@ -64,12 +65,14 @@ namespace Client
             AcksCounter = 0;
 
             // Repeat until all replicas have acknowledged receipt
-            while(AcksCounter < View.Count)
+            while(AcksCounter < Quorum())
             {
                 // Send request to all replicas in the view
                 this.Multicast(request, remoteCallback);
 
             }
+            ActiveOperations.Remove(request.RequestID);
+
             Console.WriteLine("Add " + (++AddCounter) + ": OK");
         }
 
@@ -109,6 +112,8 @@ namespace Client
 
                 // Create unique id of the request
                 request.RequestID = ClientID + "_" + (RequestCounter++);
+                ActiveOperations.Add(request.RequestID);
+
 
                 // Create unique message identifier
                 request.OperationID = ClientID + "_" + (OperationCounter++);
@@ -124,7 +129,7 @@ namespace Client
                 
                 // Waits until one replica returns a tuple or
                 // all replicas answered that they dont have a match
-                while (AcksCounter < View.Count)
+                while (AcksCounter < Quorum())
                 {
                     // Send multicast request to all members of the view
                     this.Multicast(request, remoteCallback);
@@ -144,6 +149,8 @@ namespace Client
                     if (Tuple != null)
                         matchFound = true;
                 }
+                ActiveOperations.Remove(request.RequestID);
+
             }
             Console.WriteLine("Read " + (++ReadCounter) + ": OK");
 
@@ -191,6 +198,8 @@ namespace Client
                 
                 // Create unique identifier for the round
                 request.RequestID = ClientID + "_" + (RequestCounter++);
+                ActiveOperations.Add(request.RequestID);
+
 
                 request.MsgView = GetCurrentView();
 
@@ -200,7 +209,7 @@ namespace Client
                 AcksCounter = 0;
 
                 // Repeat untill all replicas have answered
-                while (AcksCounter < View.Count)
+                while (AcksCounter < Quorum())
                 {
 
                     // Send take request to all members of the view
@@ -215,6 +224,8 @@ namespace Client
                     if (Tuple != null)
                         break;
                 }
+                ActiveOperations.Remove(request.RequestID);
+
             }
 
             Console.WriteLine("Take "+ (++TakeCounter) + ": OK");
@@ -326,6 +337,7 @@ namespace Client
             message.OperationID = id;
             message.ProcessID = ClientID.ToString();
             message.RequestID = ClientID + "_" + (RequestCounter++);
+            ActiveOperations.Add(message.RequestID);
             message.SequenceNumber = -1;
             message.MsgView = GetCurrentView();
 
@@ -341,7 +353,7 @@ namespace Client
             }
 
             // Send message to all replicas until all have proposed a sequence number
-            while(AcksCounter < View.Count)
+            while(AcksCounter < Quorum())
             {
                 this.Multicast(message, asyncCallback);
 
@@ -355,7 +367,8 @@ namespace Client
             }
 
             Console.WriteLine("Message " + message.OperationID + " (agreedSeq = " + agreedSeq + ")");
-
+            // Remove operation from active operations
+            ActiveOperations.Remove(message.RequestID);
             return agreedSeq;
         }
 

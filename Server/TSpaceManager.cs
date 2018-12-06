@@ -26,7 +26,7 @@ namespace Server
         public static TSLog ProcessedRequests;
 
         // URL of the server
-        private readonly string URL;
+        public readonly string URL;
         
         public View ServerView;
 
@@ -239,7 +239,7 @@ namespace Server
             TSpaceMsg response = new TSpaceMsg
             {
                 Code = "badView",
-                ProcessID = ServerID,
+                ProcessID = URL,
                 OperationID = msg.OperationID,
                 RequestID = msg.RequestID,
                 MsgView = GetTotalView()

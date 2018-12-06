@@ -1,3 +1,7 @@
-begin-repeat 50
+begin-repeat 20
+add <"a",DADTestA(1,"b")>
+end-repeat
+wait 5000
+begin-repeat 20
 add <"a",DADTestA(1,"b")>
 end-repeat

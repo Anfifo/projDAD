@@ -176,7 +176,7 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "take2";
             message.Tuple = selectedTuple;
-            message.ProcessID = ClientID;
+            message.ProcessID = ClientID.ToString();
             message.OperationID = ClientID + "_" + (++SequenceNumber);
             message.MsgView = GetCurrentView();
 
@@ -211,7 +211,7 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "take1";
             message.Tuple = template;
-            message.ProcessID = ClientID;
+            message.ProcessID = ClientID.ToString();
             message.OperationID = ClientID + "_" + (++SequenceNumber);
             message.MsgView = GetCurrentView();
 

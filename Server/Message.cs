@@ -18,7 +18,7 @@ namespace Server
         public string MessageID { get; set; }
 
         // OperationID of the sender process
-        public int ProcessID { get; set; }
+        public string ProcessID { get; set; }
 
         // Message sequence number
         public int SequenceNumber { get; set; }

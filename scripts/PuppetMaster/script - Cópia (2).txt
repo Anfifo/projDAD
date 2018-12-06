@@ -1,0 +1,6 @@
+Server s1 tcp://localhost:50001/S
+Server s2 tcp://localhost:50002/S tcp://localhost:50001/S
+Server s3 tcp://localhost:50003/S tcp://localhost:50001/S
+Client c1 tcp://localhost:80001/Client script.txt
+Client c2 tcp://localhost:80002/Client script2.txt
+Client c3 tcp://localhost:80003/Client script3.txt

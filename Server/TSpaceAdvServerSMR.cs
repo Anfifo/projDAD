@@ -75,10 +75,19 @@ namespace Server
 
         public void RemoveFromView(string url, string id, int seq)
         {
-            
+            //Update aggred sequence number of update view msg
             Message update = UpdateMessage(id, seq);
+
+            //Remove server from view
             TSMan.RemoveFromView(url);
+
+            //Remove from queue all messages from this process
+            RemoveMessagesFrom(url);
+
+            //Remove update view message from queue
             RemoveFromQueue(update);
+            
+            //Remove from dead suspects
             lock (SuspectedDead)
             {
                 if (SuspectedDead.ContainsKey(url))
@@ -104,7 +113,7 @@ namespace Server
 
             TSpaceMsg response = new TSpaceMsg
             {
-                ProcessID = TSMan.ServerID,
+                ProcessID = TSMan.URL,
                 OperationID = msg.OperationID,
                 RequestID = msg.RequestID,
                 MsgView = TSMan.GetTotalView()
@@ -157,7 +166,7 @@ namespace Server
             }
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")");
+            Console.WriteLine("Processing Request " + command + " (id = " + msg.OperationID + "; seq = " + msg.SequenceNumber + ")");
             
             Message update = null;
             
@@ -273,16 +282,13 @@ namespace Server
             return response;
         }
 
-        internal void changeState(TSpaceAdvServerSMR server, string url)
+        internal void ChangeState(TSpaceAdvServerSMR server, string url)
         {
             TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
             TSpaceState serverState;
-            Console.WriteLine("getting state from server");
+            Console.WriteLine("Synchronizing state...");
             serverState = server.GetTSpaceState(url);
-            Console.WriteLine("got the state" + serverState.ServerView.ToString());
-            Console.WriteLine("Setting previous state");
             this.SetTSpaceState(serverState);
-            Console.WriteLine("I defined this view:" + TSMan.ServerView);
             TSpaceAdvManager.RWL.ReleaseWriterLock();
         }
 
@@ -350,6 +356,22 @@ namespace Server
             }
 
             return null;
+        }
+
+        private void RemoveMessagesFrom(string id)
+        {
+            lock (MessageQueue)
+            {
+                foreach (Message msg in MessageQueue)
+                {
+                    if (msg.ProcessID.Equals(id))
+                    {
+                        Console.WriteLine("Removing message: " + msg.MessageID);
+                        MessageQueue.Remove(msg);
+                    }
+                }
+            }
+
         }
 
         public bool Ping(string serverURL) => TSMan.Ping(serverURL);
@@ -556,7 +578,7 @@ namespace Server
             message.Code = "proposeSeq";
             message.OperationID = id;
             // Replace ID with server url
-            message.ProcessID = TSMan.ServerID;
+            message.ProcessID = TSMan.URL;
             message.RequestID = message.ProcessID + "_" + (RequestCounter++);
             message.SequenceNumber = -1;
             
@@ -583,7 +605,6 @@ namespace Server
             {
                 if(message.MsgView != TSMan.ServerView)
                 {
-                    Console.WriteLine("Msg was in old view");
                     AcksCounter = 1;
                     ProposedSeq.Clear();
                     ProposedSeq.Add(SequenceNumber);
@@ -608,7 +629,6 @@ namespace Server
 
         public int Quorum(int viewCount)
         {
-            //TODO: fix quorum count
             return (int)Math.Floor((viewCount / 2.0) + 1);
         }
         private void RemoveFromViewCallback(IAsyncResult result)
@@ -787,7 +807,6 @@ namespace Server
                 //Already has been removed
                 if (!SuspectedDead.ContainsKey(deadURL))
                 {
-                    Console.WriteLine("We returned after he died");
                     return;
                 }
             }
@@ -795,12 +814,11 @@ namespace Server
             // Get operation sequence number
             string operationID = TSMan.URL + "_" + (ViewUpdateCounter++);
             int seqNum = GetSequenceNumber(operationID, deadURL);
+          
 
             //Send view update to all servers and wait for majority
             UpdateView(deadURL, operationID, serversUrl, seqNum, false);
 
-            Console.WriteLine("View updated: " + TSMan.ServerView.ID);
-            
         }
 
         void ITSpaceServer.UpdateView()

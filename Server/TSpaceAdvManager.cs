@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using CommonTypes;
 
@@ -169,9 +170,12 @@ namespace Server
 
             if (url.Equals(URL))
             {
-                Console.WriteLine("I have been kicked out of the view.");
-                //TODO: exit
+                RWL.AcquireWriterLock(Timeout.Infinite);
                 
+                Console.WriteLine("I have been kicked out of the view.");
+                Console.WriteLine("Exiting...");
+                Thread.Sleep(10000);
+                Process.GetCurrentProcess().Kill();
             }
 
             if (ServerView.Contains(url))
@@ -200,7 +204,7 @@ namespace Server
             TSpaceMsg response = new TSpaceMsg
             {
                 Code = "badView",
-                ProcessID = ServerID,
+                ProcessID = URL,
                 OperationID = msg.OperationID,
                 RequestID = msg.RequestID,
                 MsgView = GetTotalView()

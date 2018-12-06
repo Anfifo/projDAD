@@ -9,12 +9,12 @@ namespace Server
 {
     static public class TSLockHandler
     {
-        static IDictionary<int, List<ITuple>> LockedTuples = new Dictionary<int, List<ITuple>>();
+        static IDictionary<string, List<ITuple>> LockedTuples = new Dictionary<string, List<ITuple>>();
         static List<ITuple> LockedTuplesList = new List<ITuple>();
         
         public static object Lock = new object();
 
-        static public List<ITuple> LockTuples(int userID, List<ITuple> matches)
+        static public List<ITuple> LockTuples(string userID, List<ITuple> matches)
         {
             List<ITuple> UserLockedTuples = new List<ITuple>();
             
@@ -38,7 +38,7 @@ namespace Server
             return UserLockedTuples;
         }
 
-        static public void UnlockTuples(int userID)
+        static public void UnlockTuples(string userID)
         {
             lock (LockedTuples)
             {
@@ -52,7 +52,7 @@ namespace Server
             }
         }
 
-        static public List<int> GetKeys()
+        static public List<string> GetKeys()
         {
             return LockedTuples.Keys.ToList();
         }
@@ -64,7 +64,7 @@ namespace Server
             return LockedTuples.Values.ToList();
         }
 
-        static public void SetContent(List<int> keys, List<List<ITuple>> values)
+        static public void SetContent(List<string> keys, List<List<ITuple>> values)
         {
             if(keys != null && values != null)
             {
@@ -73,7 +73,7 @@ namespace Server
             }
         }
 
-        static public IDictionary <int, List<ITuple>> ListsToDictionary(List<int> keys, List<List<ITuple>> values)
+        static public IDictionary <string, List<ITuple>> ListsToDictionary(List<string> keys, List<List<ITuple>> values)
         {
             return Enumerable.Range(0, keys.Count).ToDictionary(i => keys[i], i => values[i]);
 

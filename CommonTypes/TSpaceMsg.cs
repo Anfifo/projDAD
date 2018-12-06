@@ -29,7 +29,7 @@ namespace CommonTypes
             get; set;
         }
 
-        public int ProcessID
+        public string ProcessID
         {
             get; set;
         }

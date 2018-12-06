@@ -18,7 +18,7 @@ namespace Server
         public View ServerView;
         public List<Message> MessageQueue;
         public List<ITuple> TupleSpace;
-        public List<int> LockedTuplesKeys;
+        public List<string> LockedTuplesKeys;
         public List<List<ITuple>> LockedTuplesValues;
         public List<ITuple> Freezer;
 
