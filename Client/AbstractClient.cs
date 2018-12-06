@@ -101,6 +101,7 @@ namespace Client
 
                 if(msg.MsgView == null)
                 {
+                    Console.WriteLine("Message sent without view!!!");
                     return false;
                 }
 

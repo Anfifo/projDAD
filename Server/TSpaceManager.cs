@@ -250,8 +250,6 @@ namespace Server
         public void setView(View view)
         {
             ServerView = view;
-            
-
         }
 
         internal void FinishedProcessing()

@@ -259,7 +259,7 @@ namespace Server
 
 
             //Console.WriteLine("finished processing");
-            //Console.WriteLine("RESPONSE:" + response);
+            Console.WriteLine("RESPONSE:" + response);
 
             return response;
         }
