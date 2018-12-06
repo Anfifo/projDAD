@@ -486,7 +486,7 @@ namespace Server
 
             // Wait for all
             Monitor.Enter(UpdateViewLock);
-            while (ViewAcksCounter < Quorum(allServers.Count))
+            while (ViewAcksCounter < TSMan.Quorum(allServers.Count))
                 Monitor.Wait(UpdateViewLock);
             Monitor.Exit(UpdateViewLock);
         }
@@ -607,7 +607,7 @@ namespace Server
             }
             
             // Send message to all replicas until all have proposed a sequence number
-            while (AcksCounter < Quorum(TSMan.ServerView.Count))
+            while (AcksCounter < TSMan.Quorum(TSMan.ServerView.Count))
             {
                 if(message.MsgView != TSMan.ServerView)
                 {
@@ -633,10 +633,7 @@ namespace Server
             return agreedSeq;
         }
 
-        public int Quorum(int viewCount)
-        {
-            return (int)Math.Floor((viewCount / 2.0) + 1);
-        }
+        
         private void RemoveFromViewCallback(IAsyncResult result)
         {
             string serverURL = (string)result.AsyncState;
@@ -802,7 +799,7 @@ namespace Server
             Monitor.Enter(SuspectedDead);
             //TODO: Change quorum to update on view change and be just variable
             while (SuspectedDead.ContainsKey(deadURL) &&
-                (SuspectedDead[deadURL] < Quorum(TSMan.ServerView.GetUrls().Count)))
+                (SuspectedDead[deadURL] < TSMan.Quorum(TSMan.ServerView.GetUrls().Count)))
                 Monitor.Wait(SuspectedDead);
             Monitor.Exit(SuspectedDead);
 

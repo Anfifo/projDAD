@@ -13,18 +13,64 @@ namespace Server
     [Serializable]
     class TSpaceAdvServerXL : MarshalByRefObject, ITSpaceServer
     {
-        public TSpaceManager TSMan;
+        public TSpaceAdvManager TSMan;
+
+        //Spot for view update
+        //TODO: Copy slot in state
+        public Slot UpdateSlot = new Slot();
+
+        private static object UpdateViewLock = new object();
+
+        private static int ReservedSlotsCounter = 0;
+
+        private static int UpdateViewCounter = 0;
+
+        delegate bool ReserveSlotDel(Slot.UpdateType type, string subject, string from);
+
+        delegate void UpdateViewDel(string from, string subject);
+
 
 
         public TSpaceAdvServerXL(String url, int _mindelay,int _maxdelay)
         {
-            TSMan = new TSpaceManager(url, _mindelay, _maxdelay);
+            TSMan = new TSpaceAdvManager(url, _mindelay, _maxdelay);
         }
 
         public TSpaceAdvServerXL(string url, int _mindelay, int _maxdelay, View view)
         {
-            TSMan = new TSpaceManager(url, _mindelay, _maxdelay, view);
+            TSMan = new TSpaceAdvManager(url, _mindelay, _maxdelay, view);
         }
+
+        public bool ReserverSlot(Slot.UpdateType type, string subject, string from)
+        {
+            //Tries to reserve spot
+            return UpdateSlot.ReserveSlot(type, subject, from);
+        }
+
+        public void AddToView(string from, string subject)
+        {
+            //Add server to view
+            TSMan.AddToView(subject);
+          
+            //Release slot if reserved for this add
+            UpdateSlot.ReleaseSlot(Slot.UpdateType.INSERT, subject, from);
+
+        }
+
+        public void RemoveFromView(string from, string subject)
+        {
+            //Remove server from view
+            TSMan.RemoveFromView(subject);
+
+            //Release slot if taken for deade server
+            UpdateSlot.ReleaseFrom(subject);
+
+            //Release slot if reserved for this add
+            UpdateSlot.ReleaseSlot(Slot.UpdateType.INSERT, subject, from);
+
+            //TODO: Remove from dead subjects
+        }
+
 
         public bool Ping(string serverURL) => TSMan.Ping(serverURL);
 
@@ -214,25 +260,146 @@ namespace Server
 
         public TSpaceState GetTSpaceState(string Url)
         {
-
-            TSpaceState xl = new TSpaceState();
-
+            //Acquire the lock to stop the server from processing requests
             TSpaceManager.RWL.AcquireWriterLock(Timeout.Infinite);
 
+            //Reserve spot
+            TryReserveSpot(Url, Slot.UpdateType.INSERT);
 
+            Console.WriteLine("Reserved slot");
+
+            //Copy State
+            TSpaceState xl = CopyState(Url);
+
+            //Propagate add server to all 
+            UpdateAll(Url, Slot.UpdateType.INSERT);
+
+            // Release lock allowing the server to process requests
+            TSpaceManager.RWL.ReleaseWriterLock();
+
+            return xl;
+        }
+
+        private void UpdateAll(string url, Slot.UpdateType type)
+        {
+            string operationID;
+            if (type == Slot.UpdateType.INSERT)
+                operationID = "AddToView";
+            else
+                operationID = "RemoveFromView";
+
+            Monitor.Enter(UpdateViewLock);
+            UpdateViewCounter = 0;
+            AsyncCallback callback = new AsyncCallback(UpdateViewCallback);
+            while (UpdateViewCounter < TSMan.Quorum(TSMan.ServerView.Count))
+            {
+                Console.WriteLine("Send AddToView to all servers");
+                //TODO: Multicast
+                Multicast(type, url, callback, operationID);
+
+
+                //Releases until it acquires the lock or timeout elapses
+                Monitor.Wait(UpdateViewLock, 2000);
+            }
+            Monitor.Exit(UpdateViewLock);
+        }
+
+        private void TryReserveSlotCallback(IAsyncResult result)
+        {
+            ReserveSlotDel del = (ReserveSlotDel)((AsyncResult)result).AsyncDelegate;
+
+            // Retrieve results.
+            bool response = del.EndInvoke(result);
+
+            lock (UpdateViewLock) {
+                if (response)
+                {
+                    ReservedSlotsCounter++;
+                    Monitor.PulseAll(UpdateViewLock);
+                }
+
+            }
+        }
+
+        private void UpdateViewCallback(IAsyncResult result)
+        {
+            lock (UpdateViewLock)
+            {
+                    UpdateViewCounter++;
+                    Monitor.PulseAll(UpdateViewLock);
+            }
+        }
+
+        private void TryReserveSpot(string url, Slot.UpdateType type)
+        {
+            Monitor.Enter(UpdateViewLock);
+            AsyncCallback callback = new AsyncCallback(TryReserveSlotCallback);
+            ReservedSlotsCounter = 0;
+            while (ReservedSlotsCounter < TSMan.Quorum(TSMan.ServerView.Count))
+            {
+                Console.WriteLine("Send ReserverSlot to all servers");
+                //TODO: Multicast
+                Multicast(type, url, callback, "ReserveSlot");
+                //Releases until it acquires the lock or timeout elapses
+                Monitor.Wait(UpdateViewLock, 2000);
+            }
+            Monitor.Exit(UpdateViewLock);
+        }
+
+        private void Multicast(Slot.UpdateType type, string subject, AsyncCallback asyncCallback, string operation)
+        {
+            //TODO
+            View view = CheckViewValid();
+
+            List<ITSpaceServer> servers = TSMan.ServerView.GetProxys(TSMan.URL);
+            
+            foreach (ITSpaceServer server in servers)
+            {
+               
+                try
+                {
+                    if (operation.Equals("AddToView"))
+                    {
+                        UpdateViewDel remoteDel = new UpdateViewDel(((TSpaceAdvServerXL)server).AddToView);
+                        remoteDel.BeginInvoke(TSMan.URL, subject, asyncCallback, null);
+
+                    }
+
+                    else if (operation.Equals("RemoveFromView"))
+                    {
+                        UpdateViewDel remoteDel = new UpdateViewDel(((TSpaceAdvServerXL)server).RemoveFromView);
+                        remoteDel.BeginInvoke(TSMan.URL, subject, asyncCallback, null);
+
+                    }
+                    else if (operation.Equals("ReserveSlot"))
+                    {
+                        ReserveSlotDel remoteDel = new ReserveSlotDel(((TSpaceAdvServerXL)server).ReserverSlot);
+                        remoteDel.BeginInvoke(type, subject, TSMan.URL, asyncCallback, null);
+
+                    }
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Failed to send");
+                }
+            }
+        }
+
+        private View CheckViewValid() { return TSMan.ServerView; }
+
+        private TSpaceState CopyState(string Url)
+        {
+            TSpaceState xl = new TSpaceState();
             xl.LockedTuplesKeys = TSLockHandler.GetKeys();
             xl.LockedTuplesValues = TSLockHandler.GetValues();
 
             TSMan.AddToView(Url);
             xl.ServerView = TSMan.GetTotalView();
 
-            xl.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
+            xl.ProcessedRequests = TSpaceAdvManager.ProcessedRequests; //its static, cant be accessed with instance
             xl.TupleSpace = TSMan.GetTuples();
 
             xl.Freezer = Freezer;
-
-            TSpaceManager.RWL.ReleaseWriterLock();
-
             return xl;
         }
 

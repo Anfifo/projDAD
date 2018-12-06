@@ -67,7 +67,10 @@ namespace Server
             URL = url;
         }
 
-        
+        public int Quorum(int viewCount)
+        {
+            return (int)Math.Floor((viewCount / 2.0) + 1);
+        }
 
         public void CheckFreeze()
         {
