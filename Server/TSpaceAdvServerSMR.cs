@@ -497,15 +497,21 @@ namespace Server
             lock (TSpaceAdvManager.ProcessedRequests)
             {
                 MessageQueue = smr.MessageQueue;
+                
                 TSpaceAdvManager.ProcessedRequests = smr.ProcessedRequests;
                 TSMan.setView(smr.ServerView);
                 TSMan.SetTuples(smr.TupleSpace);
                 SequenceNumber = smr.SequenceNumber;
                 Console.WriteLine("Starting with view: " + smr.ServerView);
                 Console.WriteLine("Start in queue: " + MessageQueue.Count);
-               // foreach (Message m in MessageQueue){
-               //     Console.WriteLine("In queue => id = " + m.MessageID + ";" + " seq = " + m.SequenceNumber + ";" + " deliverable = " + m.Deliverable);
-               // }
+                foreach (Message msg in MessageQueue)
+                {
+                    Console.WriteLine("ID:"+msg.MessageID + "   " + msg.Request);
+                        
+                }
+                // foreach (Message m in MessageQueue){
+                //     Console.WriteLine("In queue => id = " + m.MessageID + ";" + " seq = " + m.SequenceNumber + ";" + " deliverable = " + m.Deliverable);
+                // }
             }
             
 
@@ -544,7 +550,7 @@ namespace Server
             List<string> serversUrl = TSMan.ServerView.DeepUrlsCopy();
 
             //Copy state
-            smr.MessageQueue = MessageQueue;
+
             smr.SequenceNumber = SequenceNumber;
 
             TSMan.AddToView(Url);
@@ -558,8 +564,18 @@ namespace Server
             //Send update view to all servers
             UpdateView(Url, id, serversUrl, AddingToView[Url], true);
 
+            Console.WriteLine("id of something:" + id);
             RemoveFromQueue(id);
 
+            smr.MessageQueue = new List<Message>();
+
+            foreach (Message msg2 in MessageQueue)
+                smr.MessageQueue.Add(Message.DeepClone(msg2));
+
+            Console.WriteLine("number of elements:" + smr.MessageQueue.Count);
+
+            foreach (Message msg2 in MessageQueue)
+                Console.WriteLine("Updateid=> " + msg2.MessageID + "; Updateseq => " + msg2.SequenceNumber);
 
             AddingToView.Remove(Url);
             TSpaceAdvManager.RWL.ReleaseWriterLock();
