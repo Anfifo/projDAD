@@ -45,7 +45,7 @@ namespace Server
             TSpaceMsg response = new TSpaceMsg
             {
                 ProcessID = TSMan.URL,
-                OperationID = msg.OperationID,
+                RequestID = msg.RequestID,
                 MsgView = TSMan.GetTotalView()
             };
 
@@ -64,18 +64,18 @@ namespace Server
             lock (TSpaceManager.ProcessedRequests)
             {
                 // Check if request as already been processed
-                if (TSpaceManager.ProcessedRequests.Contains(msg.OperationID))
+                if (TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
-                    LogEntry Temp = TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID);
+                    LogEntry Temp = TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID);
                     // Check if it was processed in a previous viwew
                     if (Temp.Request.MsgView.ID < TSMan.ServerView.ID ||
                         (Temp.Response != null && Temp.Response.ProcessID != TSMan.URL))
                     {
                         Console.WriteLine("Processed in previous view");
-                        Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID);
+                        Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID);
                         //Console.WriteLine(TSMan.ServerView.ID);
 
-                        TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Response;
+                        TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response;
                         
                         if (resp == null)
                         {
@@ -85,8 +85,8 @@ namespace Server
 
                         resp.MsgView = TSMan.ServerView;
 
-                        TSpaceManager.ProcessedRequests.UpdateView(msg.OperationID, TSMan.ServerView);
-                        TSpaceManager.ProcessedRequests.UpdateResponse(msg.OperationID, resp);
+                        TSpaceManager.ProcessedRequests.UpdateView(msg.RequestID, TSMan.ServerView);
+                        TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, resp);
 
 
                         Console.WriteLine(resp);
@@ -98,14 +98,14 @@ namespace Server
                         //Console.WriteLine("repeated");
                         response.Code = "Repeated";
 
-                        Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Response
+                        Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response
                             + "\r\n IN RESPONSE TO " + msg);
                         
                         return response;
                     }
 
                 }
-                //Console.WriteLine("Starting processing of request " + msg.OperationID);
+                //Console.WriteLine("Starting processing of request " + msg.RequestID);
 
                 // Add sequence number of request to processed requests
 
@@ -114,7 +114,7 @@ namespace Server
             }
 
             string command = msg.Code;
-            //Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
+            //Console.WriteLine("Processing Request " + command + " (seq = " + msg.RequestID + ")" );
 
 
 
@@ -261,9 +261,9 @@ namespace Server
 
             lock (TSpaceManager.ProcessedRequests)
             {
-                if (response.Code != "Repeated" && response.Code != "badView" && TSpaceManager.ProcessedRequests.Contains(msg.OperationID))
+                if (response.Code != "Repeated" && response.Code != "badView" && TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
-                    TSpaceManager.ProcessedRequests.UpdateResponse(msg.OperationID, response);
+                    TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, response);
                     //Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
                 }
 
