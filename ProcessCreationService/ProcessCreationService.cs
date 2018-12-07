@@ -33,9 +33,11 @@ namespace ProcessCreationService
 
             info.CreateNoWindow = false;    
 
+            //if we have a server to get state from
             if(serverid2 != " ") 
             //add the arguments to the info
                 info.Arguments = url + " " + mindelay + " " + maxdelay + " " + serverid2 +  " " + algorithm + " " + mode;
+            //if we dont have a server to get state from
             else
                 info.Arguments = url + " " + mindelay + " " + maxdelay + " " + algorithm + " " + mode;
 
@@ -58,7 +60,7 @@ namespace ProcessCreationService
             info.CreateNoWindow = false;
 
             //add the arguments to the info
-            if(serverurl == "none")
+            if (serverurl == "none")
                 info.Arguments = script + " " + id + " " + algorithm + " " + mode;
             else
                 info.Arguments = script + " " + id + " " + algorithm + " " + serverurl + " " + mode;
@@ -72,6 +74,7 @@ namespace ProcessCreationService
 
         public void Crash(string id)
         {
+            //Crash based on the id
             foreach(KeyValuePair<string, Process> ServerProcess in Servers)
             {
                 if (id == ServerProcess.Key)

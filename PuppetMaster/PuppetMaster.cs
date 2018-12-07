@@ -54,8 +54,9 @@ namespace PuppetMaster
 
                 while (true)
                 {
-                    Console.WriteLine("Write a command:" + "\n\r" );
+                    Console.WriteLine("Write a command:" + "\n\r");
                     string Command = Console.ReadLine();
+                    Console.WriteLine(Command);
 
                     //execute the command
                     MasterofPuppets.Execute(Command);
