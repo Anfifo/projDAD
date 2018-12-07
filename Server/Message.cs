@@ -1,7 +1,9 @@
 ﻿using CommonTypes;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,8 +12,22 @@ namespace Server
     [Serializable]
     public class Message : IComparable<Message>
     {
+
+        public Message()
+        {
+
+        }
+        public Message(Message msg)
+        {
+            Request = msg.Request;
+            MessageID = msg.MessageID;
+            ProcessID = msg.ProcessID;
+            SequenceNumber = SequenceNumber;
+            Deliverable = Deliverable;
+        }
+
+
         // Request operation message
-       
         public TSpaceMsg Request { get; set; }
 
         // Message OperationID
@@ -43,6 +59,18 @@ namespace Server
             // Msg with smaller sequence number is smaller
             return SequenceNumber.CompareTo(other.SequenceNumber);
             
+        }
+
+        public static Message DeepClone<Message>(Message obj)
+        {
+            using (var ms = new MemoryStream())
+            {
+                var formatter = new BinaryFormatter();
+                formatter.Serialize(ms, obj);
+                ms.Position = 0;
+
+                return (Message)formatter.Deserialize(ms);
+            }
         }
     }
 }
