@@ -71,13 +71,13 @@ namespace CommonTypes
                 TupString += (Field)this.tuple[i] + ", ";
             }
 
-            TupString += (Field)this.tuple[i] + ", ";
+            TupString += (Field)this.tuple[i];
 
 
             TupString += ">";
 
 
-            return null;
+            return TupString;
         }
     }
 }

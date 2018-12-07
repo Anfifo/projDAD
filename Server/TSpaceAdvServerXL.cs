@@ -293,33 +293,35 @@ namespace Server
         int removeCounter = 0;
         public void RemoveFromView(string subject)
         {
- 
-
-            
-            Console.WriteLine("Remove from view # 1");
-
-            if (!TSMan.ServerView.Contains(subject))
+            lock (TSMan.ServerView)
             {
-                Console.WriteLine("Already removed");
-                return;
-            }
 
-            //Remove server from view
-            TSMan.RemoveFromView(subject);
-            Console.WriteLine("Remove from view # 2 => " + (++removeCounter));
 
-            //Remove from dead suspects
-            lock (SuspectedDead)
-            {
-                if (SuspectedDead.ContainsKey(subject))
+
+                Console.WriteLine("Remove from view # 1");
+
+                if (!TSMan.ServerView.Contains(subject))
                 {
-                    SuspectedDead.Remove(subject);
+                    Console.WriteLine("Already removed");
+                    return;
                 }
-                Monitor.Pulse(SuspectedDead);
+
+                //Remove server from view
+                TSMan.RemoveFromView(subject);
+                Console.WriteLine("Remove from view # 2 => " + (++removeCounter));
+
+                //Remove from dead suspects
+                lock (SuspectedDead)
+                {
+                    if (SuspectedDead.ContainsKey(subject))
+                    {
+                        SuspectedDead.Remove(subject);
+                    }
+                    Monitor.Pulse(SuspectedDead);
+                }
+
+
             }
-            
-
-
 
         }
         //private bool TryConnection(string serverUrl,string url) => TSMan.TryConnection(serverUrl,url);

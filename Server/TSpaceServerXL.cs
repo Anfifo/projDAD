@@ -71,10 +71,8 @@ namespace Server
                     if (Temp.Request.MsgView.ID < TSMan.ServerView.ID ||
                         (Temp.Response != null && Temp.Response.ProcessID != TSMan.URL))
                     {
-                        Console.WriteLine("Processed in previous view");
-                        Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID);
-                        //Console.WriteLine(TSMan.ServerView.ID);
-
+                        //Console.WriteLine("Processed in previous view");
+                        
                         TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response;
                         
                         if (resp == null)
@@ -89,7 +87,7 @@ namespace Server
                         TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, resp);
 
 
-                        Console.WriteLine(resp);
+                        //Console.WriteLine(resp);
                         return resp;
                     }
                     else
@@ -97,9 +95,6 @@ namespace Server
                         
                         //Console.WriteLine("repeated");
                         response.Code = "Repeated";
-
-                        Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response
-                            + "\r\n IN RESPONSE TO " + msg);
                         
                         return response;
                     }
@@ -114,9 +109,6 @@ namespace Server
             }
 
             string command = msg.Code;
-            //Console.WriteLine("Processing Request " + command + " (seq = " + msg.RequestID + ")" );
-
-
 
 
             switch (command)
@@ -128,17 +120,10 @@ namespace Server
 
                 case "read":
                     response.Tuple = TSMan.TSpace.Read(msg.Tuple);
-                    
                     response.Code = "OK";
-                    if (response.Tuple == null)
-                        Console.WriteLine("Match not Found");
-                    else
-                        Console.WriteLine("Match found");
                     break;
 
                 case "take1":
-
-                    
                     lock (TSLockHandler.Lock)
                     {
                         // find suitable matches for tuple
@@ -179,8 +164,6 @@ namespace Server
                     Console.WriteLine("Invalid command.");
                     break;
             }
-
-            //Console.WriteLine("Return answer");
             return response;
         }
 
@@ -239,7 +222,7 @@ namespace Server
 
             xl.ServerView = TSMan.GetTotalView();
 
-            xl.ProcessedRequests = TSpaceManager.ProcessedRequests; //its static, cant be accessed with instance
+            xl.ProcessedRequests = TSpaceManager.ProcessedRequests;
             xl.TupleSpace = TSMan.GetTuples();
 
 
@@ -251,10 +234,6 @@ namespace Server
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
         {
             TSpaceMsg response;
-
-            //Console.WriteLine("started processing");
-            //Console.WriteLine(msg);
-
             TSMan.Processing();
 
             response = XLProcessRequest(msg);
@@ -264,17 +243,11 @@ namespace Server
                 if (response.Code != "Repeated" && response.Code != "badView" && TSpaceManager.ProcessedRequests.Contains(msg.RequestID))
                 {
                     TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, response);
-                    //Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
                 }
-
             }
 
             TSMan.FinishedProcessing();
-
-
-            //Console.WriteLine("finished processing");
-            //Console.WriteLine("RESPONSE:" + response);
-
+            
             return response;
         }
     }

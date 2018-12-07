@@ -54,6 +54,7 @@ namespace Client
             message.RequestID = ClientID + "_" + (++SequenceNumber);
             message.MsgView = GetCurrentView();
 
+
             //Clear acks
             AcksCounter = 0;
 

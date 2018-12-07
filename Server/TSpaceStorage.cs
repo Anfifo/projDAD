@@ -33,6 +33,7 @@ namespace Server
         /// <param name="tuple">Tuple to be added</param>
         public void Add(ITuple tuple)
         {
+            Console.WriteLine("% Added: " + tuple);
 
             lock (TS)
                 TS.Add(tuple);
@@ -41,14 +42,14 @@ namespace Server
 
         public ITuple Read(ITuple tuple)
         {
-            
-            foreach(ITuple tup in TS)
+            foreach (ITuple tup in TS)
             {
-                if (tuple.Matches(tup))
-                {
-                    lock(TS)
-                    return tup;
-                }
+                lock (TS)
+                    if (tuple.Matches(tup))
+                    {
+                        Console.WriteLine("% Read: " + tuple);
+                        return tup;
+                    }
             }
 
             return null;
@@ -56,6 +57,7 @@ namespace Server
 
         public List<ITuple> Take1(ITuple tuple)
         {
+            string Output = "";
             List<ITuple> list = new List<ITuple>();
 
             for (int i = 0; i < TS.Count; i++)
@@ -65,17 +67,23 @@ namespace Server
                     list.Add(TS[i]);
                 }
             }
+
+            foreach(ITuple t in list){
+                Output += t;
+            }
+            Console.WriteLine("% Take1 (matches): " + Output);
             return list;
         }
 
         public Boolean Take2(ITuple tuple)
         {
-            for( int i = 0; i < TS.Count; i++)
+            for ( int i = 0; i < TS.Count; i++)
             {
+                lock(TS)
                 if (tuple.Matches(TS[i]))
                 {
-                    lock(TS)
-                        TS.RemoveAt(i);
+                    Console.WriteLine("% Take2 (Removing): " + tuple);
+                    TS.RemoveAt(i);
                     return true;
                 }
             }
