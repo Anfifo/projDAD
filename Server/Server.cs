@@ -60,13 +60,6 @@ namespace Server
                 serverid2 = args[3];
                 mode = args[5];
 
-                //get the remote object of the other server
-                //get the view from the other server
-                //newview = server.UpdateView();
-                //Console.WriteLine(newview.ToString());
-                //get the tuples from the other server
-                //newState = server.GetTuples();
-
             }
 
 
@@ -76,7 +69,9 @@ namespace Server
             {
                 if (mode == "a")
                 {
+                    //Server we are going to execute
                     TSpaceAdvServerXL TS = null;
+                    //Server we are going to get our state from
                     TSpaceAdvServerXL server = null;
                     if (!serverid2.Equals("none"))
                     {
@@ -86,6 +81,7 @@ namespace Server
                     else
                     {
                         Console.WriteLine("no previous state exists");
+                        //if we dont get a state we initialize with an empty view
                         TS = new TSpaceAdvServerXL(Url, MinDelay, MaxDelay, newview);
                     }
 
@@ -96,9 +92,11 @@ namespace Server
                         if (!serverid2.Equals("none"))
                         {
 
+                            //get the remote server
                             server = (TSpaceAdvServerXL)Activator.GetObject(typeof(TSpaceAdvServerXL), serverid2);
 
                           
+                            //execute changestate on the server we are going to execute
                             TS.ChangeState(server, Url);
 
                         }
@@ -182,13 +180,6 @@ namespace Server
 
                                 server = (TSpaceAdvServerSMR)Activator.GetObject(typeof(TSpaceAdvServerSMR), serverid2);
 
-                            /*  Console.WriteLine("getting state from server");
-                              serverState = server.GetTSpaceState(Url);
-                              Console.WriteLine("got the state" + serverState.ServerView.ToString());
-                              Console.WriteLine("Setting previous state");
-                              TS.SetTSpaceState(serverState);
-                              Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
-                          */
 
                             TS.ChangeState(server, Url);
 
@@ -229,14 +220,6 @@ namespace Server
                         {
 
                             server = (TSpaceServerSMR)Activator.GetObject(typeof(TSpaceServerSMR), serverid2);
-
-                            /*  Console.WriteLine("getting state from server");
-                              serverState = server.GetTSpaceState(Url);
-                              Console.WriteLine("got the state" + serverState.ServerView.ToString());
-                              Console.WriteLine("Setting previous state");
-                              TS.SetTSpaceState(serverState);
-                              Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
-                          */
 
                             TS.changeState(server, Url);
 

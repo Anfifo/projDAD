@@ -192,7 +192,12 @@ namespace PuppetMaster
         //Starts a server available at URL
         void StartServer(string serverid, string URL, int mindelay, int maxdelay,string serverid2)
         {
+
+            //Process Creation Service that we are going to use
+
             string PCStoUse = "none";
+
+            //Search for the list of PCS and choose what to use
             for (int i = 0; i < PCS.Count; i++)
             {
                 if ((getIP((string)PCS[i])).Equals(getIP(URL)))
@@ -202,16 +207,19 @@ namespace PuppetMaster
                 }
             }
             
+            //If we need to get a state from another server 
             if(serverid2.Trim().Count() == 0)
             {
-                Console.WriteLine("no server was introduced");
+                //if there is a server to get state from
                 if (!(Servers.Count() == 0))
                 {
                     Console.WriteLine("choosing server");
-                    //serverid2 = Servers.ElementAt(random.Next(0, Servers.Count-1)).Value;
+                    //Choose the oldest one
                     serverid2 = Servers.ElementAt(0).Value;
                     Console.WriteLine("Selected server:" + " " + serverid2);
                 }
+
+                //if there is a server to get state from
                 else
                     serverid2 = "none";
             }
@@ -233,7 +241,9 @@ namespace PuppetMaster
         //Starts a client available at URL
         void StartClient(string clientid, string URL, string script)
         {
+            //Process Creation Service that we are going to use
             string PCStoUse = "none";
+
             string serverurl;
             for (int i = 0; i < PCS.Count; i++)
             {
@@ -249,8 +259,10 @@ namespace PuppetMaster
             //get the PCS remote object
             Pcs P = (Pcs)Activator.GetObject(typeof(Pcs), PCStoUse);
 
+            //if there is no server to ask
             if (Servers.Count() == 0)
                 serverurl = "none";
+            //if there is we get a random one 
             else
                 serverurl = Servers.ElementAt(random.Next(0, Servers.Count - 1)).Value;
 
