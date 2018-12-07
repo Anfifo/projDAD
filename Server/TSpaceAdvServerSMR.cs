@@ -489,6 +489,7 @@ namespace Server
        
         public void SetTSpaceState(TSpaceState smr)
         {
+            Console.WriteLine("started setting state");
             lock (TSpaceAdvManager.ProcessedRequests)
             {
                 MessageQueue = smr.MessageQueue;
@@ -502,6 +503,7 @@ namespace Server
                //     Console.WriteLine("In queue => id = " + m.MessageID + ";" + " seq = " + m.SequenceNumber + ";" + " deliverable = " + m.Deliverable);
                // }
             }
+            
 
         }
 
@@ -512,6 +514,7 @@ namespace Server
         /// <returns></returns>
         public TSpaceState GetTSpaceState(string Url)
         {
+            Console.WriteLine("Started getting state");
             TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
 
             TSpaceState smr = new TSpaceState();
