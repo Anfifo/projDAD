@@ -12,7 +12,13 @@ namespace Server
     [Serializable]
     public class LogEntry
     {
+        /// <summary>
+        /// Message received from client or another server
+        /// </summary>
         public TSpaceMsg Request;
+        /// <summary>
+        /// Response prompted by the request received
+        /// </summary>
         public TSpaceMsg Response;
 
         public bool Agreed { get; internal set; }
