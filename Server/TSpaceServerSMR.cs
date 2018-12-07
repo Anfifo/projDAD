@@ -80,7 +80,7 @@ namespace Server
                     // Check if it was processed in a previous viwew
                     if(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID < TSMan.ServerView.ID)
                     {
-
+                        //Console.WriteLine(TSMan.ServerView.ID);
                         TSpaceManager.ProcessedRequests.UpdateView(msg.RequestID, TSMan.ServerView);
                         TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response;
                         if (resp == null)
