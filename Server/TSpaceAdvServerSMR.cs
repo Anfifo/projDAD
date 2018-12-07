@@ -194,19 +194,7 @@ namespace Server
             // Sequence number proposal request
             if (command.Equals("proposeSeq"))
             {
-                /*lock (TSpaceAdvManager.ProcessedRequests)
-                {
-                    //Already was executed corresponsing operation
-                    LogEntry executedEntry = TSpaceAdvManager.ProcessedRequests.GetExecutedOperation(msg.OperationID);
-                    if (executedEntry != null)
-                    {
-                        Console.WriteLine("Operation already was executed: " + msg.OperationID);
-                        response.SequenceNumber = executedEntry.Response.SequenceNumber;
-                        response.Code = "proposedSeq";
-                        return response;
 
-                    }
-                }*/
                 lock (AggredOperations)
                 {
                     //Already was executed corresponsing operation
@@ -238,26 +226,33 @@ namespace Server
             {
                 //Update message queue with agreed seq number
                 update = UpdateMessage(msg.OperationID, msg.SequenceNumber);
-                /*if (update == null)
+                if (update == null)
                 {
                    
                     Console.WriteLine("Err: operation message not in queue");
                     //response.Code = "Err";
 
                     //return response;
-                }*/
+                }
             }
             Console.WriteLine("My seq = " + SequenceNumber);
+
+            Console.WriteLine(msg.OperationID + " ARRIVED BEFORE PRINT");
+
+            lock (MessageQueue)
             foreach (Message m in MessageQueue)
                 Console.WriteLine("In queue => id = " + m.MessageID + ";" + " seq = " + m.SequenceNumber + ";" + " deliverable = " + m.Deliverable);
 
             //Wait for the message head of queue
+//            Console.WriteLine(msg.OperationID + " ARRIVED OUTSIDE LOCK");
             Monitor.Enter(MessageQueue);
+  //          Console.WriteLine(msg.OperationID + " ARRIVED INSIDE LOCK");
             while (MessageQueue.Count == 0 || !MessageQueue[0].MessageID.Equals(msg.OperationID))
             {
-                TSMan.FinishedProcessing();
-                Monitor.Wait(MessageQueue);
-                TSMan.Processing();
+                //TSMan.FinishedProcessing();
+                Monitor.Wait(MessageQueue, 500);
+                Console.WriteLine("Am i still in loop?" + !MessageQueue[0].MessageID.Equals(msg.OperationID) + " IDM:" + MessageQueue[0].MessageID + " IDop:" + msg.OperationID);
+                //TSMan.Processing();
             }
             Monitor.Exit(MessageQueue);
             
@@ -335,8 +330,8 @@ namespace Server
                     Console.WriteLine("Invalid command.");
                     break;
             }
-
-            RemoveFromQueue(update);
+            Console.WriteLine("Pre Remove");
+            RemoveFromQueue(msg.OperationID);
             Console.WriteLine("Return response: " + response.OperationID);
             
             return response;
@@ -375,6 +370,8 @@ namespace Server
         public void RemoveFromQueue(string id)
         {
             Message msg = GetMessageFromQueue(id);
+            if (msg == null)
+                Console.WriteLine("WHAT THE ACTUAL FUCK");
             RemoveFromQueue(msg);
         }
 
@@ -417,9 +414,10 @@ namespace Server
             Message msg = GetMessageFromQueue(id);
             lock (MessageQueue)
             {
-                
+                //Update global sequence number
+                SequenceNumber = Math.Max(SequenceNumber, sequenceNumber);
                 //If the message was not in queue, then add it
-                if(msg == null)
+                if (msg == null)
                 {
                     Console.WriteLine("Operation message not in queue. Adding it.");
                     msg = new Message
@@ -435,8 +433,7 @@ namespace Server
                 MessageQueue.Sort();
                 Console.WriteLine("UpdateQueue " + msg.MessageID + " => seq = " + msg.SequenceNumber + " => deliverable = " + msg.Deliverable);
 
-                //Update global sequence number
-                SequenceNumber = Math.Max(SequenceNumber, sequenceNumber);
+   
 
                 Monitor.PulseAll(MessageQueue);
 
