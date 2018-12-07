@@ -208,7 +208,8 @@ namespace PuppetMaster
                 if (!(Servers.Count() == 0))
                 {
                     Console.WriteLine("choosing server");
-                    serverid2 = Servers.ElementAt(random.Next(0, Servers.Count-1)).Value;
+                    //serverid2 = Servers.ElementAt(random.Next(0, Servers.Count-1)).Value;
+                    serverid2 = Servers.ElementAt(0).Value;
                     Console.WriteLine("Selected server:" + " " + serverid2);
                 }
                 else
