@@ -28,6 +28,12 @@ namespace CommonTypes
             Servers = new List<string>();
         }
 
+        public View(View view)
+        {
+            Servers = new List<string>(view.DeepUrlsCopy());
+            ID = view.ID;
+        }
+
         public View(List<String> serverList)
         {
             Servers = new List<string>();

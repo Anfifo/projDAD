@@ -222,9 +222,12 @@ namespace Server
 
         public bool ValidView(TSpaceMsg msg)
         {
-            if (msg.MsgView == null)
-                Console.WriteLine("NO VIEW SENT WITH MSG");
-            return msg.MsgView.ID == ServerView.ID;
+            lock (ServerView)
+            {
+                if (msg.MsgView == null)
+                    Console.WriteLine("NO VIEW SENT WITH MSG");
+                return msg.MsgView.ID == ServerView.ID;
+            }
         }
 
         public View GetTotalView()
@@ -250,8 +253,6 @@ namespace Server
         public void setView(View view)
         {
             ServerView = view;
-            
-
         }
 
         internal void FinishedProcessing()
