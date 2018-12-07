@@ -9,6 +9,9 @@ using CommonTypes;
 
 namespace Server
 {
+    /// <summary>
+    /// Class responsible for handling all the tuple space storing logic
+    /// </summary>
     class TSpaceStorage : ITSpace
     {
         public List<ITuple> TS = new List<ITuple>();
@@ -22,6 +25,10 @@ namespace Server
             return TS;
         }
 
+        /// <summary>
+        /// Sets the current tuple space content
+        /// </summary>
+        /// <param name="newTuples"></param>
         public void setTuples(List<ITuple> newTuples)
         {
             TS = newTuples;
@@ -40,6 +47,11 @@ namespace Server
         
         }
 
+        /// <summary>
+        /// Finds a tuple that matches the one given
+        /// </summary>
+        /// <param name="tuple"></param>
+        /// <returns> tuple that matches the argument</returns>
         public ITuple Read(ITuple tuple)
         {
             foreach (ITuple tup in TS)
@@ -55,6 +67,11 @@ namespace Server
             return null;
         }
 
+        /// <summary>
+        /// Finds list of tuples matching the given tuple
+        /// </summary>
+        /// <param name="tuple"> tuple to be matched to </param>
+        /// <returns> list of matches found</returns>
         public List<ITuple> Take1(ITuple tuple)
         {
             List<ITuple> list = new List<ITuple>();
@@ -71,6 +88,11 @@ namespace Server
             return list;
         }
 
+        /// <summary>
+        /// Deletes the given tuple from the tupleStorage
+        /// </summary>
+        /// <param name="tuple"></param>
+        /// <returns>true if the tuple was found</returns>
         public Boolean Take2(ITuple tuple)
         {
             for ( int i = 0; i < TS.Count; i++)
