@@ -194,7 +194,6 @@ namespace Server
                     //Already was executed corresponsing operation
                     if (AggredOperations.ContainsKey(msg.OperationID))
                     {
-                        Console.WriteLine("Operation already was executed: " + msg.OperationID);
                         response.Code = "proposedSeq";
                         response.SequenceNumber = AggredOperations[msg.OperationID];
                         return response;
@@ -227,7 +226,6 @@ namespace Server
                     Console.WriteLine("Err: operation message not in queue");
                     //response.Code = "Err";
 
-                    //return response;
                 }
             }
             
@@ -478,14 +476,7 @@ namespace Server
                 SequenceNumber = smr.SequenceNumber;
                 Console.WriteLine("Starting with view: " + smr.ServerView);
                 Console.WriteLine("Start in queue: " + MessageQueue.Count);
-                foreach (Message msg in MessageQueue)
-                {
-                    Console.WriteLine("ID:"+msg.MessageID + "   " + msg.Request);
-                        
-                }
-                // foreach (Message m in MessageQueue){
-                //     Console.WriteLine("In queue => id = " + m.MessageID + ";" + " seq = " + m.SequenceNumber + ";" + " deliverable = " + m.Deliverable);
-                // }
+
             }
             
 
@@ -497,9 +488,7 @@ namespace Server
         /// <param name="Url">url of the server requesting the state</param>        /// <returns></returns>
         public TSpaceState GetTSpaceState(string Url)
         {
-            Console.WriteLine("Started getting state");
-            Console.WriteLine("Acquire lock");
-
+            
             TSpaceState smr = new TSpaceState();
             //Create operationID
             string id = TSMan.URL + "_" + (ViewUpdateCounter++);
@@ -511,17 +500,12 @@ namespace Server
                 AddingToView.Add(Url, seqNum);
             }
 
-            Console.WriteLine("My msg id => " + id + "; " + "seq => " + seqNum);
-
-            lock (MessageQueue)
-            foreach (Message msg in MessageQueue)
-                Console.WriteLine("id=> " + msg.MessageID + "; seq => " + msg.SequenceNumber);
+            
             //Wait to be head of queue
             WaitTurn(id);
 
             TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
-            Console.WriteLine("left waitturn" + " " + id);
-
+            
             //Get current list of servers
             List<string> serversUrl = TSMan.ServerView.DeepUrlsCopy();
 
@@ -537,7 +521,7 @@ namespace Server
             //Send update view to all servers
             UpdateView(Url, id, serversUrl, AddingToView[Url], true);
 
-            Console.WriteLine("id of something:" + id);
+
             RemoveFromQueue(id);
 
             smr.MessageQueue = new List<Message>();
@@ -545,20 +529,11 @@ namespace Server
             foreach (Message msg2 in MessageQueue)
                 smr.MessageQueue.Add(Message.DeepClone(msg2));
 
-            Console.WriteLine("number of elements:" + smr.MessageQueue.Count);
-
-            foreach (Message msg2 in MessageQueue)
-                Console.WriteLine("Updateid=> " + msg2.MessageID + "; Updateseq => " + msg2.SequenceNumber);
-
-
             TSMan.AddToView(Url);
             smr.ServerView = TSMan.GetTotalView();
 
-
             AddingToView.Remove(Url);
             TSpaceAdvManager.RWL.ReleaseWriterLock();
-            Console.WriteLine("Finished getting state");
-            Console.WriteLine("release lock");
 
             return smr;
             
@@ -725,7 +700,6 @@ namespace Server
             // Send message to all replicas until all have proposed a sequence number
             while (AcksCounter < TSMan.Quorum(TSMan.ServerView.Count))
             {
-                Console.WriteLine("trying to get a seq");
                 if(message.MsgView != TSMan.ServerView)
                 {
                     AcksCounter = 1;
@@ -792,8 +766,7 @@ namespace Server
                     // Store porposed sequence number
                     ProposedSeq.Add(response.SequenceNumber);
                     Interlocked.Increment(ref AcksCounter);
-                    Console.WriteLine(TSMan.ServerView.Count);
-                    Console.WriteLine("AcksCounter:"+ AcksCounter);
+
                 }
             }
         }
