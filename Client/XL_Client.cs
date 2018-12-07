@@ -51,7 +51,7 @@ namespace Client
             TSpaceMsg message = new TSpaceMsg();
             message.Code = "add";
             message.Tuple = tuple;
-            message.OperationID = ClientID + "_" + (++SequenceNumber);
+            message.RequestID = ClientID + "_" + (++SequenceNumber);
             message.MsgView = GetCurrentView();
 
             //Clear acks
@@ -66,9 +66,9 @@ namespace Client
                 //Send multicast message to all members of the view
                 this.Multicast(message, remoteCallback);
 
-                Console.WriteLine(AcksCounter + "/" + View.Count + "  for msgID: " + message.OperationID);
+                Console.WriteLine(AcksCounter + "/" + View.Count + "  for msgID: " + message.RequestID);
             }
-            Console.WriteLine(AcksCounter + "/" + View.Count + "  for msgID: " + message.OperationID);
+            Console.WriteLine(AcksCounter + "/" + View.Count + "  for msgID: " + message.RequestID);
 
             Console.WriteLine("Add " + (++AddCounter) + ": OK");
         }
@@ -106,7 +106,7 @@ namespace Client
 
             while (!matchFound)
             {
-                message.OperationID = ClientID + "_" + (++SequenceNumber);
+                message.RequestID = ClientID + "_" + (++SequenceNumber);
                 AcksCounter = 0;
 
                 // Waits until one replica returns a tuple or
@@ -179,7 +179,7 @@ namespace Client
             message.Code = "take2";
             message.Tuple = selectedTuple;
             message.ProcessID = ClientID.ToString();
-            message.OperationID = ClientID + "_" + (++SequenceNumber);
+            message.RequestID = ClientID + "_" + (++SequenceNumber);
             message.MsgView = GetCurrentView();
 
 
@@ -214,7 +214,7 @@ namespace Client
             message.Code = "take1";
             message.Tuple = template;
             message.ProcessID = ClientID.ToString();
-            message.OperationID = ClientID + "_" + (++SequenceNumber);
+            message.RequestID = ClientID + "_" + (++SequenceNumber);
             message.MsgView = GetCurrentView();
 
 
@@ -262,7 +262,7 @@ namespace Client
             {
                 //Create message
                 message.Code = "releaseLocks";
-                message.OperationID = ClientID + "_" + (++SequenceNumber);
+                message.RequestID = ClientID + "_" + (++SequenceNumber);
 
 
                 // Clear acks
@@ -329,10 +329,10 @@ namespace Client
                 return;
 
             // Stores the tuple returned 
-            // and the OperationID of the server that answered
+            // and the RequestID of the server that answered
             if (response.Code.Equals("OK"))
             {
-                Console.WriteLine("Callback OKKKKKKKKKKKKKKKKKKKKKKKKK:" + response.OperationID);
+                Console.WriteLine("Callback OKKKKKKKKKKKKKKKKKKKKKKKKK:" + response.RequestID);
                 lock (LockRef)
                 {
                     if (response.Tuple != null)
@@ -364,7 +364,7 @@ namespace Client
 
 
             // Stores the list of matching tuples 
-            // and the OperationID of the server that answered
+            // and the RequestID of the server that answered
             if (response.Code.Equals("OK"))
             {
                 // Tuples have to be added before the acks are incremented

@@ -43,27 +43,19 @@ namespace Server
         public LogEntry GetByKey(String ID)
         {
             foreach(LogEntry entry in Log){
-                if (entry.Request.RequestID == ID || entry.Request.OperationID == ID)
+                if (entry.Request.RequestID == ID)
+
                     return entry;
             }
             return null;
         }
 
-        public LogEntry GetExecutedOperation(string operationID)
-        {
-            foreach (LogEntry entry in Log)
-            {
-                if (entry.Request.OperationID.Equals(operationID) && entry.Agreed)
-                    return entry;
-            }
-            return null;
-        }
 
         public void UpdateResponse(String id, TSpaceMsg response)
         {
             foreach (LogEntry entry in Log)
             {
-                if (entry.Request.RequestID == id || entry.Request.OperationID == id)
+                if (entry.Request.RequestID == id)
                 {
                     entry.Response = response;
                 }
@@ -74,7 +66,7 @@ namespace Server
         {
             foreach (LogEntry entry in Log)
             {
-                if (entry.Request.RequestID == id || entry.Request.OperationID == id)
+                if (entry.Request.RequestID == id)
                 {
                     entry.Request.MsgView = new View(view);
                     entry.Response.MsgView = new View(view);

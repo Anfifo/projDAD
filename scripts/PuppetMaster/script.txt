@@ -1,5 +1,6 @@
 Server s1 tcp://localhost:50001/S
-Server s2 tcp://localhost:50002/S 
-Server s3 tcp://localhost:50003/S 
-Freeze s1
-Unfreeze s1
+Server s2 tcp://localhost:50002/S tcp://localhost:50001/S
+Server s3 tcp://localhost:50003/S tcp://localhost:50002/S
+Client c1 tcp://localhost:80001/Client script.txt
+Client c2 tcp://localhost:80002/Client scriptGOD.txt
+Client c3 tcp://localhost:80003/Client scriptGOD.txt
