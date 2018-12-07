@@ -1,5 +1,3 @@
-begin-repeat 10
-add <"a",DADTestA(1,"b")>
+begin-repeat 20
 read <"a",DADTestA(1,"b")>
-take <"a",DADTestA(1,"b")>
 end-repeat

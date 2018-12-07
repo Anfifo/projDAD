@@ -14,5 +14,7 @@ namespace Server
     {
         public TSpaceMsg Request;
         public TSpaceMsg Response;
+
+        public bool Agreed { get; internal set; }
     }
 }

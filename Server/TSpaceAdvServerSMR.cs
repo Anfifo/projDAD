@@ -26,6 +26,12 @@ namespace Server
 
         private static Object SequenceNumberLock = new object();
 
+        private static Object StateLock = new object();
+
+        private static Dictionary<string, int> AggredOperations = new Dictionary<string, int>();
+
+     
+
         // Delegate for remote assync call to the tuple space servers
         delegate TSpaceMsg RemoteAsyncDelegate(TSpaceMsg request);
 
@@ -112,6 +118,20 @@ namespace Server
 
             TSMan.CheckDelay();
 
+            lock (AggredOperations)
+            {
+                if (msg.Code != "proposeSeq")
+                {
+                    //Console.WriteLine("Aggred: " + msg.OperationID);
+                    AggredOperations[msg.OperationID] = msg.SequenceNumber;
+                }
+                else
+                {
+                    //Console.WriteLine("Not Agreed: " + msg.OperationID);
+
+                }
+            }
+
             TSpaceMsg response = new TSpaceMsg
             {
                 ProcessID = TSMan.URL,
@@ -167,16 +187,43 @@ namespace Server
             }
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (id = " + msg.OperationID + "; seq = " + msg.SequenceNumber + ")");
+            Console.WriteLine("#######Processing Request " + command + " (id = " + msg.OperationID + "; seq = " + msg.SequenceNumber + ")");
             
             Message update = null;
             
             // Sequence number proposal request
             if (command.Equals("proposeSeq"))
             {
+                /*lock (TSpaceAdvManager.ProcessedRequests)
+                {
+                    //Already was executed corresponsing operation
+                    LogEntry executedEntry = TSpaceAdvManager.ProcessedRequests.GetExecutedOperation(msg.OperationID);
+                    if (executedEntry != null)
+                    {
+                        Console.WriteLine("Operation already was executed: " + msg.OperationID);
+                        response.SequenceNumber = executedEntry.Response.SequenceNumber;
+                        response.Code = "proposedSeq";
+                        return response;
 
-                // Increment sequence number
-                Interlocked.Increment(ref SequenceNumber);
+                    }
+                }*/
+                lock (AggredOperations)
+                {
+                    //Already was executed corresponsing operation
+                    if (AggredOperations.ContainsKey(msg.OperationID))
+                    {
+                        Console.WriteLine("Operation already was executed: " + msg.OperationID);
+                        response.Code = "proposedSeq";
+                        response.SequenceNumber = AggredOperations[msg.OperationID];
+                        return response;
+                    }
+                }
+
+                lock (MessageQueue)
+                {
+                    // Increment sequence number
+                    Interlocked.Increment(ref SequenceNumber);
+                }
                 response.SequenceNumber = SequenceNumber;
                 response.Code = "proposedSeq";
                 AddMessageToQueue(msg);
@@ -191,17 +238,29 @@ namespace Server
             {
                 //Update message queue with agreed seq number
                 update = UpdateMessage(msg.OperationID, msg.SequenceNumber);
-                if (update == null)
+                /*if (update == null)
                 {
+                   
                     Console.WriteLine("Err: operation message not in queue");
-                    response.Code = "Err";
+                    //response.Code = "Err";
 
-                    return response;
-                }
+                    //return response;
+                }*/
             }
+            Console.WriteLine("My seq = " + SequenceNumber);
+            foreach (Message m in MessageQueue)
+                Console.WriteLine("In queue => id = " + m.MessageID + ";" + " seq = " + m.SequenceNumber + ";" + " deliverable = " + m.Deliverable);
 
             //Wait for the message head of queue
-            WaitTurn(msg.OperationID);
+            Monitor.Enter(MessageQueue);
+            while (MessageQueue.Count == 0 || !MessageQueue[0].MessageID.Equals(msg.OperationID))
+            {
+                TSMan.FinishedProcessing();
+                Monitor.Wait(MessageQueue);
+                TSMan.Processing();
+            }
+            Monitor.Exit(MessageQueue);
+            
 
             Console.WriteLine("Execute operation " + msg.OperationID + ": code = " + command);
 
@@ -286,10 +345,13 @@ namespace Server
         internal void ChangeState(TSpaceAdvServerSMR server, string url)
         {
             TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
-            TSpaceState serverState;
-            Console.WriteLine("Synchronizing state...");
-            serverState = server.GetTSpaceState(url);
-            this.SetTSpaceState(serverState);
+            lock (StateLock)
+            {
+                TSpaceState serverState;
+                Console.WriteLine("Synchronizing state...");
+                serverState = server.GetTSpaceState(url);
+                this.SetTSpaceState(serverState);
+            }
             TSpaceAdvManager.RWL.ReleaseWriterLock();
         }
 
@@ -297,6 +359,7 @@ namespace Server
         {
             lock (MessageQueue)
             {
+                Console.WriteLine("AddMessageToQueue " + msg.OperationID + " => seq = " + SequenceNumber);
                 Message newMessage = new Message();
                 newMessage.ProcessID = msg.ProcessID;
                 newMessage.SequenceNumber = SequenceNumber;
@@ -309,16 +372,26 @@ namespace Server
             }
         }
 
+        public void RemoveFromQueue(string id)
+        {
+            Message msg = GetMessageFromQueue(id);
+            RemoveFromQueue(msg);
+        }
+
         private void RemoveFromQueue(Message msg)
         {
             // Delete processed message from queue
             if (msg != null)
             {
+                string id = msg.MessageID;
+                Console.WriteLine("RemoveFromQueue " + msg.MessageID + " => seq = " + msg.SequenceNumber );
                 lock (MessageQueue)
                 {
                     MessageQueue.Remove(msg);
+                    MessageQueue.Sort();
                     Monitor.PulseAll(MessageQueue);
                 }
+                //Console.WriteLine("RemoveFromQueue " + GetMessageFromQueue(id) == null);
             }
         }
 
@@ -328,7 +401,7 @@ namespace Server
             Monitor.Enter(MessageQueue);
             while (MessageQueue.Count == 0 || !MessageQueue[0].MessageID.Equals(id))
             {
-                Monitor.Wait(MessageQueue);
+                Monitor.Wait(MessageQueue, 500);
             }
             Monitor.Exit(MessageQueue);
         }
@@ -341,22 +414,49 @@ namespace Server
         /// <returns></returns>
         private Message UpdateMessage(string id, int sequenceNumber)
         {
+            Message msg = GetMessageFromQueue(id);
             lock (MessageQueue)
             {
-                foreach(Message msg in MessageQueue)
+                
+                //If the message was not in queue, then add it
+                if(msg == null)
                 {
-                    if (msg.MessageID.Equals(id))
+                    Console.WriteLine("Operation message not in queue. Adding it.");
+                    msg = new Message
                     {
-                        msg.SequenceNumber = sequenceNumber;
-                        msg.Deliverable = true;
-                        MessageQueue.Sort();
-                        Monitor.PulseAll(MessageQueue);
-                        return msg;
-                    }
+                        MessageID = id,
+                    };
+                    MessageQueue.Add(msg);
                 }
+
+                //Update the message sequence number and set it as deliverable
+                msg.SequenceNumber = sequenceNumber;
+                msg.Deliverable = true;
+                MessageQueue.Sort();
+                Console.WriteLine("UpdateQueue " + msg.MessageID + " => seq = " + msg.SequenceNumber + " => deliverable = " + msg.Deliverable);
+
+                //Update global sequence number
+                SequenceNumber = Math.Max(SequenceNumber, sequenceNumber);
+
+                Monitor.PulseAll(MessageQueue);
+
+                return msg;
+
             }
 
-            return null;
+        }
+
+        private Message GetMessageFromQueue(string id)
+        {
+            lock (MessageQueue)
+            {
+                foreach (Message msg in MessageQueue)
+                {
+                    if (msg.MessageID.Equals(id))
+                        return msg;
+                }
+                return null;
+            }
         }
 
         private void RemoveMessagesFrom(string id)
@@ -369,6 +469,8 @@ namespace Server
                     {
                         Console.WriteLine("Removing message: " + msg.MessageID);
                         MessageQueue.Remove(msg);
+                        MessageQueue.Sort();
+
                     }
                 }
             }
@@ -397,7 +499,11 @@ namespace Server
                 TSMan.setView(smr.ServerView);
                 TSMan.SetTuples(smr.TupleSpace);
                 SequenceNumber = smr.SequenceNumber;
-                Console.WriteLine("Starting with view: " + smr.ServerView.ID);
+                Console.WriteLine("Starting with view: " + smr.ServerView);
+                Console.WriteLine("Start in queue: " + MessageQueue.Count);
+                foreach (Message m in MessageQueue){
+                    Console.WriteLine("In queue => id = " + m.MessageID + ";" + " seq = " + m.SequenceNumber + ";" + " deliverable = " + m.Deliverable);
+                }
             }
 
         }
@@ -442,13 +548,14 @@ namespace Server
             //Send update view to all servers
             UpdateView(Url, id, serversUrl, AddingToView[Url], true);
 
-            
+            RemoveFromQueue(id);
+
+
             AddingToView.Remove(Url);
             TSpaceAdvManager.RWL.ReleaseWriterLock();
-            Console.WriteLine("Return state to: " + Url);
-
-
+                
             return smr;
+            
         }
 
         private void UpdateView(string updateServer, string operationID, List<string> allServers, int seqNum, bool insert)
@@ -577,7 +684,7 @@ namespace Server
         {
             Monitor.Enter(SequenceNumberLock);
            
-            Console.WriteLine("Message " + id + " : request proposed sequence number");
+            //Console.WriteLine("Message " + id + " : request proposed sequence number");
 
             // Create request message
             TSpaceMsg message = new TSpaceMsg();
@@ -601,7 +708,10 @@ namespace Server
                 ProposedSeq.Clear();
 
                 // Add my proposal
-                Interlocked.Increment(ref SequenceNumber);
+                lock (MessageQueue)
+                {
+                    Interlocked.Increment(ref SequenceNumber);
+                }
                 ProposedSeq.Add(SequenceNumber);
                 AddMessageToQueue(message);
             }

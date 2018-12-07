@@ -249,6 +249,7 @@ namespace Client
 
             if (response.Code.Equals("proposedSeq"))
             {
+                Console.WriteLine(response);
 
                 lock (ProposedSeq)
                 {
@@ -276,6 +277,8 @@ namespace Client
 
             if (response.Code.Equals("ACK"))
             {
+                Console.WriteLine(response);
+
                 IncrementAcksCounter(response.RequestID);
             }
         }
@@ -296,6 +299,7 @@ namespace Client
             // and the OperationID of the server that answered
             if (response.Code.Equals("OK"))
             {
+                Console.WriteLine(response);
                 if (response.Tuple != null)
                 {
                     lock (LockRef)

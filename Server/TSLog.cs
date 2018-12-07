@@ -21,6 +21,11 @@ namespace Server
             {
                 Request = request
             };
+            if (!request.Code.Equals("proposeSeq"))
+                entry.Agreed = true;
+            else
+                entry.Agreed = false;
+
 
             Log.Add(entry);
         }
@@ -38,7 +43,17 @@ namespace Server
         public LogEntry GetByKey(String ID)
         {
             foreach(LogEntry entry in Log){
-                if (entry.Request.RequestID == ID || entry.Request.OperationID == ID)
+                if (entry.Request.RequestID.Equals(ID))
+                    return entry;
+            }
+            return null;
+        }
+
+        public LogEntry GetExecutedOperation(string operationID)
+        {
+            foreach (LogEntry entry in Log)
+            {
+                if (entry.Request.OperationID.Equals(operationID) && entry.Agreed)
                     return entry;
             }
             return null;
@@ -48,7 +63,7 @@ namespace Server
         {
             foreach (LogEntry entry in Log)
             {
-                if (entry.Request.RequestID == id || entry.Request.OperationID == id)
+                if (entry.Request.RequestID.Equals(id))
                 {
                     entry.Response = response;
                 }
@@ -59,7 +74,7 @@ namespace Server
         {
             foreach (LogEntry entry in Log)
             {
-                if (entry.Request.RequestID == id || entry.Request.OperationID == id)
+                if (entry.Request.RequestID.Equals(id))
                 {
                     entry.Request.MsgView = view;
                     entry.Response.MsgView = view;
