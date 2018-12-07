@@ -829,6 +829,7 @@ namespace Server
         /// <returns>True if the server is alive; false otherwise.</returns>
         public bool TryConnection(string serverUrl, bool tryRemove)
         {
+            Console.WriteLine("Trying connection " + serverUrl + ": " + tryRemove);
             TSMan.CheckFreeze();
 
             TSMan.CheckDelay();
@@ -836,6 +837,8 @@ namespace Server
             
             if (serverUrl.Equals(TSMan.URL))
             {
+                Console.WriteLine("Return false #2");
+
                 return true;
             }
 
@@ -859,19 +862,25 @@ namespace Server
                 try
                 {
                     del.EndInvoke(asyncResult);
+                    Console.WriteLine("Return true");
+
                     return true;
                 }
                 catch (Exception)
                 {
                     if (tryRemove)
                         TryRemoveFromView(serverUrl);
-                    
+                    Console.WriteLine("Return false #2");
+
                     return false;
                 }
             }
             if (tryRemove)
                 TryRemoveFromView(serverUrl);
-          
+
+            Console.WriteLine("Return false #3");
+
+
             return false;
         }
 

@@ -34,7 +34,7 @@ namespace Server
 
         public void Freeze() => TSMan.Freeze();
 
-        public void Unfreeze() => TSMan.Freeze();
+        public void Unfreeze() => TSMan.Unfreeze();
 
         public TSpaceMsg XLProcessRequest(TSpaceMsg msg)
         {

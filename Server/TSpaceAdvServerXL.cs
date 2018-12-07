@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Timers;
 using CommonTypes;
 
 
@@ -19,6 +22,15 @@ namespace Server
 
         public List<ITuple> Freezer = new List<ITuple>();
 
+        private Dictionary<string, int> SuspectedDead = new Dictionary<string, int>();
+
+        private System.Timers.Timer ViewUpdateTimer;
+
+        delegate bool PingDelegate(string url);
+
+        delegate bool DeleteFromViewDel(string url, bool tryRemove);
+
+        private static object RemoveFromViewLock = new object();
 
 
         delegate void UpdateViewDel(string subject);
@@ -27,11 +39,202 @@ namespace Server
         public TSpaceAdvServerXL(String url, int _mindelay,int _maxdelay)
         {
             TSMan = new TSpaceAdvManager(url, _mindelay, _maxdelay);
+            InitUpdateViewTimer();
         }
 
         public TSpaceAdvServerXL(string url, int _mindelay, int _maxdelay, View view)
         {
             TSMan = new TSpaceAdvManager(url, _mindelay, _maxdelay, view);
+            InitUpdateViewTimer();
+
+        }
+
+        private void InitUpdateViewTimer()
+        {
+            ViewUpdateTimer = new System.Timers.Timer(2000);
+            ViewUpdateTimer.AutoReset = true;
+            ViewUpdateTimer.Elapsed += new ElapsedEventHandler(PeriodicViewUpdate);
+            ViewUpdateTimer.Start();
+        }
+
+        public void PeriodicViewUpdate(object sender, ElapsedEventArgs e)
+        {
+            foreach (string url in TSMan.ServerView.GetUrls())
+            {
+                new Task(() => { TryConnection(url, true); }).Start();
+            }
+
+        }
+
+        /// <summary>
+        /// Checks if server at the given location is alive
+        /// </summary>
+        /// <param name="serverUrl">Server URL</param>
+        /// <returns>True if the server is alive; false otherwise.</returns>
+        public bool TryConnection(string serverUrl, bool tryRemove)
+        {
+            TSMan.CheckFreeze();
+
+            TSMan.CheckDelay();
+
+
+            if (serverUrl.Equals(TSMan.URL))
+            {
+                return true;
+            }
+
+            // Get the reference for the tuple space server
+            ITSpaceServer server = (ITSpaceServer)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
+
+
+            // Ping server
+            if (server == null)
+            {
+                return false;
+            }
+
+            PingDelegate del = new PingDelegate(server.Ping);
+            IAsyncResult asyncResult = del.BeginInvoke(TSMan.URL, null, null);
+
+            asyncResult.AsyncWaitHandle.WaitOne(5000, false);
+
+            if (asyncResult.IsCompleted)
+            {
+                try
+                {
+                    del.EndInvoke(asyncResult);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    if (tryRemove)
+                        TryRemoveFromView(serverUrl);
+
+                    return false;
+                }
+            }
+            if (tryRemove)
+                TryRemoveFromView(serverUrl);
+
+            return false;
+        }
+
+        private void TryRemoveFromView(string deadURL)
+        {
+            lock (SuspectedDead)
+            {
+                if (SuspectedDead.ContainsKey(deadURL) || !TSMan.ServerView.Contains(deadURL))
+                    return;
+                SuspectedDead.Add(deadURL, 0);
+
+            }
+            Console.WriteLine("Suspected dead " + deadURL);
+            List<string> servers = TSMan.ServerView.GetUrls();
+            Monitor.Enter(SuspectedDead);
+            while (SuspectedDead.ContainsKey(deadURL) &&
+                (SuspectedDead[deadURL] < TSMan.Quorum(TSMan.ServerView.GetUrls().Count)))
+            {
+
+                
+                TSpaceAdvServerXL server;
+                DeleteFromViewDel del;
+                AsyncCallback callback = new AsyncCallback(TryRemoveFromViewCallback);
+                foreach (string serverUrl in servers)
+                {
+                    server = (TSpaceAdvServerXL)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
+                    del = new DeleteFromViewDel(server.TryConnection);
+                    del.BeginInvoke(deadURL, false, callback, deadURL);
+
+                }
+                //Releases until it acquires the lock or timeout elapses
+                Monitor.Wait(SuspectedDead, 2000);
+            }
+            Monitor.Exit(SuspectedDead);
+            Console.WriteLine("Exit SuspectDead = " + SuspectedDead[deadURL]);
+            //T
+            Console.WriteLine("Confirmed Dead " + deadURL);
+
+            lock (SuspectedDead)
+            {
+                //Already has been removed
+                if (!SuspectedDead.ContainsKey(deadURL))
+                {
+                    Console.WriteLine("Already has been removed");
+                    return;
+                }
+            }
+
+            
+            //TODO add variable refering current remove
+            //Only inc ack if in that remove
+            Console.WriteLine("Entering wait");
+            Monitor.Enter(RemoveFromViewLock);
+            UpdateViewCounter = 0;
+            while(UpdateViewCounter < TSMan.Quorum(servers.Count))
+            {
+
+                TSpaceAdvServerXL server;
+                UpdateViewDel del;
+
+                AsyncCallback callback = new AsyncCallback(RemoveFromViewCallback);
+                Console.WriteLine("Sending to all remove");
+                Console.WriteLine(TSMan.ServerView);
+
+                List<string> testServers = new List<string>(servers);
+                foreach (string serverUrl in testServers)
+                {
+                    Console.WriteLine(servers.ToString());
+                    Console.WriteLine("sending to "+ serverUrl);
+                    server = (TSpaceAdvServerXL)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
+                    del = new UpdateViewDel(server.RemoveFromView);
+                    del.BeginInvoke(deadURL, callback, serverUrl);
+                    Console.WriteLine("Stater c = " + UpdateViewCounter + "; quorum = " + TSMan.Quorum(servers.Count));
+
+                }
+
+                Monitor.Wait(RemoveFromViewLock, 2000);
+                Console.WriteLine("Awaikning c = " + UpdateViewCounter + "; quorum = " +TSMan.Quorum(servers.Count) );
+            }
+            Monitor.Exit(RemoveFromViewLock);
+                
+            Console.WriteLine("Confirm remove of server " + deadURL + " => " + UpdateViewCounter);
+
+        }
+
+        private void RemoveFromViewCallback(IAsyncResult result)
+        {
+            string serverURL = (string)result.AsyncState;
+
+            Console.WriteLine("RemoveCallback ->  " + serverURL);
+
+            Interlocked.Increment( ref UpdateViewCounter);
+            lock (RemoveFromViewLock)
+            {
+                Monitor.PulseAll(RemoveFromViewLock);
+            }
+            Console.WriteLine("RemoveCallback ->  " + UpdateViewCounter);
+
+        }
+
+
+
+        private void TryRemoveFromViewCallback(IAsyncResult result)
+        {
+            string serverURL = (string)result.AsyncState;
+            DeleteFromViewDel del = (DeleteFromViewDel)((AsyncResult)result).AsyncDelegate;
+
+            // Retrieve results.
+            bool isDead = !del.EndInvoke(result);
+
+            lock (SuspectedDead)
+            {
+                if (isDead && SuspectedDead.ContainsKey(serverURL))
+                {
+                    Console.WriteLine("Is dead votes " + SuspectedDead[serverURL]);
+                    SuspectedDead[serverURL]++;
+                }
+                Monitor.PulseAll(SuspectedDead);
+            }
         }
 
         public void AddToView(string subject)
@@ -59,16 +262,34 @@ namespace Server
             }
 
         }
-
+        int removeCounter = 0;
         public void RemoveFromView(string subject)
         {
             TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
 
+            
+            Console.WriteLine("Remove from view # 1");
+
+            if (!TSMan.ServerView.Contains(subject))
+            {
+                Console.WriteLine("Already removed");
+                return;
+            }
 
             //Remove server from view
             TSMan.RemoveFromView(subject);
+            Console.WriteLine("Remove from view # 2 => " + (++removeCounter));
 
-            //TODO: Remove from dead subjects
+            //Remove from dead suspects
+            lock (SuspectedDead)
+            {
+                if (SuspectedDead.ContainsKey(subject))
+                {
+                    SuspectedDead.Remove(subject);
+                }
+                Monitor.Pulse(SuspectedDead);
+            }
+            
 
             TSpaceAdvManager.RWL.ReleaseWriterLock();
 
@@ -82,7 +303,7 @@ namespace Server
 
         public void Freeze() => TSMan.Freeze();
 
-        public void Unfreeze() => TSMan.Freeze();
+        public void Unfreeze() => TSMan.Unfreeze();
 
         public TSpaceMsg XLProcessRequest(TSpaceMsg msg)
         {
@@ -327,9 +548,6 @@ namespace Server
 
             while (UpdateViewCounter < TSMan.Quorum(TSMan.ServerView.Count))
             {
-                Console.WriteLine("Send UpdateView to all servers " );
-                Console.WriteLine("View count = " + TSMan.ServerView.Count);
-                Console.WriteLine("Acks count = " + UpdateViewCounter);
 
                 Multicast(url, callback, RequestID);
 
@@ -380,6 +598,7 @@ namespace Server
             lock (UpdateViewLock)
             {
                 UpdateViewCounter++;
+                Console.WriteLine("Update view acks: " + UpdateViewCounter);
                 Monitor.PulseAll(UpdateViewLock);
             }
         }
