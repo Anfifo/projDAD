@@ -181,6 +181,7 @@ namespace Server
                     else
                     {
                         response.Code = "Repeated";
+                        //Console.WriteLine("Repetido");
                         return response;
                     }
 
@@ -340,13 +341,12 @@ namespace Server
         internal void ChangeState(TSpaceAdvServerSMR server, string url)
         {
             TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
-            lock (StateLock)
-            {
+
                 TSpaceState serverState;
                 Console.WriteLine("Synchronizing state...");
                 serverState = server.GetTSpaceState(url);
                 this.SetTSpaceState(serverState);
-            }
+
             TSpaceAdvManager.RWL.ReleaseWriterLock();
         }
 
@@ -384,14 +384,14 @@ namespace Server
             if (msg != null)
             {
                 string id = msg.MessageID;
-                Console.WriteLine("RemovingFromQueue " + msg.MessageID + " => seq = " + msg.SequenceNumber );
+                //Console.WriteLine("RemovingFromQueue " + msg.MessageID + " => seq = " + msg.SequenceNumber );
                 
-                    Console.WriteLine("MidRemoving " + msg.MessageID);
+                    //Console.WriteLine("MidRemoving " + msg.MessageID);
                     MessageQueue.Remove(msg);
                     MessageQueue.Sort();
                     Monitor.PulseAll(MessageQueue);
                 
-                Console.WriteLine("RemoveFromQueue " + (GetMessageFromQueue(id) == null).ToString() + msg.MessageID);
+                //Console.WriteLine("RemoveFromQueue " + (GetMessageFromQueue(id) == null).ToString() + msg.MessageID);
             }
         }
 
@@ -416,6 +416,7 @@ namespace Server
         {
             lock (MessageQueue)
             {
+                
                 Message msg = GetMessageFromQueue(id);
                 //Update global sequence number
                 SequenceNumber = Math.Max(SequenceNumber, sequenceNumber);
@@ -428,6 +429,9 @@ namespace Server
                     };
                     MessageQueue.Add(msg);
                 }
+
+                foreach (Message msg2 in MessageQueue)
+                    Console.WriteLine("Updateid=> " + msg2.MessageID + "; Updateseq => " + msg2.SequenceNumber);
 
                 //Update the message sequence number and set it as deliverable
                 msg.SequenceNumber = sequenceNumber;
@@ -510,25 +514,31 @@ namespace Server
         /// <summary>
         /// Gets the tuple space state
         /// </summary>
-        /// <param name="Url">url of the server requesting the state</param>
-        /// <returns></returns>
+        /// <param name="Url">url of the server requesting the state</param>        /// <returns></returns>
         public TSpaceState GetTSpaceState(string Url)
         {
             Console.WriteLine("Started getting state");
             TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
+            Console.WriteLine("Acquire lock");
 
             TSpaceState smr = new TSpaceState();
             //Create operationID
             string id = TSMan.URL + "_" + (ViewUpdateCounter++);
 
+            int seqNum;
             lock (AddingToView)
             {
-                int seqNum = GetSequenceNumber(id, null);
+                seqNum = GetSequenceNumber(id, null);
                 AddingToView.Add(Url, seqNum);
             }
 
+            Console.WriteLine("My msg id => " + id + "; " + "seq => " + seqNum);
+            lock(MessageQueue)
+            foreach (Message msg in MessageQueue)
+                Console.WriteLine("id=> " + msg.MessageID + "; seq => " + msg.SequenceNumber);
             //Wait to be head of queue
             WaitTurn(id);
+            Console.WriteLine("left waitturn" + " " + id);
 
             //Get current list of servers
             List<string> serversUrl = TSMan.ServerView.DeepUrlsCopy();
@@ -553,7 +563,9 @@ namespace Server
 
             AddingToView.Remove(Url);
             TSpaceAdvManager.RWL.ReleaseWriterLock();
-                
+            Console.WriteLine("Finished getting state");
+            Console.WriteLine("release lock");
+
             return smr;
             
         }
@@ -719,6 +731,7 @@ namespace Server
             // Send message to all replicas until all have proposed a sequence number
             while (AcksCounter < TSMan.Quorum(TSMan.ServerView.Count))
             {
+                Console.WriteLine("trying to get a seq");
                 if(message.MsgView != TSMan.ServerView)
                 {
                     AcksCounter = 1;
@@ -736,10 +749,13 @@ namespace Server
                 // Agreed sequence number = highest proposed sequence number
                 agreedSeq = ProposedSeq.Max();
             }
+           
 
             Console.WriteLine("Message " + message.OperationID + " (agreedSeq = " + agreedSeq + ")");
 
             Monitor.Exit(SequenceNumberLock);
+            //UpdateMessage(id, agreedSeq);
+            
             return agreedSeq;
         }
 
@@ -782,6 +798,8 @@ namespace Server
                     // Store porposed sequence number
                     ProposedSeq.Add(response.SequenceNumber);
                     Interlocked.Increment(ref AcksCounter);
+                    Console.WriteLine(TSMan.ServerView.Count);
+                    Console.WriteLine("AcksCounter:"+ AcksCounter);
                 }
             }
         }
@@ -804,9 +822,10 @@ namespace Server
             List<ITSpaceServer> servers = TSMan.ServerView.GetProxys(TSMan.URL);
             RemoteAsyncDelegate remoteDel;
             int i = 0;
+            Console.WriteLine(TSMan.ServerView);
             foreach (ITSpaceServer server in servers)
             {
-
+                
                 // Create delegate for remote method
                 remoteDel = new RemoteAsyncDelegate(server.ProcessRequest);
                 try
@@ -829,7 +848,7 @@ namespace Server
         /// <returns>True if the server is alive; false otherwise.</returns>
         public bool TryConnection(string serverUrl, bool tryRemove)
         {
-            Console.WriteLine("Trying connection " + serverUrl + ": " + tryRemove);
+            //Console.WriteLine("Trying connection " + serverUrl + ": " + tryRemove);
             TSMan.CheckFreeze();
 
             TSMan.CheckDelay();
@@ -837,7 +856,7 @@ namespace Server
             
             if (serverUrl.Equals(TSMan.URL))
             {
-                Console.WriteLine("Return false #2");
+                //Console.WriteLine("Return false #2");
 
                 return true;
             }
@@ -862,7 +881,7 @@ namespace Server
                 try
                 {
                     del.EndInvoke(asyncResult);
-                    Console.WriteLine("Return true");
+                    //Console.WriteLine("Return true");
 
                     return true;
                 }
@@ -870,7 +889,7 @@ namespace Server
                 {
                     if (tryRemove)
                         TryRemoveFromView(serverUrl);
-                    Console.WriteLine("Return false #2");
+                    //Console.WriteLine("Return false #2");
 
                     return false;
                 }
@@ -878,7 +897,7 @@ namespace Server
             if (tryRemove)
                 TryRemoveFromView(serverUrl);
 
-            Console.WriteLine("Return false #3");
+            //Console.WriteLine("Return false #3");
 
 
             return false;
