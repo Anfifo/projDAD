@@ -2,9 +2,9 @@
 
 * To run this project you have to open the solution via visual studio.
 * Go to project->set startup projects-> select multiple projects-> make PCS and PuppetMaster start(in this order).
-* The puppetmaster script is available at scripts/PuppetMaster.(We assume we only have 1 server located at tcp://localhost:50001/S)
+* The puppetmaster script is available at scripts/PuppetMaster.
 * To add scripts for the client to run go to scripts/Client.
-* The PCS info is in a config file(we assume only one PCS for now) located in scripts/PuppetMaster.
+* The PCS info is in a config file located in scripts/PuppetMaster.
 * Build the solution(ctrl+shift+b).
 * Start
 
