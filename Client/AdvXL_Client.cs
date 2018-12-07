@@ -29,7 +29,6 @@ namespace Client
             
             lock (MatchingTuples)
             {
-                Console.WriteLine("cleared acks #1");
                 AcksCounter = 0;
                 MatchingTuples.Clear();
             }
@@ -67,10 +66,7 @@ namespace Client
             {
                 //Send multicast message to all members of the view
                 this.Multicast(message, remoteCallback);
-
-                Console.WriteLine(AcksCounter + "/" + View.Count);// + "  for msgID: " + message.RequestID);
             }
-            Console.WriteLine(AcksCounter + "/" + View.Count);//+ "  for msgID: " + message.RequestID);
             ActiveOperations.Remove(message.RequestID);
             Console.WriteLine("Add " + (++AddCounter) + ": OK");
         }
@@ -233,7 +229,6 @@ namespace Client
             // Clear responses from previour requests
             lock (MatchingTuples)
             {
-                Console.WriteLine("cleared acks #2");
                 AcksCounter = 0;
                 MatchingTuples.Clear();
             }
@@ -247,9 +242,7 @@ namespace Client
                 //Send multicast take request to all members of the view
                 this.Multicast(message, remoteCallback);
             }
-            //Console.WriteLine("Callback MatchingTSize = " + MatchingTuples.Count);
-            //Console.WriteLine("Callback count = " + AcksCounter);
-            //Console.WriteLine("View Count = " + View.Count);
+        
 
             ActiveOperations.Remove(message.RequestID);
 
@@ -314,16 +307,12 @@ namespace Client
             TSpaceMsg response = del.EndInvoke(result);
 
 
-            //Console.WriteLine("add" + response);
-
             if (!ValidView(response))
                 return;
 
             if (response.Code.Equals("ACK"))
             {
-                Console.WriteLine("Increment #3");
                 IncrementAcksCounter(response.RequestID);
-                Console.WriteLine(AcksCounter + "/" + View.Count + "   by " + response.ProcessID);
             }
         }
 
@@ -368,7 +357,6 @@ namespace Client
             // Retrieve results.
             TSpaceMsg response = del.EndInvoke(result);
 
-            //Console.WriteLine("take1" + response);
 
             if (!ValidView(response))
                 return;
@@ -412,7 +400,6 @@ namespace Client
                 Console.WriteLine("Send...");
             }
 
-            //Console.WriteLine("Sending " + message.Code + " in view " + message.MsgView);
 
             RemoteAsyncDelegate remoteDel;
             foreach (ITSpaceServer server in View)
@@ -424,7 +411,7 @@ namespace Client
                     // Call remote method
                     remoteDel.BeginInvoke(message, asyncCallback, null);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     Console.WriteLine("Failed to send");
                 }
