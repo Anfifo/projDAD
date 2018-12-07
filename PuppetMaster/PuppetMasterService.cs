@@ -203,7 +203,6 @@ namespace PuppetMaster
                 if ((getIP((string)PCS[i])).Equals(getIP(URL)))
                 {
                     PCStoUse = (string)PCS[i];
-                    Console.WriteLine("Using this PCS:" + " " + PCStoUse);
                 }
             }
             
@@ -213,10 +212,8 @@ namespace PuppetMaster
                 //if there is a server to get state from
                 if (!(Servers.Count() == 0))
                 {
-                    Console.WriteLine("choosing server");
                     //Choose the oldest one
                     serverid2 = Servers.ElementAt(0).Value;
-                    Console.WriteLine("Selected server:" + " " + serverid2);
                 }
 
                 //if there is a server to get state from
@@ -250,7 +247,6 @@ namespace PuppetMaster
                 if ((getIP((string)PCS[i])).Equals(getIP(URL)))
                 {
                     PCStoUse = (string)PCS[i];
-                    Console.WriteLine("Using this PCS:" + " " + PCStoUse);
                 }
             }
             //add to the list of servers
@@ -347,7 +343,6 @@ namespace PuppetMaster
 
             string[] splitUrl = Url.Split(':');
 
-            Console.WriteLine("this is the result of the get ip" + splitUrl[1]);
             return splitUrl[1];
 
         }
