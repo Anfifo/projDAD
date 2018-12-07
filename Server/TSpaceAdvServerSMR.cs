@@ -167,10 +167,8 @@ namespace Server
                     }
                     else
                     {
-                        //Console.WriteLine("repeated");
-                        response.Code = "Repeated";
 
-                        //Console.WriteLine("Repeated message response was:" + TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID).Response);
+                        response.Code = "Repeated";
                         return response;
                     }
 
@@ -318,13 +316,9 @@ namespace Server
                     Console.WriteLine("Invalid command.");
                     break;
             }
-            Console.WriteLine("Pre Remove");
-
+            
 
             RemoveFromQueue(msg.OperationID);
-
-
-            Console.WriteLine("Return response: " + response.OperationID);
             
             return response;
         }
@@ -345,7 +339,6 @@ namespace Server
         {
             lock (MessageQueue)
             {
-                Console.WriteLine("AddMessageToQueue " + msg.OperationID + " => seq = " + SequenceNumber);
                 Message newMessage = new Message();
                 newMessage.ProcessID = msg.ProcessID;
                 newMessage.SequenceNumber = SequenceNumber;
@@ -363,8 +356,6 @@ namespace Server
             lock (MessageQueue)
             {
                     Message msg = GetMessageFromQueue(id);
-                if (msg == null)
-                    Console.WriteLine("WHAT THE ACTUAL FUCK");
                 RemoveFromQueue(msg);
             }
         }
@@ -375,14 +366,10 @@ namespace Server
             if (msg != null)
             {
                 string id = msg.MessageID;
-                //Console.WriteLine("RemovingFromQueue " + msg.MessageID + " => seq = " + msg.SequenceNumber );
+                MessageQueue.Remove(msg);
+                MessageQueue.Sort();
+                Monitor.PulseAll(MessageQueue);
                 
-                    //Console.WriteLine("MidRemoving " + msg.MessageID);
-                    MessageQueue.Remove(msg);
-                    MessageQueue.Sort();
-                    Monitor.PulseAll(MessageQueue);
-                
-                //Console.WriteLine("RemoveFromQueue " + (GetMessageFromQueue(id) == null).ToString() + msg.MessageID);
             }
         }
 
@@ -421,15 +408,11 @@ namespace Server
                     MessageQueue.Add(msg);
                 }
 
-                foreach (Message msg2 in MessageQueue)
-                    Console.WriteLine("Updateid=> " + msg2.MessageID + "; Updateseq => " + msg2.SequenceNumber);
-
                 //Update the message sequence number and set it as deliverable
                 msg.SequenceNumber = sequenceNumber;
                 msg.Deliverable = true;
                 MessageQueue.Sort();
                 
-   
 
                 Monitor.PulseAll(MessageQueue);
 
@@ -826,14 +809,11 @@ namespace Server
             //Never happens in this implementation
             if (message.Code.Equals("badView") && message.MsgView.ID > TSMan.ServerView.ID)
             {
-                Console.WriteLine("Cleaning Acks because of bad view: " + AcksCounter);
                 AcksCounter = 0;
             }
 
             List<ITSpaceServer> servers = TSMan.ServerView.GetProxys(TSMan.URL);
             RemoteAsyncDelegate remoteDel;
-            int i = 0;
-            Console.WriteLine(TSMan.ServerView);
             foreach (ITSpaceServer server in servers)
             {
                 
