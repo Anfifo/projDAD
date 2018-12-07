@@ -131,7 +131,7 @@ namespace Client
                     SetNewView(SuggestedView);
                     SuggestedView = null;
                     InvalidView = false;
-                    Console.WriteLine("Cleaning Acks because of bad view: " + AcksCounter);
+                    //Console.WriteLine("Cleaning Acks because of bad view: " + AcksCounter);
                     ClearCallBacksResults();
                     return true;
                 }
@@ -162,7 +162,7 @@ namespace Client
                
             }
             
-            Console.WriteLine("View count = " + View.Count);
+            //Console.WriteLine("View count = " + View.Count);
         }
 
         public void SuggestView(View view)
