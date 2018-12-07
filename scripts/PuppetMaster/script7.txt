@@ -1,6 +1,0 @@
-Server s1 tcp://localhost:50003/S
-Server s2 tcp://localhost:50008/S
-Server s3 tcp://localhost:50005/S
-Freeze s1
-Unfreeze s1
-

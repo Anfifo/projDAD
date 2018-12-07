@@ -1,3 +1,0 @@
-begin-repeat 30
-add <"a",DADTestA(1,"b")>
-end-repeat
