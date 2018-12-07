@@ -178,6 +178,10 @@ namespace Server
         public void Unfreeze()
         {
             Frozen = false;
+            lock (FreezeLock)
+            {
+                Monitor.PulseAll(FreezeLock);
+            }
             Console.WriteLine("UnFreezing");
         }
 
