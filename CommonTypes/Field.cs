@@ -118,7 +118,7 @@ namespace CommonTypes
             if (value is StringValue)
                 return ((StringValue)value).field;
 
-            return value.GetType().ToString();
+            return value.GetType().ToString() + "(?args..)";
 
         }
     }
