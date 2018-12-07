@@ -57,7 +57,6 @@ namespace Server
 
         public List<ITuple> Take1(ITuple tuple)
         {
-            string Output = "";
             List<ITuple> list = new List<ITuple>();
 
             for (int i = 0; i < TS.Count; i++)
@@ -68,10 +67,7 @@ namespace Server
                 }
             }
 
-            foreach(ITuple t in list){
-                Output += t;
-            }
-            Console.WriteLine("% Take1 (matches): " + Output);
+            Console.WriteLine("% Take1 (matches): " + list.Count + "Tuple like " + tuple);
             return list;
         }
 
