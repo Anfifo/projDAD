@@ -67,10 +67,8 @@ namespace Client
                 //Send multicast message to all members of the view
                 this.Multicast(message, remoteCallback);
 
-                Console.WriteLine(AcksCounter + "/" + View.Count + "  for msgID: " + message.RequestID);
             }
-            Console.WriteLine(AcksCounter + "/" + View.Count + "  for msgID: " + message.RequestID);
-
+            
             Console.WriteLine("Add " + (++AddCounter) + ": OK");
         }
 
@@ -222,8 +220,6 @@ namespace Client
             // Clear responses from previour requests
             lock (MatchingTuples)
             {
-                Console.WriteLine("cleared acks #2");
-
                 AcksCounter = 0;
                 MatchingTuples.Clear();
             }
@@ -237,9 +233,6 @@ namespace Client
                 //Send multicast take request to all members of the view
                 this.Multicast(message, remoteCallback);
             }
-            //Console.WriteLine("Callback MatchingTSize = " + MatchingTuples.Count);
-            //Console.WriteLine("Callback count = " + AcksCounter);
-            //Console.WriteLine("View Count = " + View.Count);
 
             if (AcksCounter > View.Count)
                 throw new Exception();
@@ -309,9 +302,7 @@ namespace Client
 
             if (response.Code.Equals("ACK"))
             {
-                Console.WriteLine("Increment #3");
                 Interlocked.Increment(ref AcksCounter);
-                Console.WriteLine(AcksCounter + "/" + View.Count + "   by " + response.ProcessID);
             }
         }
 
@@ -333,7 +324,6 @@ namespace Client
             // and the RequestID of the server that answered
             if (response.Code.Equals("OK"))
             {
-                Console.WriteLine("Callback OKKKKKKKKKKKKKKKKKKKKKKKKK:" + response.RequestID);
                 lock (LockRef)
                 {
                     if (response.Tuple != null)
@@ -341,7 +331,6 @@ namespace Client
                         Tuple = response.Tuple;
                     }
                 }
-                Console.WriteLine("Increment #1");
                 Interlocked.Increment(ref AcksCounter);
             }
         }
@@ -371,7 +360,7 @@ namespace Client
                 // Tuples have to be added before the acks are incremented
                 lock (MatchingTuples) {
                     MatchingTuples.Add(new List<ITuple>(response.Tuples));
-                    Console.WriteLine("Increment #2");
+                    
                     Interlocked.Increment(ref AcksCounter);         
                 }
                 if (verbose)
@@ -400,7 +389,6 @@ namespace Client
             {
                 Console.WriteLine("Update to " + GetCurrentView());
                 message.MsgView = GetCurrentView();
-                Console.WriteLine("Send...");
             }
 
             //Console.WriteLine("Sending " + message.Code + " in view " + message.MsgView);
@@ -420,6 +408,9 @@ namespace Client
                     Console.WriteLine("Failed to send");
                 }
             }
+
+            Thread.Sleep(200);
+
         }
     }
 }

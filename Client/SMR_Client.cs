@@ -7,6 +7,11 @@ using System.Threading;
 
 namespace Client
 {
+    /// <summary>
+    /// Class simulating a state machine replication client
+    /// Following the protocol ISIS, this client takes
+    /// advantage of the fact that in this case, clients don't fail
+    /// </summary>
     class SMR_Client : AbstractClient, ITSpaceAPI
     {
         // List that stores all the proposed sequence numbers
@@ -118,9 +123,7 @@ namespace Client
 
                 request.MsgView = GetCurrentView();
 
-
                 AcksCounter = 0;
-
                 
                 // Waits until one replica returns a tuple or
                 // all replicas answered that they dont have a match
@@ -372,7 +375,6 @@ namespace Client
             {
                 Console.WriteLine("Update to " + GetCurrentView());
                 message.MsgView = GetCurrentView();
-                Console.WriteLine("Send...");
             }
 
             //Console.WriteLine("Sending " + message.Code + " in view " + message.MsgView);
@@ -391,6 +393,7 @@ namespace Client
                     Console.WriteLine("Failed to send");
                 }
             }
+            Thread.Sleep(200);
         }
     }
 }

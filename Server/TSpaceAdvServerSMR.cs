@@ -152,42 +152,31 @@ namespace Server
                 if (TSpaceAdvManager.ProcessedRequests.Contains(msg.RequestID))
                 {
                     // Check if it was processed in a previous viwew
-                    LogEntry Temp = TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID);
-                    if ((TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID < TSMan.ServerView.ID) ||
-                            (Temp.Response != null && Temp.Response.ProcessID != TSMan.URL))
+                    if (TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID < TSMan.ServerView.ID)
                     {
-                        
-                        Console.WriteLine("Processed in previous view:" +
-                                            TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID);
-
-
-
+                        //Console.WriteLine(TSMan.ServerView.ID);
                         TSpaceAdvManager.ProcessedRequests.UpdateView(msg.RequestID, TSMan.ServerView);
                         TSpaceMsg resp = TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID).Response;
-
                         if (resp == null)
                         {
+                            Console.WriteLine("NULL RESPONSE SAVED");
                             return null;
                         }
-                        resp.MsgView = TSMan.ServerView;
 
-                        TSpaceManager.ProcessedRequests.UpdateView(msg.RequestID, TSMan.ServerView);
-                        TSpaceManager.ProcessedRequests.UpdateResponse(msg.RequestID, resp);
-
-
-                        // Return the response sent in the previous view
                         return resp;
-                    } 
+                    }
                     else
                     {
+
                         response.Code = "Repeated";
-                        //Console.WriteLine("Repetido");
                         return response;
                     }
 
                 }
-            
+                Console.WriteLine("Starting processing of request " + msg.RequestID);
+
                 // Add sequence number of request to processed requests
+
                 TSpaceAdvManager.ProcessedRequests.Add(msg);
 
             }
@@ -327,13 +316,9 @@ namespace Server
                     Console.WriteLine("Invalid command.");
                     break;
             }
-            Console.WriteLine("Pre Remove");
-
+            
 
             RemoveFromQueue(msg.OperationID);
-
-
-            Console.WriteLine("Return response: " + response.OperationID);
             
             return response;
         }
@@ -354,7 +339,6 @@ namespace Server
         {
             lock (MessageQueue)
             {
-                Console.WriteLine("AddMessageToQueue " + msg.OperationID + " => seq = " + SequenceNumber);
                 Message newMessage = new Message();
                 newMessage.ProcessID = msg.ProcessID;
                 newMessage.SequenceNumber = SequenceNumber;
@@ -372,8 +356,6 @@ namespace Server
             lock (MessageQueue)
             {
                     Message msg = GetMessageFromQueue(id);
-                if (msg == null)
-                    Console.WriteLine("WHAT THE ACTUAL FUCK");
                 RemoveFromQueue(msg);
             }
         }
@@ -384,14 +366,10 @@ namespace Server
             if (msg != null)
             {
                 string id = msg.MessageID;
-                //Console.WriteLine("RemovingFromQueue " + msg.MessageID + " => seq = " + msg.SequenceNumber );
+                MessageQueue.Remove(msg);
+                MessageQueue.Sort();
+                Monitor.PulseAll(MessageQueue);
                 
-                    //Console.WriteLine("MidRemoving " + msg.MessageID);
-                    MessageQueue.Remove(msg);
-                    MessageQueue.Sort();
-                    Monitor.PulseAll(MessageQueue);
-                
-                //Console.WriteLine("RemoveFromQueue " + (GetMessageFromQueue(id) == null).ToString() + msg.MessageID);
             }
         }
 
@@ -430,15 +408,11 @@ namespace Server
                     MessageQueue.Add(msg);
                 }
 
-                foreach (Message msg2 in MessageQueue)
-                    Console.WriteLine("Updateid=> " + msg2.MessageID + "; Updateseq => " + msg2.SequenceNumber);
-
                 //Update the message sequence number and set it as deliverable
                 msg.SequenceNumber = sequenceNumber;
                 msg.Deliverable = true;
                 MessageQueue.Sort();
                 
-   
 
                 Monitor.PulseAll(MessageQueue);
 
@@ -524,7 +498,6 @@ namespace Server
         public TSpaceState GetTSpaceState(string Url)
         {
             Console.WriteLine("Started getting state");
-            TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
             Console.WriteLine("Acquire lock");
 
             TSpaceState smr = new TSpaceState();
@@ -539,11 +512,14 @@ namespace Server
             }
 
             Console.WriteLine("My msg id => " + id + "; " + "seq => " + seqNum);
-            lock(MessageQueue)
+
+            lock (MessageQueue)
             foreach (Message msg in MessageQueue)
                 Console.WriteLine("id=> " + msg.MessageID + "; seq => " + msg.SequenceNumber);
             //Wait to be head of queue
             WaitTurn(id);
+
+            TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
             Console.WriteLine("left waitturn" + " " + id);
 
             //Get current list of servers
@@ -553,10 +529,7 @@ namespace Server
 
             smr.SequenceNumber = SequenceNumber;
 
-            TSMan.AddToView(Url);
-
-            smr.ServerView = TSMan.GetTotalView();
-
+            
             //its static, cant be accessed with instance
             smr.ProcessedRequests = TSpaceAdvManager.ProcessedRequests;
             smr.TupleSpace = TSMan.GetTuples();
@@ -576,6 +549,11 @@ namespace Server
 
             foreach (Message msg2 in MessageQueue)
                 Console.WriteLine("Updateid=> " + msg2.MessageID + "; Updateseq => " + msg2.SequenceNumber);
+
+
+            TSMan.AddToView(Url);
+            smr.ServerView = TSMan.GetTotalView();
+
 
             AddingToView.Remove(Url);
             TSpaceAdvManager.RWL.ReleaseWriterLock();
@@ -831,14 +809,11 @@ namespace Server
             //Never happens in this implementation
             if (message.Code.Equals("badView") && message.MsgView.ID > TSMan.ServerView.ID)
             {
-                Console.WriteLine("Cleaning Acks because of bad view: " + AcksCounter);
                 AcksCounter = 0;
             }
 
             List<ITSpaceServer> servers = TSMan.ServerView.GetProxys(TSMan.URL);
             RemoteAsyncDelegate remoteDel;
-            int i = 0;
-            Console.WriteLine(TSMan.ServerView);
             foreach (ITSpaceServer server in servers)
             {
                 

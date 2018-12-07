@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace CommonTypes
 {
+    /// <summary>
+    /// Interface that represents the operations offered by a server hosting a TupleSpace
+    /// </summary>
     public interface ITSpaceServer
     {
         string Status();
