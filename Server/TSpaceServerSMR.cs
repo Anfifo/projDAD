@@ -80,11 +80,7 @@ namespace Server
                     // Check if it was processed in a previous viwew
                     if(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID < TSMan.ServerView.ID)
                     {
-                        if (TSpaceManager.ProcessedRequests.Log.Count > 150)
-                            TSpaceManager.ProcessedRequests.Log.RemoveRange(0, 100);
-                        Console.WriteLine("Processed in previous view");
-                        Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID);
-                        //Console.WriteLine(TSMan.ServerView.ID);
+
                         TSpaceManager.ProcessedRequests.UpdateView(msg.RequestID, TSMan.ServerView);
                         TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.RequestID).Response;
                         if (resp == null)

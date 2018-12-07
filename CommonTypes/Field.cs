@@ -2,6 +2,9 @@
 
 namespace CommonTypes
 {   
+    /// <summary>
+    /// Implementation of a Tuple's field
+    /// </summary>
     [Serializable]
     public class Field : IField
     {

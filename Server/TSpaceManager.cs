@@ -11,6 +11,9 @@ using System.Net.Sockets;
 
 namespace Server
 {
+    /// <summary>
+    /// Class that handles some repeated TupleSpace operations
+    /// </summary>
     [Serializable]
     class TSpaceManager
     {
