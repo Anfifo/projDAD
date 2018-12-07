@@ -4,3 +4,4 @@ Client c1 tcp://localhost:80001/Client script.txt
 Client c2 tcp://localhost:80002/Client script2.txt
 Client c3 tcp://localhost:80003/Client script2.txt
 Client c4 tcp://localhost:80004/Client script2.txt
+

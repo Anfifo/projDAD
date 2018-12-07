@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using CommonTypes;
-using System.Runtime.Remoting.Messaging;
 
 
 namespace Server
@@ -12,22 +11,17 @@ namespace Server
     {
         public TSpaceAdvManager TSMan;
 
-        enum UpdateType : int { INSERT, REMOVE}
-
-        //Spot for view update
-        //TODO: Copy slot in state
-        public Slot UpdateSlot = new Slot();
+        enum UpdateType : int { INSERT, REMOVE }
 
         private static object UpdateViewLock = new object();
 
-        private static int ReservedSlotsCounter = 0;
-
         private static int UpdateViewCounter = 0;
 
-        //delegate bool ReserveSlotDel(Slot.UpdateType type, string subject, string from);
+        public List<ITuple> Freezer = new List<ITuple>();
+
+
 
         delegate void UpdateViewDel(string subject);
-
 
 
         public TSpaceAdvServerXL(String url, int _mindelay,int _maxdelay)
@@ -38,12 +32,6 @@ namespace Server
         public TSpaceAdvServerXL(string url, int _mindelay, int _maxdelay, View view)
         {
             TSMan = new TSpaceAdvManager(url, _mindelay, _maxdelay, view);
-        }
-
-        public bool ReserverSlot(Slot.UpdateType type, string subject, string from)
-        {
-            //Tries to reserve spot
-            return UpdateSlot.ReserveSlot(type, subject, from);
         }
 
         public void AddToView(string subject)
@@ -69,17 +57,13 @@ namespace Server
                 Console.WriteLine(e.GetType().ToString());
                 Console.WriteLine(e.StackTrace);
             }
-          
-            /*
-            //Release slot if reserved for this add
-            UpdateSlot.ReleaseSlot(Slot.UpdateType.INSERT, subject, from);
-            */
+
         }
 
         public void RemoveFromView(string subject)
         {
             TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
-                
+
 
             //Remove server from view
             TSMan.RemoveFromView(subject);
@@ -89,17 +73,8 @@ namespace Server
             TSpaceAdvManager.RWL.ReleaseWriterLock();
 
 
-            /*
-            //Release slot if taken for deade server
-            UpdateSlot.ReleaseFrom(subject);
-
-            //Release slot if reserved for this add
-            UpdateSlot.ReleaseSlot(Slot.UpdateType.INSERT, subject, from);
-            */
-
-            
         }
-
+        //private bool TryConnection(string serverUrl,string url) => TSMan.TryConnection(serverUrl,url);
 
         public bool Ping(string serverURL) => TSMan.Ping(serverURL);
 
@@ -108,8 +83,6 @@ namespace Server
         public void Freeze() => TSMan.Freeze();
 
         public void Unfreeze() => TSMan.Freeze();
-
-        public List<ITuple> Freezer = new List<ITuple>();
 
         public TSpaceMsg XLProcessRequest(TSpaceMsg msg)
         {
@@ -120,15 +93,15 @@ namespace Server
             TSpaceMsg response = new TSpaceMsg
             {
                 ProcessID = TSMan.URL,
-                OperationID = msg.OperationID,
+                RequestID = msg.RequestID,
                 MsgView = TSMan.GetTotalView()
             };
 
             // Verifying View! Wrong view sends updated view
             if (!TSMan.ValidView(msg))
             {
-                //Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
-                Console.WriteLine("Wrong View ( s = " + TSMan.ServerView + "; c = " + msg.MsgView + " )");
+                Console.WriteLine("client:" +  msg.MsgView.ToString() + "server:" +TSMan.GetTotalView().ToString());
+                //Console.WriteLine("Wrong View ( s = " + TSMan.ServerView + "; c = " + msg.MsgView + " )");
                 return TSMan.CreateBadViewReply(msg);
             }
 
@@ -136,49 +109,60 @@ namespace Server
                 Console.WriteLine(msg);
 
 
-            lock (TSpaceManager.ProcessedRequests)
+            lock (TSpaceAdvManager.ProcessedRequests)
             {
                 // Check if request as already been processed
-                if (TSpaceManager.ProcessedRequests.Contains(msg.OperationID))
+                if (TSpaceAdvManager.ProcessedRequests.Contains(msg.RequestID))
                 {
+                    LogEntry Temp = TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID);
                     // Check if it was processed in a previous viwew
-                    if (TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID < TSMan.ServerView.ID)
+                    if (Temp.Request.MsgView.ID < TSMan.ServerView.ID ||
+                        (Temp.Response != null && Temp.Response.ProcessID != TSMan.URL))
                     {
-                        if (TSpaceManager.ProcessedRequests.Log.Count > 150)
-                            TSpaceManager.ProcessedRequests.Log.RemoveRange(0, 100);
                         Console.WriteLine("Processed in previous view");
-                        Console.WriteLine(TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Request.MsgView.ID);
+                        Console.WriteLine(TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID).Request.MsgView.ID);
                         //Console.WriteLine(TSMan.ServerView.ID);
-                        TSpaceManager.ProcessedRequests.UpdateView(msg.OperationID, TSMan.ServerView);
-                        TSpaceMsg resp = TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Response;
+
+                        TSpaceMsg resp = TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID).Response;
+                        
                         if (resp == null)
                         {
                             Console.WriteLine("NULL RESPONSE SAVED");
                             return null;
                         }
 
+                        resp.MsgView = TSMan.ServerView;
+
+                        TSpaceAdvManager.ProcessedRequests.UpdateView(msg.RequestID, TSMan.ServerView);
+                        TSpaceAdvManager.ProcessedRequests.UpdateResponse(msg.RequestID, resp);
+
+
+                        Console.WriteLine(resp);
                         return resp;
                     }
                     else
                     {
+                        
                         //Console.WriteLine("repeated");
                         response.Code = "Repeated";
 
-                        //Console.WriteLine("Repeated message response was:" + TSpaceManager.ProcessedRequests.GetByKey(msg.OperationID).Response);
+                       // Console.WriteLine("Repeated message response was:" + TSpaceAdvManager.ProcessedRequests.GetByKey(msg.RequestID).Response
+                         //   + "\r\n IN RESPONSE TO " + msg);
+                        
                         return response;
                     }
 
                 }
-                Console.WriteLine("Starting processing of request " + msg.OperationID);
+                //Console.WriteLine("Starting processing of request " + msg.RequestID);
 
                 // Add sequence number of request to processed requests
 
-                TSpaceManager.ProcessedRequests.Add(msg);
+                TSpaceAdvManager.ProcessedRequests.Add(msg);
 
             }
 
             string command = msg.Code;
-            Console.WriteLine("Processing Request " + command + " (seq = " + msg.OperationID + ")" );
+            Console.WriteLine("Processing Request " + command + " (seq = " + msg.RequestID + ")" );
 
 
 
@@ -220,8 +204,9 @@ namespace Server
                     lock (TSLockHandler.Lock)
                     {
                         // Deletes tuple
-                        if(!(TSMan.TSpace.Take2(msg.Tuple)));
-                            Freezer.Add(msg.Tuple);
+                        if (!(TSMan.TSpace.Take2(msg.Tuple))) ;
+                        Freezer.Add(msg.Tuple);
+                        //TSMan.TSpace.Take2(msg.Tuple);
                         // Unlocks all tuples previously locked under UserID
                         TSLockHandler.UnlockTuples(msg.ProcessID);
                     }
@@ -247,7 +232,7 @@ namespace Server
                     break;
             }
 
-            Console.WriteLine("Return answer");
+            Console.WriteLine("Return answer to " + command + " (seq = " + msg.RequestID + ")");
             return response;
         }
 
@@ -271,32 +256,32 @@ namespace Server
 
 
         public void UpdateView() => TSMan.UpdateView();
-        
 
-        public void SetTSpaceState(TSpaceState xl)
+        public void UpdateView(string url)
         {
-            
-                TSpaceManager.ProcessedRequests = xl.ProcessedRequests;
-                TSMan.setView(xl.ServerView);
-                TSMan.SetTuples(xl.TupleSpace);
-                Freezer = xl.Freezer;
-                TSLockHandler.SetContent(xl.LockedTuplesKeys, xl.LockedTuplesValues);
-            
+            throw new NotImplementedException();
+        }
+
+
+        public void SetTSpaceState(TSpaceState smr)
+        {
+            lock (TSpaceAdvManager.ProcessedRequests)
+            {
+                TSpaceAdvManager.ProcessedRequests = smr.ProcessedRequests;
+                TSMan.setView(smr.ServerView);
+                TSMan.SetTuples(smr.TupleSpace);
+                TSLockHandler.SetContent(smr.LockedTuplesKeys, smr.LockedTuplesValues);
+                Console.WriteLine("Starting with view: " + smr.ServerView.ID);
+            }
 
         }
 
         public TSpaceState GetTSpaceState(string Url)
         {
+
             //Acquire the lock to stop the server from processing requests
             TSpaceAdvManager.RWL.AcquireWriterLock(Timeout.Infinite);
             Console.WriteLine("Getting state for: " + Url);
-
-            /*
-            //Reserve spot
-            TryReserveSpot(Url, Slot.UpdateType.INSERT);
-
-            Console.WriteLine("Reserved slot");
-            */
 
             //Copy State
             TSpaceState xl = CopyState(Url);
@@ -312,123 +297,91 @@ namespace Server
             return xl;
         }
 
-        private void UpdateAll(string url, string operationID)
+        private TSpaceState CopyState(string Url) { 
+            TSpaceState xl = new TSpaceState();
+
+
+            xl.LockedTuplesKeys = TSLockHandler.GetKeys();
+            xl.LockedTuplesValues = TSLockHandler.GetValues();
+
+            TSMan.AddToView(Url);
+
+            xl.ServerView = TSMan.GetTotalView();
+
+            xl.ProcessedRequests = TSpaceAdvManager.ProcessedRequests; //its static, cant be accessed with instance
+            xl.TupleSpace = TSMan.GetTuples();
+
+            return xl;
+
+        }
+
+        private void UpdateAll(string url, string RequestID)
         {
-            
+
             Monitor.Enter(UpdateViewLock);
 
             UpdateViewCounter = 0;
             AsyncCallback callback = new AsyncCallback(UpdateViewCallback);
 
+            Multicast(url, callback, RequestID);
+
             while (UpdateViewCounter < TSMan.Quorum(TSMan.ServerView.Count))
             {
-                Console.WriteLine("Send UpdateView to all servers");
-                Multicast(url, callback, operationID);
+                Console.WriteLine("Send UpdateView to all servers " );
+                Console.WriteLine("View count = " + TSMan.ServerView.Count);
+                Console.WriteLine("Acks count = " + UpdateViewCounter);
+
+                Multicast(url, callback, RequestID);
 
                 //Releases until it acquires the lock or timeout elapses
                 Monitor.Wait(UpdateViewLock, 2000);
             }
+            Console.WriteLine("All updated = " + UpdateViewCounter);
+
             Monitor.Exit(UpdateViewLock);
         }
 
-        /*private void TryReserveSlotCallback(IAsyncResult result)
-        {
-            ReserveSlotDel del = (ReserveSlotDel)((AsyncResult)result).AsyncDelegate;
-
-            // Retrieve results.
-            bool response = del.EndInvoke(result);
-
-            lock (UpdateViewLock) {
-                if (response)
-                {
-                    ReservedSlotsCounter++;
-                    Monitor.PulseAll(UpdateViewLock);
-                }
-
-            }
-        }*/
-
-        private void UpdateViewCallback(IAsyncResult result)
-        {
-            lock (UpdateViewLock)
-            {
-                    UpdateViewCounter++;
-                    Monitor.PulseAll(UpdateViewLock);
-            }
-        }
-
-        /*private void TryReserveSpot(string url, Slot.UpdateType type)
-        {
-            Monitor.Enter(UpdateViewLock);
-            AsyncCallback callback = new AsyncCallback(TryReserveSlotCallback);
-            ReservedSlotsCounter = 0;
-            while (ReservedSlotsCounter < TSMan.Quorum(TSMan.ServerView.Count))
-            {
-                Console.WriteLine("Send ReserverSlot to all servers");
-                //TODO: Multicast
-                Multicast(type, url, callback, "ReserveSlot");
-                //Releases until it acquires the lock or timeout elapses
-                Monitor.Wait(UpdateViewLock, 2000);
-            }
-            Monitor.Exit(UpdateViewLock);
-        }*/
 
         private void Multicast(string subject, AsyncCallback asyncCallback, string operation)
         {
-            //TODO
-            View view = CheckViewValid();
 
-            List<ITSpaceServer> servers = TSMan.ServerView.GetProxys(TSMan.URL);
-            
-            foreach (ITSpaceServer server in servers)
+            List<string> servers = TSMan.ServerView.GetUrls(); ;
+           
+            foreach (string serverUrl in servers)
             {
                
+                TSpaceAdvServerXL server = (TSpaceAdvServerXL)Activator.GetObject(typeof(ITSpaceServer), serverUrl);
                 try
                 {
                     if (operation.Equals("AddToView"))
                     {
-                        UpdateViewDel remoteDel = new UpdateViewDel(((TSpaceAdvServerXL)server).AddToView);
+                        UpdateViewDel remoteDel = new UpdateViewDel(server.AddToView);
                         remoteDel.BeginInvoke(subject, asyncCallback, null);
 
                     }
 
                     else if (operation.Equals("RemoveFromView"))
                     {
-                        UpdateViewDel remoteDel = new UpdateViewDel(((TSpaceAdvServerXL)server).RemoveFromView);
+                        UpdateViewDel remoteDel = new UpdateViewDel(server.RemoveFromView);
                         remoteDel.BeginInvoke(subject, asyncCallback, null);
 
                     }
-                    /*else if (operation.Equals("ReserveSlot"))
-                    {
-                        ReserveSlotDel remoteDel = new ReserveSlotDel(((TSpaceAdvServerXL)server).ReserverSlot);
-                        remoteDel.BeginInvoke(type, subject, TSMan.URL, asyncCallback, null);
-
-                    }*/
                 }
                 catch (Exception)
                 {
                     Console.WriteLine("Failed to send");
                 }
+
             }
         }
 
-        private View CheckViewValid() { return TSMan.ServerView; }
-
-        private TSpaceState CopyState(string Url)
+        private void UpdateViewCallback(IAsyncResult result)
         {
-            Console.WriteLine("CopyState(" + Url + ")");
-            TSpaceState xl = new TSpaceState();
-            xl.LockedTuplesKeys = TSLockHandler.GetKeys();
-            xl.LockedTuplesValues = TSLockHandler.GetValues();
-
-            TSMan.AddToView(Url);
-            xl.ServerView = TSMan.GetTotalView();
-
-            xl.ProcessedRequests = TSpaceAdvManager.ProcessedRequests; //its static, cant be accessed with instance
-            xl.TupleSpace = TSMan.GetTuples();
-
-            xl.Freezer = Freezer;
-            return xl;
+            lock (UpdateViewLock)
+            {
+                UpdateViewCounter++;
+                Monitor.PulseAll(UpdateViewLock);
+            }
         }
 
         public TSpaceMsg ProcessRequest(TSpaceMsg msg)
@@ -442,11 +395,11 @@ namespace Server
 
             response = XLProcessRequest(msg);
 
-            lock (TSpaceManager.ProcessedRequests)
+            lock (TSpaceAdvManager.ProcessedRequests)
             {
-                if (response.Code != "Repeated" && response.Code != "badView" && TSpaceManager.ProcessedRequests.Contains(msg.OperationID))
+                if (response.Code != "Repeated" && response.Code != "badView" && TSpaceAdvManager.ProcessedRequests.Contains(msg.RequestID))
                 {
-                    TSpaceManager.ProcessedRequests.UpdateResponse(msg.OperationID, response);
+                    TSpaceAdvManager.ProcessedRequests.UpdateResponse(msg.RequestID, response);
                     //Console.WriteLine("SAVED THIS TRASH: " + response.ToString());
                 }
 
@@ -459,11 +412,6 @@ namespace Server
             //Console.WriteLine("RESPONSE:" + response);
 
             return response;
-        }
-
-        void ITSpaceServer.UpdateView()
-        {
-            throw new NotImplementedException();
         }
     }
 }

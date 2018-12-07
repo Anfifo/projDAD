@@ -75,7 +75,7 @@ namespace Client
             if (algorithm == "x")
             {
                 if (mode == "a")
-                    ClientType = new XL_Client(Servers, clientID);
+                    ClientType = new AdvXL_Client(Servers, clientID);
                 if (mode == "b")
                     ClientType = new XL_Client(Servers, clientID);
             }

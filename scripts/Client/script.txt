@@ -1,3 +1,3 @@
-begin-repeat 20
+begin-repeat 30
 add <"a",DADTestA(1,"b")>
 end-repeat

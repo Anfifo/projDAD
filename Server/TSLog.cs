@@ -44,6 +44,7 @@ namespace Server
         {
             foreach(LogEntry entry in Log){
                 if (entry.Request.RequestID == ID)
+
                     return entry;
             }
             return null;
