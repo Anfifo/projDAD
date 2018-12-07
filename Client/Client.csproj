@@ -52,6 +52,7 @@
     <Compile Include="SMR_Client.cs" />
     <Compile Include="TSpaceAPI.cs" />
     <Compile Include="AbstractClient.cs" />
+    <Compile Include="AdvXL_Client.cs" />
     <Compile Include="XL_Client.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -52,6 +52,7 @@
     <Compile Include="TSpaceAdvServerSMR.cs" />
     <Compile Include="TSpaceServerSMR.cs" />
     <Compile Include="TSpaceManager.cs" />
+    <Compile Include="TSpaceAdvServerXL2.cs" />
     <Compile Include="TSpaceAdvServerXL.cs" />
     <Compile Include="TSpaceStorage.cs" />
     <Compile Include="TSpaceServerXL.cs" />

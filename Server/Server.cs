@@ -98,14 +98,7 @@ namespace Server
 
                             server = (TSpaceAdvServerXL)Activator.GetObject(typeof(TSpaceAdvServerXL), serverid2);
 
-                            /*  Console.WriteLine("getting state from server");
-                              serverState = server.GetTSpaceState(Url);
-                              Console.WriteLine("got the state" + serverState.ServerView.ToString());
-                              Console.WriteLine("Setting previous state");
-                              TS.SetTSpaceState(serverState);
-                              Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
-                          */
-
+                          
                             TS.ChangeState(server, Url);
 
                         }
@@ -145,15 +138,7 @@ namespace Server
                         {
 
                             server = (TSpaceServerXL)Activator.GetObject(typeof(TSpaceServerXL), serverid2);
-
-                            /*  Console.WriteLine("getting state from server");
-                              serverState = server.GetTSpaceState(Url);
-                              Console.WriteLine("got the state" + serverState.ServerView.ToString());
-                              Console.WriteLine("Setting previous state");
-                              TS.SetTSpaceState(serverState);
-                              Console.WriteLine("I defined this view:" + TS.UpdateView().ToString()); // CAREFUL WITH DELETE
-                          */
-
+                        
                             TS.changeState(server, Url);
 
                         }

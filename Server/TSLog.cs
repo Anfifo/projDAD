@@ -43,7 +43,7 @@ namespace Server
         public LogEntry GetByKey(String ID)
         {
             foreach(LogEntry entry in Log){
-                if (entry.Request.RequestID.Equals(ID))
+                if (entry.Request.RequestID == ID || entry.Request.OperationID == ID)
                     return entry;
             }
             return null;
@@ -63,7 +63,7 @@ namespace Server
         {
             foreach (LogEntry entry in Log)
             {
-                if (entry.Request.RequestID.Equals(id))
+                if (entry.Request.RequestID == id || entry.Request.OperationID == id)
                 {
                     entry.Response = response;
                 }
@@ -74,7 +74,7 @@ namespace Server
         {
             foreach (LogEntry entry in Log)
             {
-                if (entry.Request.RequestID.Equals(id))
+                if (entry.Request.RequestID == id || entry.Request.OperationID == id)
                 {
                     entry.Request.MsgView = new View(view);
                     entry.Response.MsgView = new View(view);
