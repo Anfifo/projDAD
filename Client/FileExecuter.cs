@@ -94,8 +94,17 @@ namespace Client
                 }
 
             }
-
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             ExecuteOperations(operations);
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            TimeSpan t = TimeSpan.FromMilliseconds(elapsedMs);
+            string answer = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
+                                    t.Hours,
+                                    t.Minutes,
+                                    t.Seconds,
+                                    t.Milliseconds);
+            Console.WriteLine("It took:" + " " +  answer + " " + "to execute this script");
         }
 
         /// <summary>
