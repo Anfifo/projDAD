@@ -1,2 +1,0 @@
-take <"a",DADTestA(1,"b")>
-

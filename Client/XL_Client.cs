@@ -409,7 +409,7 @@ namespace Client
                 }
             }
 
-            Thread.Sleep(200);
+            
 
         }
     }

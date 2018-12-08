@@ -393,7 +393,7 @@ namespace Client
                     Console.WriteLine("Failed to send");
                 }
             }
-            Thread.Sleep(200);
+            
         }
     }
 }

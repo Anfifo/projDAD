@@ -1,0 +1,5 @@
+begin-repeat 1000
+add <"a",DADTestA(1,"b")>
+read <"a",DADTestA(1,"b")>
+take <"a",DADTestA(1,"b")>
+end-repeat
